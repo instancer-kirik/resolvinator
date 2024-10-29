@@ -1,0 +1,86 @@
+<.header>
+  Solution <%= @solution.id %>
+  <:subtitle>This is a solution record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/solutions/#{@solution}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit solution</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @solution.name %></:item>
+  <:item title="Desc"><%= @solution.desc %></:item>
+  <:item title="Upvotes"><%= @solution.upvotes %></:item>
+  <:item title="Downvotes"><%= @solution.downvotes %></:item>
+  <:item title="Descriptions">
+    <div class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
+      <dt class="w-1/4 flex-none text-zinc-500">Descriptions</dt>
+      <dd class="text-zinc-700">
+        <ul>
+          <%= for description <- @solution.descriptions do %>
+            <li class={"description #{if description.hidden, do: "pre-hidden", else: ""}"}>
+              <p class={if description.hidden, do: "line-through", else: ""}><%= description.text %></p>
+              <button phx-click={if description.hidden, do: "unhide-description", else: "hide-description"} phx-value-id={description.id}>
+                <%= if description.hidden, do: "Unhide", else: "Hide" %>
+              </button>
+            </li>
+          <% end %>
+        </ul>
+      </dd>
+    </div>
+  </:item>
+  <:item title="Solutions">
+    <ul>
+      <%= for solution <- @solution.related_solutions do %>
+        <li><%= solution.name %></li>
+      <% end %>
+    </ul>
+  </:item>
+  <:item title="Problem">
+    <ul>
+      <%= for problem <- @solution.problems do %>
+        <li><%= problem.name %></li>
+      <% end %>
+    </ul>
+  </:item>
+  <:item title="Lessons">
+    <ul>
+      <%= for lesson <- @solution.lessons do %>
+        <li><%= lesson.name %></li>
+      <% end %>
+    </ul>
+  </:item>
+  <:item title="Advantages">
+    <ul>
+      <%= for advantage <- @solution.advantages do %>
+        <li><%= advantage.name %></li>
+      <% end %>
+    </ul>
+  </:item>
+</.list>
+
+<.back navigate={~p"/solutions"}>Back to solutions</.back>
+
+<.modal :if={@live_action == :edit} id="solution-modal" show on_cancel={JS.patch(~p"/solutions/#{@solution}")}>
+  <.live_component
+    module={ResolvinatorWeb.SolutionLive.FormComponent}
+    id={@solution.id}
+    title={@page_title}
+    action={@live_action}
+    solution={@solution}
+    patch={~p"/solutions/#{@solution}"}
+  />
+</.modal>
+<.live_component
+  module={ResolvinatorWeb.SearchAndRelateComponent}
+  id="search-and-relate"
+  solution={@solution}
+  search_query={@search_query}
+  results={@results}
+  selected={@selected}
+  loading={@loading}
+  error={@error}
+  current_user={@current_user}
+  source = {@source}
+/>

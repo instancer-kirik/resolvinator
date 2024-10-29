@@ -1,0 +1,44 @@
+<.header>
+  Listing Lessons
+  <:actions>
+    <.link patch={~p"/lessons/new"}>
+      <.button>New Lesson</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="lessons"
+  rows={@streams.lessons}
+  row_click={fn {_id, lesson} -> JS.navigate(~p"/lessons/#{lesson}") end}
+>
+  <:col :let={{_id, lesson}} label="Name"><%= lesson.name %></:col>
+  <:col :let={{_id, lesson}} label="Desc"><%= lesson.desc %></:col>
+  <:col :let={{_id, lesson}} label="Upvotes"><%= lesson.upvotes %></:col>
+  <:col :let={{_id, lesson}} label="Downvotes"><%= lesson.downvotes %></:col>
+  <:action :let={{_id, lesson}}>
+    <div class="sr-only">
+      <.link navigate={~p"/lessons/#{lesson}"}>Show</.link>
+    </div>
+    <.link patch={~p"/lessons/#{lesson}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, lesson}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: lesson.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="lesson-modal" show on_cancel={JS.patch(~p"/lessons")}>
+  <.live_component
+    module={ResolvinatorWeb.LessonLive.FormComponent}
+    id={@lesson.id || :new}
+    title={@page_title}
+    action={@live_action}
+    lesson={@lesson}
+    patch={~p"/lessons"}
+  />
+</.modal>

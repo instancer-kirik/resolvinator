@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" class="[scrollbar-gutter:stable]">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title suffix=" · Phoenix Framework">
+      <%= assigns[:page_title] || "Resolvinator" %>
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/@needle-tools/engine/dist/needle-engine.light.min.js"></script>
+    
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/@needle-tools/engine@3.44.0-beta.2/dist/needle-engine.light.min.js"></script>
+    <%!-- <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"></script><script src="https://cdn.jsdelivr.net/npm/react-three-fiber@6.0.13/dist/react-three-fiber.cjs.min.js"></script>
+   import { Canvas, useFrame } from 'https://cdn.jsdelivr.net/npm/@react-three/fiber@6.0.13/dist/react-three-fiber.cjs.min.js'; window.ReactThreeFiber = { Canvas, useFrame };
+    <script src="https://cdn.jsdelivr.net/npm/@react-three/drei@9.107.2/+esm"></script>
+     --%>
+    <%!-- <script type="importmap">
+    {
+      "imports": {
+      
+        "@react-three/fiber": "https://cdn.jsdelivr.net/npm/@react-three/fiber@8.0.27/dist/react-three-fiber.esm.js"
+       
+      }
+    }
+  </script> --%>
+    <script type="module">
+    
+    import { useGLTF, Environment, Lightformer, OrbitControls } from 'https://cdn.jsdelivr.net/npm/@react-three/drei@9.107.2/+esm';
+    
+    window.React = React;
+    window.ReactDOM = ReactDOM;
+    window.
+   
+    window.Drei = { useGLTF, Environment, Lightformer, OrbitControls };
+  </script>
+  
+  </head>
+  <body class="bg-zinc-400 antialiased">
+    <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
+      <%= if @current_user do %>
+        <li class="text-[0.8125rem] leading-6 text-zinc-900">
+          <%= @current_user.email %>
+        </li>
+        <li>
+          <.link
+            href={~p"/problems"}
+           
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Problems
+          </.link>
+        </li>
+        
+        <li>
+          <.link
+            href={~p"/solutions"}
+           
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Solutions
+          </.link>
+        </li>
+        <li>
+          <.link
+            href={~p"/lessons"}
+         
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Lessons
+          </.link>
+        </li>
+        <li>
+          <.link
+            href={~p"/advantages"}
+          
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Advantages
+          </.link>
+        </li>
+        
+        
+         <li>
+          <.link
+            href={~p"/handsigns"}
+          
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            handsigns
+          </.link>
+        </li>
+        
+        
+        
+        <li>
+          <.link
+            href={~p"/users/settings"}
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Settings
+          </.link>
+        </li>
+        <li>
+          <.link
+            href={~p"/users/log_out"}
+            method="delete"
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Log out
+          </.link>
+        </li>
+      <% else %>
+        <li>
+          <.link
+            href={~p"/users/register"}
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Register
+          </.link>
+        </li>
+        <li>
+          <.link
+            href={~p"/users/log_in"}
+            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
+          >
+            Log in
+          </.link>
+        </li>
+      <% end %>
+    </ul>
+    <%= @inner_content %>
+  </body>
+</html>

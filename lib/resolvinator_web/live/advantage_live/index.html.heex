@@ -1,0 +1,44 @@
+<.header>
+  Listing Advantages
+  <:actions>
+    <.link patch={~p"/advantages/new"}>
+      <.button>New Advantage</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="advantages"
+  rows={@streams.advantages}
+  row_click={fn {_id, advantage} -> JS.navigate(~p"/advantages/#{advantage}") end}
+>
+  <:col :let={{_id, advantage}} label="Name"><%= advantage.name %></:col>
+  <:col :let={{_id, advantage}} label="Desc"><%= advantage.desc %></:col>
+  <:col :let={{_id, advantage}} label="Upvotes"><%= advantage.upvotes %></:col>
+  <:col :let={{_id, advantage}} label="Downvotes"><%= advantage.downvotes %></:col>
+  <:action :let={{_id, advantage}}>
+    <div class="sr-only">
+      <.link navigate={~p"/advantages/#{advantage}"}>Show</.link>
+    </div>
+    <.link patch={~p"/advantages/#{advantage}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, advantage}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: advantage.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="advantage-modal" show on_cancel={JS.patch(~p"/advantages")}>
+  <.live_component
+    module={ResolvinatorWeb.AdvantageLive.FormComponent}
+    id={@advantage.id || :new}
+    title={@page_title}
+    action={@live_action}
+    advantage={@advantage}
+    patch={~p"/advantages"}
+  />
+</.modal>

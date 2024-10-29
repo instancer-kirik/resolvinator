@@ -1,0 +1,44 @@
+<.header>
+  Listing Solutions
+  <:actions>
+    <.link patch={~p"/solutions/new"}>
+      <.button>New Solution</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="solutions"
+  rows={@streams.solutions}
+  row_click={fn {_id, solution} -> JS.navigate(~p"/solutions/#{solution}") end}
+>
+  <:col :let={{_id, solution}} label="Name"><%= solution.name %></:col>
+  <:col :let={{_id, solution}} label="Desc"><%= solution.desc %></:col>
+  <:col :let={{_id, solution}} label="Upvotes"><%= solution.upvotes %></:col>
+  <:col :let={{_id, solution}} label="Downvotes"><%= solution.downvotes %></:col>
+  <:action :let={{_id, solution}}>
+    <div class="sr-only">
+      <.link navigate={~p"/solutions/#{solution}"}>Show</.link>
+    </div>
+    <.link patch={~p"/solutions/#{solution}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, solution}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: solution.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="solution-modal" show on_cancel={JS.patch(~p"/solutions")}>
+  <.live_component
+    module={ResolvinatorWeb.SolutionLive.FormComponent}
+    id={@solution.id || :new}
+    title={@page_title}
+    action={@live_action}
+    solution={@solution}
+    patch={~p"/solutions"}
+  />
+</.modal>
