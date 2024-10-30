@@ -3,15 +3,27 @@ defmodule Resolvinator.Repo.Migrations.CreateLessons do
 
   def change do
     create table(:lessons) do
-      add :name, :string
-      add :desc, :string
-      add :upvotes, :integer
-      add :downvotes, :integer
-      add :user_id, references(:users, on_delete: :nothing)
+      add :name, :string, null: false
+      add :desc, :string, null: false
+      add :upvotes, :integer, default: 0
+      add :downvotes, :integer, default: 0
+      add :status, :string, default: "initial"
+      add :rejection_reason, :string
+      add :creator_id, references(:users, on_delete: :restrict)
 
       timestamps(type: :utc_datetime)
     end
 
-    create index(:lessons, [:user_id])
+    # Join table for users who "learned" the lesson
+    create table(:user_lessons) do
+      add :user_id, references(:users, on_delete: :delete_all)
+      add :lesson_id, references(:lessons, on_delete: :delete_all)
+      
+      timestamps(type: :utc_datetime)
+    end
+
+    create index(:lessons, [:creator_id])
+    create index(:lessons, [:name])
+    create unique_index(:user_lessons, [:user_id, :lesson_id])
   end
 end

@@ -1,0 +1,49 @@
+<.header>
+  Listing Mitigations
+  <:actions>
+    <.link patch={~p"/mitigations/new"}>
+      <.button>New Mitigation</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="mitigations"
+  rows={@streams.mitigations}
+  row_click={fn {_id, mitigation} -> JS.navigate(~p"/mitigations/#{mitigation}") end}
+>
+  <:col :let={{_id, mitigation}} label="Description"><%= mitigation.description %></:col>
+  <:col :let={{_id, mitigation}} label="Strategy"><%= mitigation.strategy %></:col>
+  <:col :let={{_id, mitigation}} label="Status"><%= mitigation.status %></:col>
+  <:col :let={{_id, mitigation}} label="Effectiveness"><%= mitigation.effectiveness %></:col>
+  <:col :let={{_id, mitigation}} label="Cost"><%= mitigation.cost %></:col>
+  <:col :let={{_id, mitigation}} label="Start date"><%= mitigation.start_date %></:col>
+  <:col :let={{_id, mitigation}} label="Target date"><%= mitigation.target_date %></:col>
+  <:col :let={{_id, mitigation}} label="Completion date"><%= mitigation.completion_date %></:col>
+  <:col :let={{_id, mitigation}} label="Notes"><%= mitigation.notes %></:col>
+  <:action :let={{_id, mitigation}}>
+    <div class="sr-only">
+      <.link navigate={~p"/mitigations/#{mitigation}"}>Show</.link>
+    </div>
+    <.link patch={~p"/mitigations/#{mitigation}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, mitigation}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: mitigation.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="mitigation-modal" show on_cancel={JS.patch(~p"/mitigations")}>
+  <.live_component
+    module={ResolvinatorWeb.MitigationLive.FormComponent}
+    id={@mitigation.id || :new}
+    title={@page_title}
+    action={@live_action}
+    mitigation={@mitigation}
+    patch={~p"/mitigations"}
+  />
+</.modal>

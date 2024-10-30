@@ -47,6 +47,11 @@ defmodule ResolvinatorWeb.LessonLive.Show do
 
     {:noreply, assign(socket, source: updated_source, lesson: updated_source)}
   end
+  @impl true
+  def handle_info({:search, query}, socket) do
+    results = Content.searchAll(query, socket.assigns.current_user.id)
+    {:noreply, assign(socket, results: results, loading: false)}
+  end
 
   @impl true
   def handle_event("hide-description", %{"id" => id}, socket) do
@@ -90,12 +95,7 @@ defmodule ResolvinatorWeb.LessonLive.Show do
     {:noreply, assign(socket, :lesson, updated_lesson)}
   end
 
-  @impl true
-  def handle_info({:search, query}, socket) do
-    results = Content.searchAll(query, socket.assigns.current_user.id)
-    {:noreply, assign(socket, results: results, loading: false)}
-  end
-
+  
   defp page_title(:show), do: "Show Lesson"
   defp page_title(:edit), do: "Edit Lesson"
 end

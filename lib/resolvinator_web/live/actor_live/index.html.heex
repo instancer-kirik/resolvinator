@@ -1,0 +1,47 @@
+<.header>
+  Listing Actors
+  <:actions>
+    <.link patch={~p"/actors/new"}>
+      <.button>New Actor</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="actors"
+  rows={@streams.actors}
+  row_click={fn {_id, actor} -> JS.navigate(~p"/actors/#{actor}") end}
+>
+  <:col :let={{_id, actor}} label="Name"><%= actor.name %></:col>
+  <:col :let={{_id, actor}} label="Type"><%= actor.type %></:col>
+  <:col :let={{_id, actor}} label="Description"><%= actor.description %></:col>
+  <:col :let={{_id, actor}} label="Role"><%= actor.role %></:col>
+  <:col :let={{_id, actor}} label="Influence level"><%= actor.influence_level %></:col>
+  <:col :let={{_id, actor}} label="Contact info"><%= actor.contact_info %></:col>
+  <:col :let={{_id, actor}} label="Status"><%= actor.status %></:col>
+  <:action :let={{_id, actor}}>
+    <div class="sr-only">
+      <.link navigate={~p"/actors/#{actor}"}>Show</.link>
+    </div>
+    <.link patch={~p"/actors/#{actor}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, actor}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: actor.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="actor-modal" show on_cancel={JS.patch(~p"/actors")}>
+  <.live_component
+    module={ResolvinatorWeb.ActorLive.FormComponent}
+    id={@actor.id || :new}
+    title={@page_title}
+    action={@live_action}
+    actor={@actor}
+    patch={~p"/actors"}
+  />
+</.modal>

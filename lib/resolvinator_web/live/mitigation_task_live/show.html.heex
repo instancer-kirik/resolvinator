@@ -1,0 +1,30 @@
+<.header>
+  Mitigation task <%= @mitigation_task.id %>
+  <:subtitle>This is a mitigation_task record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/mitigation_tasks/#{@mitigation_task}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit mitigation_task</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @mitigation_task.name %></:item>
+  <:item title="Description"><%= @mitigation_task.description %></:item>
+  <:item title="Status"><%= @mitigation_task.status %></:item>
+  <:item title="Due date"><%= @mitigation_task.due_date %></:item>
+  <:item title="Completion date"><%= @mitigation_task.completion_date %></:item>
+</.list>
+
+<.back navigate={~p"/mitigation_tasks"}>Back to mitigation_tasks</.back>
+
+<.modal :if={@live_action == :edit} id="mitigation_task-modal" show on_cancel={JS.patch(~p"/mitigation_tasks/#{@mitigation_task}")}>
+  <.live_component
+    module={ResolvinatorWeb.MitigationTaskLive.FormComponent}
+    id={@mitigation_task.id}
+    title={@page_title}
+    action={@live_action}
+    mitigation_task={@mitigation_task}
+    patch={~p"/mitigation_tasks/#{@mitigation_task}"}
+  />
+</.modal>

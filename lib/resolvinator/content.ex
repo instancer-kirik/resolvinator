@@ -570,4 +570,30 @@ defmodule Resolvinator.Content do
   defp schema_for_type("lesson"), do: Lesson
   defp schema_for_type("description"), do: Description
   defp schema_for_type(_), do: nil
+
+  def add_user_using_solution(solution, user) do
+    solution
+    |> Repo.preload(:users_using_solution)
+    |> Solution.users_using_solution_changeset([user | solution.users_using_solution])
+    |> Repo.update()
+  end
+
+  def update_users_using_solution(solution, users) do
+    solution
+    |> Solution.users_using_solution_changeset(users)
+    |> Repo.update()
+  end
+
+  def list_solutions_created_by(user_id) do
+    Solution
+    |> where([s], s.creator_id == ^user_id)
+    |> Repo.all()
+  end
+
+  def list_solutions_for_user(user_id) do
+    Solution
+    |> join(:inner, [s], us in "user_solutions", on: us.solution_id == s.id)
+    |> where([s, us], us.user_id == ^user_id)
+    |> Repo.all()
+  end
 end

@@ -4,9 +4,15 @@ defmodule ResolvinatorWeb.ProblemLive.Index do
   alias Resolvinator.Content
   alias Resolvinator.Content.Problem
 
+  on_mount {ResolvinatorWeb.UserAuth, :mount_current_user}
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :problems, Content.list_problems())}
+    if socket.assigns.current_user do
+      {:ok, stream(socket, :problems, Content.list_problems())}
+    else
+      {:ok, redirect(socket, to: ~p"/users/log_in")}
+    end
   end
 
   @impl true

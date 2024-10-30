@@ -1,0 +1,47 @@
+<.header>
+  Listing Impacts
+  <:actions>
+    <.link patch={~p"/impacts/new"}>
+      <.button>New Impact</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="impacts"
+  rows={@streams.impacts}
+  row_click={fn {_id, impact} -> JS.navigate(~p"/impacts/#{impact}") end}
+>
+  <:col :let={{_id, impact}} label="Description"><%= impact.description %></:col>
+  <:col :let={{_id, impact}} label="Area"><%= impact.area %></:col>
+  <:col :let={{_id, impact}} label="Severity"><%= impact.severity %></:col>
+  <:col :let={{_id, impact}} label="Likelihood"><%= impact.likelihood %></:col>
+  <:col :let={{_id, impact}} label="Estimated cost"><%= impact.estimated_cost %></:col>
+  <:col :let={{_id, impact}} label="Timeframe"><%= impact.timeframe %></:col>
+  <:col :let={{_id, impact}} label="Notes"><%= impact.notes %></:col>
+  <:action :let={{_id, impact}}>
+    <div class="sr-only">
+      <.link navigate={~p"/impacts/#{impact}"}>Show</.link>
+    </div>
+    <.link patch={~p"/impacts/#{impact}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, impact}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: impact.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="impact-modal" show on_cancel={JS.patch(~p"/impacts")}>
+  <.live_component
+    module={ResolvinatorWeb.ImpactLive.FormComponent}
+    id={@impact.id || :new}
+    title={@page_title}
+    action={@live_action}
+    impact={@impact}
+    patch={~p"/impacts"}
+  />
+</.modal>

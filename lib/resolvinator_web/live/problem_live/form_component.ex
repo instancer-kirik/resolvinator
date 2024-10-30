@@ -52,6 +52,7 @@ defmodule ResolvinatorWeb.ProblemLive.FormComponent do
   end
 
   def handle_event("save", %{"problem" => problem_params}, socket) do
+    problem_params = Map.put(problem_params, "creator_id", socket.assigns.current_user.id)
     save_problem(socket, socket.assigns.action, problem_params)
   end
 

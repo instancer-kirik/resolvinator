@@ -6,9 +6,12 @@ defmodule Resolvinator.Repo.Migrations.CreateUsersAuthTables do
 
     create table(:users) do
       add :email, :citext, null: false
+      add :username, :string, null: false
       add :hashed_password, :string, null: false
       add :confirmed_at, :naive_datetime
-      add :name, :string, default: "Unnamed"
+      add :is_admin, :boolean, default: false
+      add :preferences, :map
+      add :status, :string, default: "active"
       timestamps(type: :utc_datetime)
     end
 

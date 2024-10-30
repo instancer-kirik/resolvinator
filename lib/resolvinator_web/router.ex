@@ -17,6 +17,10 @@ defmodule ResolvinatorWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug ResolvinatorWeb.APIAuthPlug
+    plug :put_secure_browser_headers
   end
 
   scope "/", ResolvinatorWeb do
@@ -117,6 +121,29 @@ defmodule ResolvinatorWeb.Router do
       on_mount: [{ResolvinatorWeb.UserAuth, :mount_current_user}] do
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
+    end
+  end
+
+  scope "/api", ResolvinatorWeb do
+    pipe_through :api
+
+    post "/login", SessionController, :create
+    delete "/logout", SessionController, :delete
+    
+    # Protected routes
+    scope "/" do
+      pipe_through :api_auth
+
+      resources "/projects", ProjectController do
+        resources "/risks", RiskController do
+          resources "/impacts", ImpactController
+          resources "/mitigations", MitigationController do
+            resources "/tasks", MitigationTaskController
+          end
+        end
+        resources "/actors", ActorController
+        resources "/risk_categories", RiskCategoryController
+      end
     end
   end
 end

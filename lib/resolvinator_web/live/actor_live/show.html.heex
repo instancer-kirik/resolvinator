@@ -1,0 +1,32 @@
+<.header>
+  Actor <%= @actor.id %>
+  <:subtitle>This is a actor record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/actors/#{@actor}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit actor</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @actor.name %></:item>
+  <:item title="Type"><%= @actor.type %></:item>
+  <:item title="Description"><%= @actor.description %></:item>
+  <:item title="Role"><%= @actor.role %></:item>
+  <:item title="Influence level"><%= @actor.influence_level %></:item>
+  <:item title="Contact info"><%= @actor.contact_info %></:item>
+  <:item title="Status"><%= @actor.status %></:item>
+</.list>
+
+<.back navigate={~p"/actors"}>Back to actors</.back>
+
+<.modal :if={@live_action == :edit} id="actor-modal" show on_cancel={JS.patch(~p"/actors/#{@actor}")}>
+  <.live_component
+    module={ResolvinatorWeb.ActorLive.FormComponent}
+    id={@actor.id}
+    title={@page_title}
+    action={@live_action}
+    actor={@actor}
+    patch={~p"/actors/#{@actor}"}
+  />
+</.modal>

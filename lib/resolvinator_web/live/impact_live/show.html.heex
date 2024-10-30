@@ -1,0 +1,32 @@
+<.header>
+  Impact <%= @impact.id %>
+  <:subtitle>This is a impact record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/impacts/#{@impact}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit impact</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Description"><%= @impact.description %></:item>
+  <:item title="Area"><%= @impact.area %></:item>
+  <:item title="Severity"><%= @impact.severity %></:item>
+  <:item title="Likelihood"><%= @impact.likelihood %></:item>
+  <:item title="Estimated cost"><%= @impact.estimated_cost %></:item>
+  <:item title="Timeframe"><%= @impact.timeframe %></:item>
+  <:item title="Notes"><%= @impact.notes %></:item>
+</.list>
+
+<.back navigate={~p"/impacts"}>Back to impacts</.back>
+
+<.modal :if={@live_action == :edit} id="impact-modal" show on_cancel={JS.patch(~p"/impacts/#{@impact}")}>
+  <.live_component
+    module={ResolvinatorWeb.ImpactLive.FormComponent}
+    id={@impact.id}
+    title={@page_title}
+    action={@live_action}
+    impact={@impact}
+    patch={~p"/impacts/#{@impact}"}
+  />
+</.modal>

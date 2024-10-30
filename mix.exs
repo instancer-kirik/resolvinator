@@ -59,7 +59,9 @@ defmodule Resolvinator.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:assent, "~> 0.2.9"},
-      {:bandit, "~> 1.2"}
+      {:bandit, "~> 1.2"},
+      {:cors_plug, "~> 3.0"},
+      {:open_api_spex, "~> 3.16"}
     ]
   end
 

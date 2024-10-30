@@ -17,7 +17,8 @@ defmodule Resolvinator.Application do
       # Start a worker by calling: Resolvinator.Worker.start_link(arg)
       # {Resolvinator.Worker, arg},
       # Start to serve requests, typically the last entry
-      ResolvinatorWeb.Endpoint
+      ResolvinatorWeb.Endpoint,
+      {Cachex, name: :resolvinator_cache}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

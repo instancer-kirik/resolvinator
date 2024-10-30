@@ -9,7 +9,8 @@ import Config
 
 config :resolvinator,
   ecto_repos: [Resolvinator.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  cache_ttl: :timer.minutes(5)
 
 # Configures the endpoint
 config :resolvinator, ResolvinatorWeb.Endpoint,

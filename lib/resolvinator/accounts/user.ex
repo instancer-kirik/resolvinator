@@ -4,13 +4,45 @@ defmodule Resolvinator.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :username, :string
+    field :is_admin, :boolean, default: false
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
-    field :name, :string, default: "unnamed"
+    field :preferences, :map
+    field :status, :string, default: "active"
+    field :banned_at, :naive_datetime
 
-    many_to_many :hidden_descriptions, Resolvinator.Content.Description, join_through: "user_hidden_descriptions"
+    # Content created by this user
+    has_many :created_problems, Resolvinator.Content.Problem, foreign_key: :creator_id
+    has_many :created_solutions, Resolvinator.Content.Solution, foreign_key: :creator_id
+    has_many :created_advantages, Resolvinator.Content.Advantage, foreign_key: :creator_id
+    has_many :created_lessons, Resolvinator.Content.Lesson, foreign_key: :creator_id
+
+    # Content associated with this user
+    many_to_many :problems_experienced, Resolvinator.Content.Problem,
+      join_through: "user_problems"
+    many_to_many :solutions_used, Resolvinator.Content.Solution,
+      join_through: "user_solutions"
+    many_to_many :advantages_experienced, Resolvinator.Content.Advantage,
+      join_through: "user_advantages"
+    many_to_many :lessons_learned, Resolvinator.Content.Lesson,
+      join_through: "user_lessons"
+
+    # Hidden content tracking
+    many_to_many :hidden_descriptions, Resolvinator.Content.Description, 
+      join_through: "user_hidden_descriptions"
+
     timestamps(type: :utc_datetime)
+  end
+
+  @doc false
+  def changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :username, :is_admin, :preferences, :status])
+    |> validate_required([:email, :username])
+    |> validate_email([])
+    |> validate_username()
   end
 
   @doc """
@@ -38,9 +70,10 @@ defmodule Resolvinator.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :password, :username])
     |> validate_email(opts)
     |> validate_password(opts)
+    |> validate_username()
   end
 
   defp validate_email(changeset, opts) do
@@ -61,7 +94,13 @@ defmodule Resolvinator.Accounts.User do
     # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
     |> maybe_hash_password(opts)
   end
-
+  defp validate_username(changeset) do
+    changeset
+    |> validate_required([:username])
+    |> validate_length(:username, min: 3, max: 30)
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_.-]+$/, message: "can only contain letters, numbers, and _.-")
+    |> unique_constraint(:username)
+  end
   defp maybe_hash_password(changeset, opts) do
     hash_password? = Keyword.get(opts, :hash_password, true)
     password = get_change(changeset, :password)
@@ -156,10 +195,31 @@ defmodule Resolvinator.Accounts.User do
     end
   end
 
+  @doc """
+  Changeset for username updates
+  """
+  def username_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:username])
+    |> validate_username()
+  end
 
 
+  @doc """
+  Changeset for banning users
+  """
   def ban_changeset(user, attrs) do
     user
-    |> cast(attrs, [:banned_at])
+    |> cast(attrs, [:banned_at, :status])
+    |> put_change(:status, "banned")
+  end
+
+  @doc """
+  Changeset for updating user preferences
+  """
+  def preferences_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:preferences])
+    |> validate_required([:preferences])
   end
 end
