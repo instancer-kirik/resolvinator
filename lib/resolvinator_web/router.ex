@@ -124,25 +124,61 @@ defmodule ResolvinatorWeb.Router do
     end
   end
 
-  scope "/api", ResolvinatorWeb do
+  # Add this scope for API authentication
+  scope "/api/v1/auth", ResolvinatorWeb do
     pipe_through :api
 
     post "/login", SessionController, :create
     delete "/logout", SessionController, :delete
-    
-    # Protected routes
-    scope "/" do
-      pipe_through :api_auth
+    post "/refresh", SessionController, :refresh
+  end
 
-      resources "/projects", ProjectController do
-        resources "/risks", RiskController do
-          resources "/impacts", ImpactController
-          resources "/mitigations", MitigationController do
-            resources "/tasks", MitigationTaskController
+  scope "/api/v1", ResolvinatorWeb do
+    pipe_through [:api, :api_auth]
+
+    # Supplier/Source management
+    resources "/suppliers", SupplierController do
+      resources "/contacts", SupplierContactController
+      resources "/catalogs", SupplierCatalogController
+      
+      member do
+        get "/performance", SupplierController, :get_performance
+        get "/pricing", SupplierController, :get_pricing
+      end
+    end
+
+    resources "/projects", ProjectController do
+      resources "/risks", RiskController do
+        resources "/impacts", ImpactController
+        resources "/mitigations", MitigationController do
+          resources "/tasks", MitigationTaskController
+          resources "/requirements", RequirementController
+          resources "/allocations", AllocationController
+        end
+      end
+      
+      # Add inventory management routes
+      resources "/inventory", InventoryController do
+        resources "/sources", InventorySourceController do
+          member do
+            get "/availability", InventorySourceController, :check_availability
+            get "/pricing", InventorySourceController, :get_pricing
+            post "/order", InventorySourceController, :create_order
           end
         end
-        resources "/actors", ActorController
-        resources "/risk_categories", RiskCategoryController
+        
+        member do
+          get "/analysis", InventoryController, :analyze_item
+          get "/trends", InventoryController, :get_trends
+          post "/adjust", InventoryController, :adjust_stock
+          get "/sources", InventoryController, :list_sources
+          post "/compare_sources", InventoryController, :compare_sources
+        end
+        
+        collection do
+          get "/alerts", InventoryController, :get_alerts
+          get "/reports", InventoryController, :generate_report
+        end
       end
     end
   end

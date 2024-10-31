@@ -3,8 +3,7 @@ defmodule ResolvinatorWeb.MitigationTaskController do
   import ResolvinatorWeb.JSONHelpers
 
   alias Resolvinator.Risks
-  alias Resolvinator.Risks.MitigationTask
-
+ 
   def index(conn, %{"mitigation_id" => mitigation_id} = params) do
     page = params["page"] || %{"number" => 1, "size" => 20}
     includes = params["include"]

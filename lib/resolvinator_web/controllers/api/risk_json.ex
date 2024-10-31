@@ -38,9 +38,15 @@ defmodule ResolvinatorWeb.RiskJSON do
     Map.put(base, :relationships, relationships)
   end
 
-  defp maybe_add_relationship(relationships, key, nil, _formatter, _includes), do: relationships
-  defp maybe_add_relationship(relationships, key, data, _formatter, includes) when not is_list(data) and key not in includes, do:
-    relationships
+  defp maybe_add_relationship(relationships, _key, nil, _formatter, _includes), do: relationships
+  defp maybe_add_relationship(relationships, key, data, formatter, includes) when not is_list(data) do
+    if key in includes do
+      Map.put(relationships, key, formatter.(data))
+    else
+      relationships
+    end
+  end
+
   defp impact_data(impact) do
     %{
       id: impact.id,

@@ -1,6 +1,7 @@
 defmodule ResolvinatorWeb.ImpactController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.JSONHelpers, only: [paginate: 2]
+  alias ResolvinatorWeb.JSONHelpers
 
   alias Resolvinator.Risks
   alias Resolvinator.Risks.Impact
@@ -34,7 +35,7 @@ defmodule ResolvinatorWeb.ImpactController do
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: format_errors(changeset)})
+        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
     end
   end
 
@@ -53,7 +54,7 @@ defmodule ResolvinatorWeb.ImpactController do
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: format_errors(changeset)})
+        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
     end
   end
 
@@ -85,5 +86,4 @@ defmodule ResolvinatorWeb.ImpactController do
     }
   end
 
-  defp format_errors(changeset), do: Resolvinator.ChangesetErrors.format_errors(changeset)
 end 

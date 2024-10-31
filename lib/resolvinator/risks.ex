@@ -154,7 +154,7 @@ defmodule Resolvinator.Risks do
 
   @doc """
   Updates a risk.
-x
+
   ## Examples
 
       iex> update_risk(risk, %{field: new_value})
@@ -540,4 +540,14 @@ x
     result
   end
   defp notify_subscribers(error, _), do: error
+
+  defp build_page_info(records, %{"number" => page_number, "size" => page_size}) do
+    {records,
+     %{
+       page_number: page_number,
+       page_size: page_size,
+       total_entries: length(records),
+       total_pages: ceil(length(records) / page_size)
+     }}
+  end
 end

@@ -1,10 +1,11 @@
 defmodule ResolvinatorWeb.ActorController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  alias Resolvinator.ChangesetErrors
+  import ResolvinatorWeb.JSONHelpers, only: [paginate: 2]
+  alias ResolvinatorWeb.JSONHelpers
 
   alias Resolvinator.Actors
-  alias Resolvinator.Actors.Actor
-
+  
   def index(conn, %{"project_id" => project_id} = params) do
     page = params["page"] || %{"number" => 1, "size" => 20}
     includes = params["include"]
@@ -34,7 +35,7 @@ defmodule ResolvinatorWeb.ActorController do
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: format_errors(changeset)})
+        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
     end
   end
 
@@ -53,7 +54,7 @@ defmodule ResolvinatorWeb.ActorController do
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: format_errors(changeset)})
+        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
     end
   end
 

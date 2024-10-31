@@ -27,3 +27,4 @@ defmodule ResolvinatorWeb.MitigationTaskJSON do
 
     Map.put(base, :relationships, relationships)
   end 
+end 
