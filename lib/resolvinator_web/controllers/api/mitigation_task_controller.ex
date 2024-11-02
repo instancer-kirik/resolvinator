@@ -1,4 +1,4 @@
-defmodule ResolvinatorWeb.MitigationTaskController do
+defmodule ResolvinatorWeb.API.MitigationTaskController do
   use ResolvinatorWeb, :controller
   import ResolvinatorWeb.JSONHelpers
 

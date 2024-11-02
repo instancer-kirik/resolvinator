@@ -72,8 +72,15 @@ defmodule Resolvinator.Risks.Risk do
   end
 
   defp determine_priority(probability, impact) do
-    # Implementation of your priority matrix logic
-    # Example: high probability + high impact = critical
-    "high"
+    # Assuming you have access to a project context or a default project
+    project = get_default_project() # Replace with actual project retrieval logic
+
+    {_, priority} = Resolvinator.Risks.RiskMatrix.calculate_risk_score(project, probability, impact)
+    priority
+  end
+
+  defp get_default_project do
+    # Implement logic to retrieve a default project or context
+    # This is a placeholder function
   end
 end

@@ -19,18 +19,23 @@ defmodule Resolvinator.Risks.Category do
     belongs_to :creator, Resolvinator.Accounts.User
     has_many :risks, Resolvinator.Risks.Risk
 
+    field :hidden, :boolean, default: false
+    field :hidden_at, :utc_datetime
+    belongs_to :hidden_by, Resolvinator.Accounts.User
+
     timestamps(type: :utc_datetime)
   end
 
   def changeset(category, attrs) do
     category
     |> cast(attrs, [:name, :description, :color, :assessment_criteria, 
-                    :project_id, :creator_id])
+                    :project_id, :creator_id, :hidden, :hidden_at, :hidden_by_id])
     |> validate_required([:name, :project_id, :creator_id])
     |> validate_assessment_criteria()
     |> foreign_key_constraint(:project_id)
     |> foreign_key_constraint(:creator_id)
-    |> unique_constraint([:name, :project_id])
+    |> foreign_key_constraint(:hidden_by_id)
+    |> unique_constraint([:name, :project_id, :hidden])
   end
 
   defp validate_assessment_criteria(changeset) do
@@ -45,8 +50,27 @@ defmodule Resolvinator.Risks.Category do
     end
   end
 
-  defp valid_criteria?(criteria) do
+  defp valid_criteria?(_criteria) do
     # Implement criteria validation logic
     true
+  end
+
+  # Add helper functions for hiding/unhiding
+  def hide(category, user_id) do
+    category
+    |> changeset(%{
+      hidden: true,
+      hidden_at: DateTime.utc_now(),
+      hidden_by_id: user_id
+    })
+  end
+
+  def unhide(category) do
+    category
+    |> changeset(%{
+      hidden: false,
+      hidden_at: nil,
+      hidden_by_id: nil
+    })
   end
 end 

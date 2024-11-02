@@ -1,16 +1,15 @@
-defmodule ResolvinatorWeb.ImpactController do
+defmodule ResolvinatorWeb.API.ImpactController do
   use ResolvinatorWeb, :controller
   import ResolvinatorWeb.JSONHelpers, only: [paginate: 2]
-  alias ResolvinatorWeb.JSONHelpers
 
   alias Resolvinator.Risks
-  alias Resolvinator.Risks.Impact
+  alias ResolvinatorWeb.{ImpactJSON, ChangesetErrors}
 
   def index(conn, %{"risk_id" => risk_id} = params) do
     page = params["page"] || %{"number" => 1, "size" => 20}
     includes = params["include"]
 
-    {impacts, page_info} = Risks.list_risk_impacts(risk_id, page: page, includes: includes)
+    {impacts, page_info} = Risks.list_impacts(risk_id, page: page, includes: includes)
     
     conn
     |> put_status(:ok)
@@ -20,7 +19,7 @@ defmodule ResolvinatorWeb.ImpactController do
     ))
   end
 
-  def create(conn, %{"project_id" => project_id, "risk_id" => risk_id, "impact" => impact_params}) do
+  def create(conn, %{"project_id" => _project_id, "risk_id" => risk_id, "impact" => impact_params}) do
     create_params = Map.merge(impact_params, %{
       "risk_id" => risk_id,
       "creator_id" => conn.assigns.current_user.id
@@ -40,7 +39,7 @@ defmodule ResolvinatorWeb.ImpactController do
   end
 
   def show(conn, %{"project_id" => project_id, "risk_id" => risk_id, "id" => id}) do
-    impact = Risks.get_risk_impact!(project_id, risk_id, id)
+    impact = Risks.get_impact!(project_id, risk_id, id)
     json(conn, %{data: impact_json(impact)})
   end
 

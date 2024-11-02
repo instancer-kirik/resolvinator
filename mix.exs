@@ -61,7 +61,10 @@ defmodule Resolvinator.MixProject do
       {:assent, "~> 0.2.9"},
       {:bandit, "~> 1.2"},
       {:cors_plug, "~> 3.0"},
-      {:open_api_spex, "~> 3.16"}
+      {:open_api_spex, "~> 3.16"},
+      {:cachex, "~> 3.6"},
+      {:hammer, "~> 6.1"},
+      {:flint, "~> 1.0"}
     ]
   end
 

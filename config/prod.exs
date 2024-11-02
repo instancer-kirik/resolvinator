@@ -6,7 +6,15 @@ import Config
 # which you should run after static files are built and
 # before starting your production server.
 config :resolvinator, ResolvinatorWeb.Endpoint,
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  # Force SSL for all connections
+  force_ssl: [
+    host: nil,
+    rewrite_on: [:x_forwarded_proto],
+    hsts: true,
+    preload: true
+  ],
+  check_origin: true  # Prevent WebSocket connection from unauthorized origins
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Resolvinator.Finch

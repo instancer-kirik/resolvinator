@@ -391,4 +391,20 @@ defmodule Resolvinator.Accounts do
     |> filter_banned_users()
     |> Repo.all()
   end
+
+  @doc """
+  Verifies a user token.
+  Returns {:ok, user} if the token is valid, {:error, :invalid_token} otherwise.
+  """
+  def verify_user_token(token) do
+    case UserToken.verify_session_token_query(token) do
+      {:ok, query} ->
+        case Repo.one(query) do
+          nil -> {:error, :invalid_token}
+          user -> {:ok, user}
+        end
+      _ ->
+        {:error, :invalid_token}
+    end
+  end
 end

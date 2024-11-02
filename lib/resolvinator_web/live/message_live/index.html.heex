@@ -1,0 +1,69 @@
+<.header>
+  Messages
+  <:actions>
+    <.link patch={~p"/messages/new"}>
+      <.button>New Message</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.live_component
+  module={ResolvinatorWeb.MessageLive.SearchComponent}
+  id="message-search"
+  current_user_id={@current_user_id}
+/>
+
+<div class="messages-container mt-6">
+  <div class="space-y-4">
+    <div :for={{id, message} <- @streams.messages} id={id} class="message-item">
+      <div class="bg-white p-4 rounded-lg shadow">
+        <div class="flex justify-between items-start">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold">
+                <%= if message.from_user_id == @current_user_id, do: "You", else: "User #{message.from_user_id}" %>
+              </span>
+              <span class="text-sm text-gray-500">
+                <%= Calendar.strftime(message.inserted_at, "%Y-%m-%d %H:%M") %>
+              </span>
+              <%= if not message.read and message.to_user_id == @current_user_id do %>
+                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">New</span>
+              <% end %>
+            </div>
+            <div class="mt-2 text-gray-700">
+              <%= message.content %>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <%= if message.from_user_id == @current_user_id do %>
+              <.link patch={~p"/messages/#{message}/edit"} class="text-gray-600 hover:text-gray-900">
+                <.icon name="hero-pencil-square" class="h-5 w-5" />
+              </.link>
+            <% end %>
+            <.link
+              :if={message.from_user_id == @current_user_id}
+              phx-click={JS.push("delete", value: %{id: message.id}) |> hide("##{id}")}
+              data-confirm="Are you sure?"
+              class="text-red-600 hover:text-red-900"
+            >
+              <.icon name="hero-trash" class="h-5 w-5" />
+            </.link>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<.modal :if={@live_action in [:new, :edit]} id="message-modal" show on_cancel={JS.patch(~p"/messages")}>
+  <.live_component
+    module={ResolvinatorWeb.MessageLive.FormComponent}
+    id={@message.id || :new}
+    title={@page_title}
+    action={@live_action}
+    message={@message}
+    current_user_id={@current_user_id}
+    patch={~p"/messages"}
+  />
+</.modal>

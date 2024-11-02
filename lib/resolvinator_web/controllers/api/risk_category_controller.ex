@@ -1,8 +1,8 @@
-defmodule ResolvinatorWeb.RiskCategoryController do
+defmodule ResolvinatorWeb.API.RiskCategoryController do
   use ResolvinatorWeb, :controller
 
   alias Resolvinator.Risks
-  alias Resolvinator.Risks.Category
+  #alias Resolvinator.Risks.Category
 
   def index(conn, %{"project_id" => project_id} = params) do
     categories = Risks.list_risk_categories(project_id, params)

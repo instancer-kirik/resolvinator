@@ -18,7 +18,6 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
 
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
-
     user_id = socket.assigns.current_user.id
     problem = Content.get_problem_with_visible_descriptions!(id, user_id)
 
@@ -31,19 +30,6 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
     updated_problem = Map.put(problem, :descriptions, updated_descriptions)
     
     {:noreply, assign(socket, page_title: page_title(socket.assigns.live_action), problem: updated_problem, source: updated_problem, source_type: "problem")}
-  end
-
-  @impl true
-  def handle_info({:update_source, updated_source}, socket) do
-    hidden_description_ids = Content.get_hidden_description_ids(socket.assigns.current_user.id)
-
-    updated_descriptions = Enum.map(updated_source.descriptions, fn description ->
-      Map.put(description, :hidden, description.id in hidden_description_ids)
-    end)
-
-    updated_source = Map.put(updated_source, :descriptions, updated_descriptions)
-
-    {:noreply, assign(socket, source: updated_source, problem: updated_source)}
   end
 
   @impl true
@@ -89,9 +75,41 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
   end
 
   @impl true
+  def handle_info({:update_source, updated_source}, socket) do
+    hidden_description_ids = Content.get_hidden_description_ids(socket.assigns.current_user.id)
+
+    updated_descriptions = Enum.map(updated_source.descriptions, fn description ->
+      Map.put(description, :hidden, description.id in hidden_description_ids)
+    end)
+
+    updated_source = Map.put(updated_source, :descriptions, updated_descriptions)
+
+    {:noreply, assign(socket, source: updated_source, problem: updated_source)}
+  end
+
+  @impl true
   def handle_info({:search, query}, socket) do
     results = Content.searchAll(query, socket.assigns.current_user.id)
     {:noreply, assign(socket, results: results, loading: false)}
+  end
+
+  @impl true
+  def handle_info({ResolvinatorWeb.ProblemLive.FormComponent, {:saved, _problem}}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "Problem updated successfully")
+     |> push_patch(to: socket.assigns.patch)}
+  end
+
+  @impl true
+  def handle_info({:solution_added, solution}, socket) do
+    {:noreply, update(socket, :solutions, &[solution | &1])}
+  end
+
+  @impl true
+  def handle_info(_msg, socket) do
+    # Handle any other messages
+    {:noreply, socket}
   end
 
   defp page_title(:show), do: "Show Problem"

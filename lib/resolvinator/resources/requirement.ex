@@ -15,8 +15,8 @@ defmodule Resolvinator.Resources.Requirement do
     field :needed_by_date, :date
     field :duration_days, :integer
     field :status, :string, default: "draft"
-    field :justification, :text
-    field :notes, :text
+    field :justification, :string
+    field :notes, :string
     
     # Inventory specific fields
     field :inventory_item_id, :integer

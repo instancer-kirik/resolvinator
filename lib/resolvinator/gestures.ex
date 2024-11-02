@@ -9,7 +9,7 @@ defmodule Resolvinator.Gestures do
 
 
   alias Resolvinator.Content.{Gesture, UserHiddenDescription, Description}
-  alias Resolvinator.Content.{Gesture, UserHiddenDescription, GestureDescription}
+#alias Resolvinator.Content.{Gesture, UserHiddenDescription, GestureDescription}  
 
 
 

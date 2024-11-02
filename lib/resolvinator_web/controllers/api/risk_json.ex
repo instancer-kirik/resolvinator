@@ -1,4 +1,4 @@
-defmodule ResolvinatorWeb.RiskJSON do
+defmodule ResolvinatorWeb.API.RiskJSON do
   alias Resolvinator.Risks.Risk
 
   @doc """

@@ -5,8 +5,11 @@ defmodule ResolvinatorWeb.ImpactLive.Index do
   alias Resolvinator.Risks.Impact
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, stream(socket, :impacts, Risks.list_impacts())}
+  def mount(%{"risk_id" => risk_id} = _params, _session, socket) do
+    {:ok, 
+     socket
+     |> assign(:risk_id, risk_id)
+     |> stream(:impacts, Risks.list_impacts(risk_id))}
   end
 
   @impl true
@@ -17,7 +20,7 @@ defmodule ResolvinatorWeb.ImpactLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Impact")
-    |> assign(:impact, Risks.get_impact!(id))
+    |> assign(:impact, Risks.get_impact!(socket.assigns.risk_id, id))
   end
 
   defp apply_action(socket, :new, _params) do
@@ -39,7 +42,7 @@ defmodule ResolvinatorWeb.ImpactLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    impact = Risks.get_impact!(id)
+    impact = Risks.get_impact!(socket.assigns.risk_id, id)
     {:ok, _} = Risks.delete_impact(impact)
 
     {:noreply, stream_delete(socket, :impacts, impact)}

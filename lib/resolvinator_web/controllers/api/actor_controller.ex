@@ -1,86 +1,50 @@
-defmodule ResolvinatorWeb.ActorController do
+defmodule ResolvinatorWeb.API.ActorController do
   use ResolvinatorWeb, :controller
-  alias Resolvinator.ChangesetErrors
-  import ResolvinatorWeb.JSONHelpers, only: [paginate: 2]
-  alias ResolvinatorWeb.JSONHelpers
 
   alias Resolvinator.Actors
-  
+  action_fallback ResolvinatorWeb.FallbackController
+
   def index(conn, %{"project_id" => project_id} = params) do
-    page = params["page"] || %{"number" => 1, "size" => 20}
-    includes = params["include"]
+    {actors, page_info} = Actors.list_project_actors(project_id, 
+      page: params["page"],
+      includes: params["include"],
+      filters: params["filter"],
+      sort: params["sort"]
+    )
 
-    {actors, page_info} = Actors.list_project_actors(project_id, page: page, includes: includes)
-    
-    conn
-    |> put_status(:ok)
-    |> json(paginate(
-      Enum.map(actors, &ActorJSON.data(&1, includes: includes)),
-      page_info
-    ))
-  end
-
-  def create(conn, %{"project_id" => project_id, "actor" => actor_params}) do
-    create_params = Map.merge(actor_params, %{
-      "project_id" => project_id,
-      "creator_id" => conn.assigns.current_user.id
-    })
-
-    case Actors.create_actor(create_params) do
-      {:ok, actor} ->
-        conn
-        |> put_status(:created)
-        |> json(%{data: actor_json(actor)})
-      
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
-    end
+    render(conn, :index, actors: actors, page_info: page_info)
   end
 
   def show(conn, %{"project_id" => project_id, "id" => id}) do
     actor = Actors.get_project_actor!(project_id, id)
-    json(conn, %{data: actor_json(actor)})
+    render(conn, :show, actor: actor)
+  end
+
+  def create(conn, %{"project_id" => project_id, "actor" => actor_params}) do
+    actor_params = Map.put(actor_params, "project_id", project_id)
+    actor_params = Map.put(actor_params, "creator_id", conn.assigns.current_user.id)
+
+    with {:ok, actor} <- Actors.create_actor(actor_params) do
+      conn
+      |> put_status(:created)
+      |> put_resp_header("location", ~p"/api/v1/projects/#{project_id}/actors/#{actor.id}")
+      |> render(:show, actor: actor)
+    end
   end
 
   def update(conn, %{"project_id" => project_id, "id" => id, "actor" => actor_params}) do
     actor = Actors.get_project_actor!(project_id, id)
 
-    case Actors.update_actor(actor, actor_params) do
-      {:ok, actor} ->
-        json(conn, %{data: actor_json(actor)})
-      
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
+    with {:ok, actor} <- Actors.update_actor(actor, actor_params) do
+      render(conn, :show, actor: actor)
     end
   end
 
   def delete(conn, %{"project_id" => project_id, "id" => id}) do
     actor = Actors.get_project_actor!(project_id, id)
-    
-    case Actors.delete_actor(actor) do
-      {:ok, _} -> send_resp(conn, :no_content, "")
-      {:error, _} -> 
-        conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: "Could not delete actor"})
-    end
-  end
 
-  defp actor_json(actor) do
-    %{
-      id: actor.id,
-      name: actor.name,
-      type: actor.type,
-      description: actor.description,
-      role: actor.role,
-      influence_level: actor.influence_level,
-      contact_info: actor.contact_info,
-      status: actor.status,
-      project_id: actor.project_id
-    }
+    with {:ok, _actor} <- Actors.delete_actor(actor) do
+      send_resp(conn, :no_content, "")
+    end
   end
 end 

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import uuid
 from typing import Dict, List
 from .events import Notification, NotificationType, NotificationPriority
+from typing import Optional
 
 class NotificationWidget(QFrame):
     dismissed = pyqtSignal(str)  # notification_id

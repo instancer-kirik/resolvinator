@@ -1,9 +1,9 @@
-defmodule ResolvinatorWeb.ProjectController do
+defmodule ResolvinatorWeb.API.ProjectController do
   use ResolvinatorWeb, :controller
   import ResolvinatorWeb.JSONHelpers
 
   alias Resolvinator.Projects
-  alias Resolvinator.Projects.Project
+ # alias Resolvinator.Projects.Project
 
   def index(conn, params) do
     page = params["page"] || %{"number" => 1, "size" => 20}

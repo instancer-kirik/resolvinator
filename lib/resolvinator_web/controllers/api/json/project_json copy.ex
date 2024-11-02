@@ -1,5 +1,6 @@
 defmodule ResolvinatorWeb.ProjectJSON do
   import ResolvinatorWeb.JSONHelpers
+  alias ResolvinatorWeb.{RiskJSON, ActorJSON, UserJSON}
 
   def data(project, opts \\ []) do
     includes = Keyword.get(opts, :includes, [])
@@ -22,9 +23,9 @@ defmodule ResolvinatorWeb.ProjectJSON do
     }
 
     relationships = %{}
-    |> maybe_add_relationship("risks", project.risks, &ResolvinatorWeb.RiskJSON.data/1, includes)
-    |> maybe_add_relationship("actors", project.actors, &ResolvinatorWeb.ActorJSON.data/1, includes)
-    |> maybe_add_relationship("creator", project.creator, &user_data/1, includes)
+    |> maybe_add_relationship("risks", project.risks, &RiskJSON.data/1, includes)
+    |> maybe_add_relationship("actors", project.actors, &ActorJSON.data/1, includes)
+    |> maybe_add_relationship("creator", project.creator, &UserJSON.data/1, includes)
 
     Map.put(base, :relationships, relationships)
   end 

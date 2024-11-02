@@ -77,7 +77,7 @@ defmodule Resolvinator.Projects.Project do
     end
   end
 
-  defp valid_settings?(settings) do
+  defp valid_settings?(_settings) do
     # Implement settings validation logic
     true
   end

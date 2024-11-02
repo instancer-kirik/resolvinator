@@ -1,4 +1,4 @@
-defmodule ResolvinatorWeb.RequirementController do
+defmodule ResolvinatorWeb.API.RequirementController do
   use ResolvinatorWeb, :controller
   import ResolvinatorWeb.JSONHelpers
 

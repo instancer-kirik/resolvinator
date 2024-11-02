@@ -23,4 +23,12 @@ defmodule Resolvinator.Suppliers.Supplier do
     
     timestamps(type: :utc_datetime)
   end 
+
+  def changeset(supplier, attrs) do
+    supplier
+    |> cast(attrs, [:name, :code, :type, :status, :rating, :payment_terms, 
+                    :lead_time_days, :minimum_order, :website, :api_endpoint, 
+                    :api_key, :integration_type, :metadata])
+    |> validate_required([:name, :code, :type, :status])
+  end
 end 

@@ -4,8 +4,8 @@ defmodule ResolvinatorWeb.ImpactLive.Show do
   alias Resolvinator.Risks
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(%{"risk_id" => risk_id}, _session, socket) do
+    {:ok, assign(socket, :risk_id, risk_id)}
   end
 
   @impl true
@@ -13,7 +13,7 @@ defmodule ResolvinatorWeb.ImpactLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:impact, Risks.get_impact!(id))}
+     |> assign(:impact, Risks.get_impact!(socket.assigns.risk_id, id))}
   end
 
   defp page_title(:show), do: "Show Impact"

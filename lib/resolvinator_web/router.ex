@@ -109,6 +109,55 @@ defmodule ResolvinatorWeb.Router do
       live "/lessons/:id", LessonLive.Show, :show
       live "/lessons/:id/show/edit", LessonLive.Show, :edit
       live "/handsigns", HandsLive, :index
+      live "/handsigns/new", HandsLive, :new
+      live "/handsigns/:id/edit", HandsLive, :edit
+      live "/handsigns/:id", HandsLive, :show
+      live "/handsigns/:id/show/edit", HandsLive, :edit
+
+      live "/actors", ActorLive.Index, :index
+      live "/actors/new", ActorLive.Index, :new
+      live "/actors/:id/edit", ActorLive.Index, :edit
+      live "/actors/:id", ActorLive.Show, :show
+      live "/actors/:id/show/edit", ActorLive.Show, :edit
+      live "/categories", CategoryLive.Index, :index
+      live "/categories/new", CategoryLive.Index, :new
+      live "/categories/:id/edit", CategoryLive.Index, :edit
+      live "/categories/:id", CategoryLive.Show, :show
+      live "/categories/:id/show/edit", CategoryLive.Show, :edit
+      # Risk Management Routes
+      live "/risks", RiskLive.Index, :index
+      live "/risks/new", RiskLive.Index, :new
+      live "/risks/:id/edit", RiskLive.Index, :edit
+      live "/risks/:id", RiskLive.Show, :show
+      live "/risks/:id/show/edit", RiskLive.Show, :edit
+
+      # Impact Routes
+      live "/impacts", ImpactLive.Index, :index
+      live "/impacts/new", ImpactLive.Index, :new
+      live "/impacts/:id/edit", ImpactLive.Index, :edit
+      live "/impacts/:id", ImpactLive.Show, :show
+      live "/impacts/:id/show/edit", ImpactLive.Show, :edit
+
+      # Mitigation Routes
+      live "/mitigations", MitigationLive.Index, :index
+      live "/mitigations/new", MitigationLive.Index, :new
+      live "/mitigations/:id/edit", MitigationLive.Index, :edit
+      live "/mitigations/:id", MitigationLive.Show, :show
+      live "/mitigations/:id/show/edit", MitigationLive.Show, :edit
+
+      # Mitigation Task Routes
+      live "/mitigation_tasks", MitigationTaskLive.Index, :index
+      live "/mitigation_tasks/new", MitigationTaskLive.Index, :new
+      live "/mitigation_tasks/:id/edit", MitigationTaskLive.Index, :edit
+      live "/mitigation_tasks/:id", MitigationTaskLive.Show, :show
+      live "/mitigation_tasks/:id/show/edit", MitigationTaskLive.Show, :edit
+
+      # Message Routes (if not already present)
+      live "/messages", MessageLive.Index, :index
+      live "/messages/new", MessageLive.Index, :new
+      live "/messages/:id/edit", MessageLive.Index, :edit
+      live "/messages/:id", MessageLive.Show, :show
+      live "/messages/:id/show/edit", MessageLive.Show, :edit
     end
   end
 
@@ -133,21 +182,20 @@ defmodule ResolvinatorWeb.Router do
     post "/refresh", SessionController, :refresh
   end
 
-  scope "/api/v1", ResolvinatorWeb do
-    pipe_through [:api, :api_auth]
-
+  scope "/api/v1", ResolvinatorWeb.API do
+    pipe_through :api
+    
     # Supplier/Source management
     resources "/suppliers", SupplierController do
       resources "/contacts", SupplierContactController
       resources "/catalogs", SupplierCatalogController
       
-      member do
-        get "/performance", SupplierController, :get_performance
-        get "/pricing", SupplierController, :get_pricing
-      end
+      get "/performance", SupplierController, :get_performance, as: :performance
+      get "/pricing", SupplierController, :get_pricing, as: :pricing
     end
 
     resources "/projects", ProjectController do
+      resources "/actors", ActorController
       resources "/risks", RiskController do
         resources "/impacts", ImpactController
         resources "/mitigations", MitigationController do
@@ -157,29 +205,22 @@ defmodule ResolvinatorWeb.Router do
         end
       end
       
-      # Add inventory management routes
+      # Inventory management routes
       resources "/inventory", InventoryController do
-        resources "/sources", InventorySourceController do
-          member do
-            get "/availability", InventorySourceController, :check_availability
-            get "/pricing", InventorySourceController, :get_pricing
-            post "/order", InventorySourceController, :create_order
-          end
-        end
-        
-        member do
-          get "/analysis", InventoryController, :analyze_item
-          get "/trends", InventoryController, :get_trends
-          post "/adjust", InventoryController, :adjust_stock
-          get "/sources", InventoryController, :list_sources
-          post "/compare_sources", InventoryController, :compare_sources
-        end
-        
-        collection do
-          get "/alerts", InventoryController, :get_alerts
-          get "/reports", InventoryController, :generate_report
-        end
+        # If you don't have a separate InventorySourceController, handle these actions in InventoryController
+        get "/sources/:id/availability", InventoryController, :check_availability, as: :availability
+        get "/sources/:id/pricing", InventoryController, :get_pricing, as: :pricing
+        post "/sources/:id/order", InventoryController, :create_order, as: :order
+
+        get "/analysis", InventoryController, :analyze_item, as: :analysis
+        get "/trends", InventoryController, :get_trends, as: :trends
+        post "/adjust", InventoryController, :adjust_stock, as: :adjust
+        get "/sources", InventoryController, :list_sources, as: :sources
+        post "/compare_sources", InventoryController, :compare_sources, as: :compare_sources
       end
+
+      get "/alerts", InventoryController, :get_alerts, as: :alerts
+      get "/reports", InventoryController, :generate_report, as: :reports
     end
   end
 end

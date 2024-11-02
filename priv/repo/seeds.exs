@@ -1460,8 +1460,8 @@ end
 
 # Example user with hashed password
 hashed_password = hash_pwd_salt("password123")
-user1 = Repo.insert!(%User{name: "Exampl1e", email: "example@example.com", hashed_password: hashed_password})
-user2 = Repo.insert!(%User{name: "Example", email: "bob@example.com", hashed_password: hashed_password})
+user1 = Repo.insert!(%User{username: "Exampl1e", email: "example@example.com", hashed_password: hashed_password})
+user2 = Repo.insert!(%User{username: "Example", email: "bob@example.com", hashed_password: hashed_password})
 
 # Hide some descriptions for the user
 hidden_descriptions = [
@@ -1615,3 +1615,4 @@ Repo.insert_all("problem_descriptions", [
   %{problem_id: problem2.id, description_id: Repo.get_by!(Description, text: "Description 1 for problem 2").id, inserted_at: now, updated_at: now},
   %{problem_id: problem2.id, description_id: Repo.get_by!(Description, text: "Description 2 for problem 2").id, inserted_at: now, updated_at: now}
 ])
+Code.require_file("seeds/risks.exs", __DIR__)

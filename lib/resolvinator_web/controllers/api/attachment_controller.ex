@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.AttachmentController do
   use ResolvinatorWeb, :controller
 
   alias Resolvinator.Attachments
-  alias Resolvinator.Attachments.Attachment
+  #alias Resolvinator.Attachments.Attachment
 
   def create(conn, %{"file" => upload_params} = params) do
     # Handle file upload

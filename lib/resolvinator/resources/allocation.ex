@@ -12,7 +12,7 @@ defmodule Resolvinator.Resources.Allocation do
     field :start_date, :date
     field :end_date, :date
     field :status, :string
-    field :notes, :text
+    field :notes, :string
 
     belongs_to :risk, Resolvinator.Risks.Risk
     belongs_to :mitigation, Resolvinator.Risks.Mitigation

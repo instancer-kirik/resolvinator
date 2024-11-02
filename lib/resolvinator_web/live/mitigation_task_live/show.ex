@@ -4,8 +4,8 @@ defmodule ResolvinatorWeb.MitigationTaskLive.Show do
   alias Resolvinator.Risks
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(%{"mitigation_id" => mitigation_id}, _session, socket) do
+    {:ok, assign(socket, :mitigation_id, mitigation_id)}
   end
 
   @impl true

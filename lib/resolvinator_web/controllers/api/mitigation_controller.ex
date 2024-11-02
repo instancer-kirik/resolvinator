@@ -1,9 +1,9 @@
-defmodule ResolvinatorWeb.MitigationController do
+defmodule ResolvinatorWeb.API.MitigationController do
   use ResolvinatorWeb, :controller
   import ResolvinatorWeb.JSONHelpers
 
   alias Resolvinator.Risks
-  alias Resolvinator.Risks.Mitigation
+  #alias Resolvinator.Risks.Mitigation
 
   def index(conn, %{"risk_id" => risk_id} = params) do
     page = params["page"] || %{"number" => 1, "size" => 20}
@@ -19,7 +19,7 @@ defmodule ResolvinatorWeb.MitigationController do
     ))
   end
 
-  def create(conn, %{"project_id" => project_id, "risk_id" => risk_id, "mitigation" => mitigation_params}) do
+  def create(conn, %{"project_id" => _project_id, "risk_id" => risk_id, "mitigation" => mitigation_params}) do
     create_params = Map.merge(mitigation_params, %{
       "risk_id" => risk_id,
       "creator_id" => conn.assigns.current_user.id

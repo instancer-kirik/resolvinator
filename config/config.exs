@@ -37,7 +37,7 @@ config :esbuild,
   version: "0.17.11",
   resolvinator: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*  --external:react --external:react-dom --loader:.js=jsx --loader:.jsx=jsx),
+      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*  --external:react --external:react-dom --external:react-router --external:@react-three/fiber --external:three --loader:.js=jsx --loader:.jsx=jsx),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]

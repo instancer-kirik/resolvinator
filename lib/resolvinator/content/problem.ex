@@ -1,59 +1,33 @@
 defmodule Resolvinator.Content.Problem do
-  use Ecto.Schema
-  import Ecto.Changeset
+  @moduledoc """
+  Schema and functions for Problems
+  """
 
-  @status_values ~w(initial pending approved rejected)
+  use Flint.Schema
+  use Resolvinator.Content.ContentBehavior,
+    type_name: :problem,
+    table_name: "problems",
+    relationship_table: "problem_relationships",
+    relationship_keys: [problem_id: :id, related_problem_id: :id],
+    description_table: "problem_descriptions",
+    description_keys: [:problem_id, :language_id]
 
-  schema "problems" do
-    field :name, :string
-    field :desc, :string
-    field :upvotes, :integer, default: 0
-    field :downvotes, :integer, default: 0
-    field :status, :string, default: "initial"
-    field :rejection_reason, :string
-
-    # Who created the problem
-    belongs_to :creator, Resolvinator.Accounts.User, foreign_key: :creator_id
-    
-    # Who has this problem
+  flint do
     many_to_many :users_with_problem, Resolvinator.Accounts.User,
       join_through: "user_problems",
       on_replace: :delete
-    
-    many_to_many :related_problems, __MODULE__,
-      join_through: "problem_relationships",
-      join_keys: [problem_id: :id, related_problem_id: :id]
-    
-    many_to_many :lessons, Resolvinator.Content.Lesson, 
-      join_through: "problem_lesson_relationships"
-    
-    many_to_many :advantages, Resolvinator.Content.Advantage, 
-      join_through: "problem_advantage_relationships"
-    
-    many_to_many :solutions, Resolvinator.Content.Solution, 
-      join_through: "problem_solution_relationships"
-    
-    many_to_many :descriptions, Resolvinator.Content.Description, 
-      join_through: "problem_descriptions"
-
-    timestamps(type: :utc_datetime)
   end
 
-  @doc false
-  def changeset(problem, attrs) do
-    problem
-    |> cast(attrs, [:name, :desc, :creator_id, :upvotes, :downvotes, :status, :rejection_reason])
-    |> validate_required([:name, :desc, :creator_id])
-    |> validate_inclusion(:status, @status_values)
-    |> foreign_key_constraint(:creator_id)
-  end
-
-  @doc """
-  Changeset for adding or removing users who have this problem
-  """
+  # Problem-specific functions
   def users_with_problem_changeset(problem, users) do
     problem
     |> cast(%{}, [])
     |> put_assoc(:users_with_problem, users)
+  end
+
+  def changeset(problem, attrs) do
+    problem
+    |> super(attrs)
+    |> cast_assoc(:users_with_problem)
   end
 end

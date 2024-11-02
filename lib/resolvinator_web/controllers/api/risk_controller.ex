@@ -1,4 +1,4 @@
-defmodule ResolvinatorWeb.RiskController do
+defmodule ResolvinatorWeb.API.RiskController do
   use ResolvinatorWeb, :controller
   import ResolvinatorWeb.JSONHelpers
 
@@ -27,7 +27,7 @@ defmodule ResolvinatorWeb.RiskController do
     ))
   end
 
-  def create(conn, %{"project_id" => project_id, "risk" => risk_params}) do
+  def create(conn, %{"project_id" => _project_id, "risk" => risk_params}) do
     case Risks.create_risk(risk_params) do
       {:ok, risk} ->
         conn

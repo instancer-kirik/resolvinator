@@ -2,6 +2,17 @@ defmodule Resolvinator.Risks do
   @moduledoc """
   The Risks context.
   """
+  @cacheable_queries [:list_project_risks, :get_project_risk!]
+  @cache_ttl :timer.minutes(5)
+  import Resolvinator.QueryHelpers, only: [
+    paginate: 2,
+    handle_includes: 2,
+    apply_filters: 2,
+    apply_sorting: 2,
+    exclude_hidden: 1,
+    include_hidden: 1,
+    only_hidden: 1
+  ]
 
   import Ecto.Query, warn: false
   alias Resolvinator.Repo
@@ -17,8 +28,18 @@ defmodule Resolvinator.Risks do
       [%Category{}, ...]
 
   """
-  def list_risk_categories do
-    Repo.all(Category)
+  def list_risk_categories(opts \\ []) do
+    Category
+    |> apply_hidden_filter(opts[:show_hidden])
+    |> Repo.all()
+  end
+
+  defp apply_hidden_filter(query, show_hidden) do
+    case show_hidden do
+      true -> include_hidden(query)
+      :only -> only_hidden(query)
+      _ -> exclude_hidden(query)
+    end
   end
 
   @doc """
@@ -212,8 +233,24 @@ defmodule Resolvinator.Risks do
       [%Impact{}, ...]
 
   """
-  def list_impacts do
-    Repo.all(Impact)
+  def list_impacts(risk_id, opts \\ []) do
+    cache_key = {:impacts, risk_id, opts}
+
+    Cachex.fetch(:resolvinator_cache, cache_key, fn ->
+      {impacts, page_info} = do_list_impacts(risk_id, opts)
+      {:commit, {impacts, page_info}, ttl: @cache_ttl}
+    end)
+  end
+
+  defp do_list_impacts(risk_id, opts) do
+    page = Keyword.get(opts, :page, %{"number" => "1", "size" => "20"})
+    includes = Keyword.get(opts, :includes, [])
+
+    Impact
+    |> where([i], i.risk_id == ^risk_id)
+    |> handle_includes(includes)
+    |> paginate(page)
+    |> Repo.all()
   end
 
   @doc """
@@ -230,7 +267,21 @@ defmodule Resolvinator.Risks do
       ** (Ecto.NoResultsError)
 
   """
-  def get_impact!(id), do: Repo.get!(Impact, id)
+  def get_impact!(risk_id, id, includes \\ []) do
+    cache_key = {:impact, risk_id, id, includes}
+
+    Cachex.fetch(:resolvinator_cache, cache_key, fn ->
+      impact = do_get_impact!(risk_id, id, includes)
+      {:commit, impact, ttl: @cache_ttl}
+    end)
+  end
+
+  defp do_get_impact!(risk_id, id, includes) do
+    Impact
+    |> where([i], i.risk_id == ^risk_id and i.id == ^id)
+    |> handle_includes(includes)
+    |> Repo.one!()
+  end
 
   @doc """
   Creates a impact.
@@ -488,44 +539,57 @@ defmodule Resolvinator.Risks do
   def change_mitigation_task(%MitigationTask{} = mitigation_task, attrs \\ %{}) do
     MitigationTask.changeset(mitigation_task, attrs)
   end
+  
 
-  import Resolvinator.QueryHelpers
-
-  @cacheable_queries [:list_project_risks, :get_project_risk!]
-  @cache_ttl :timer.minutes(5)
-
+  @doc """
+  Lists project risks with caching support.
+  """
   def list_project_risks(project_id, opts \\ []) do
-    cache_key = {:risks, project_id, opts}
-
-    Cachex.fetch(:resolvinator_cache, cache_key, fn ->
-      {risks, page_info} = do_list_project_risks(project_id, opts)
-      {:commit, {risks, page_info}, ttl: @cache_ttl}
-    end)
+    case Cachex.get(:resolvinator_cache, {:risks, project_id, opts}) do
+      {:ok, nil} ->
+        # Cache miss - fetch and cache the result
+        result = do_list_project_risks(project_id, opts)
+        Cachex.put(:resolvinator_cache, {:risks, project_id, opts}, result, ttl: @cache_ttl)
+        result
+      {:ok, value} ->
+        # Cache hit
+        value
+      {:error, _} ->
+        # On error, just fetch without caching
+        do_list_project_risks(project_id, opts)
+    end
   end
 
   defp do_list_project_risks(project_id, opts) do
-    page = Keyword.get(opts, :page, %{"number" => 1, "size" => 20})
+    page = Keyword.get(opts, :page, %{"number" => "1", "size" => "20"})
     includes = Keyword.get(opts, :includes, [])
     filters = Keyword.get(opts, :filters, %{})
     sort = Keyword.get(opts, :sort)
 
-    Risk
-    |> where([r], r.project_id == ^project_id)
-    |> apply_filters(filters)
-    |> apply_sorting(sort)
-    |> handle_includes(includes)
-    |> paginate(page)
-    |> Repo.all()
-    |> build_page_info(page)
+    query = Risk
+            |> where([r], r.project_id == ^project_id)
+            |> apply_filters(filters)
+            |> apply_sorting(sort)
+            |> handle_includes(includes)
+
+    {results, page_info} = paginate(query, page)
+    {results, page_info}
   end
 
+  @doc """
+  Gets a project risk with caching support.
+  """
   def get_project_risk!(project_id, id, includes \\ []) do
-    cache_key = {:risk, project_id, id, includes}
-
-    Cachex.fetch(:resolvinator_cache, cache_key, fn ->
-      risk = do_get_project_risk!(project_id, id, includes)
-      {:commit, risk, ttl: @cache_ttl}
-    end)
+    case Cachex.get(:resolvinator_cache, {:risk, project_id, id, includes}) do
+      {:ok, nil} ->
+        result = do_get_project_risk!(project_id, id, includes)
+        Cachex.put(:resolvinator_cache, {:risk, project_id, id, includes}, result, ttl: @cache_ttl)
+        result
+      {:ok, value} ->
+        value
+      {:error, _} ->
+        do_get_project_risk!(project_id, id, includes)
+    end
   end
 
   defp do_get_project_risk!(project_id, id, includes) do
@@ -541,13 +605,17 @@ defmodule Resolvinator.Risks do
   end
   defp notify_subscribers(error, _), do: error
 
-  defp build_page_info(records, %{"number" => page_number, "size" => page_size}) do
-    {records,
-     %{
-       page_number: page_number,
-       page_size: page_size,
-       total_entries: length(records),
-       total_pages: ceil(length(records) / page_size)
-     }}
+  def hide_category(%Category{} = category, user_id) do
+    category
+    |> Category.hide(user_id)
+    |> Repo.update()
+    |> notify_subscribers({:category_hidden, category})
+  end
+
+  def unhide_category(%Category{} = category) do
+    category
+    |> Category.unhide()
+    |> Repo.update()
+    |> notify_subscribers({:category_unhidden, category})
   end
 end
