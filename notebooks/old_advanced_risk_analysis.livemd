@@ -1,0 +1,66 @@
+# Advanced Risk Analysis Dashboard
+
+## Introduction
+
+This notebook provides comprehensive risk analysis tools for project management, including:
+- Risk Matrix Visualization
+- Temporal Analysis
+- Category Distribution
+- Mitigation Effectiveness
+- Resource Allocation Analysis
+- Predictive Analytics
+
+## Setup and Data Loading 
+
+```elixir
+# Initialize required modules and libraries
+alias Resolvinator.Notebooks.Setup
+setup = Setup.setup()
+import Explorer.DataFrame
+alias Explorer.Series
+alias Resolvinator.{Repo, Risks, Resources}
+alias Resolvinator.Analytics.RiskAnalyzer
+
+# Setup visualization tools
+Kino.VegaLite.setup()
+
+# Create interactive inputs for analysis parameters
+date_range = Kino.Input.date_range("Date Range")
+category_select = Kino.Input.select("Risk Category", ["All" | Risks.list_categories()])
+impact_threshold = Kino.Input.number("Impact Threshold", default: 5)
+```
+
+## Data Preparation and Validation
+
+```elixir
+# Fetch and validate risk data
+risks_with_associations =
+  try do
+    Risks.list_risks(includes: [:mitigations, :impacts, :requirements])
+    |> Enum.map(fn risk ->
+      %{
+        id: risk.id,
+        name: risk.name,
+        category: risk.category,
+        probability: risk.probability,
+        impact: risk.impact,
+        status: risk.status,
+        description: risk.description,
+        mitigation_count: length(risk.mitigations),
+        total_impact_score: Enum.sum(Enum.map(risk.impacts, & &1.score)),
+        resource_requirements: length(risk.requirements),
+        created_at: risk.inserted_at,
+        updated_at: risk.updated_at,
+        days_open: Date.diff(Date.utc_today(), Date.from_iso8601!(risk.inserted_at))
+      }
+    end)
+    |> DataFrame.new()
+  rescue
+    e in RuntimeError -> 
+      IO.puts("Error loading risk data: #{inspect(e)}")
+      DataFrame.new([])
+  end
+
+# Display interactive data table with filtering
+Kino.DataTable.new(risks_with_associations, keys: [:id, :name, :category])
+``` 

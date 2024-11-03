@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.API.MitigationController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Risks
   #alias Resolvinator.Risks.Mitigation
@@ -10,7 +10,7 @@ defmodule ResolvinatorWeb.API.MitigationController do
     includes = params["include"]
 
     {mitigations, page_info} = Risks.list_risk_mitigations(risk_id, page: page, includes: includes)
-    
+
     conn
     |> put_status(:ok)
     |> json(paginate(
@@ -30,7 +30,7 @@ defmodule ResolvinatorWeb.API.MitigationController do
         conn
         |> put_status(:created)
         |> json(%{data: mitigation_json(mitigation)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -49,7 +49,7 @@ defmodule ResolvinatorWeb.API.MitigationController do
     case Risks.update_mitigation(mitigation, mitigation_params) do
       {:ok, mitigation} ->
         json(conn, %{data: mitigation_json(mitigation)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -59,10 +59,10 @@ defmodule ResolvinatorWeb.API.MitigationController do
 
   def delete(conn, %{"id" => id}) do
     mitigation = Risks.get_mitigation!(id)
-    
+
     case Risks.delete_mitigation(mitigation) do
       {:ok, _} -> send_resp(conn, :no_content, "")
-      {:error, _} -> 
+      {:error, _} ->
         conn
         |> put_status(:unprocessable_entity)
         |> json(%{error: "Could not delete mitigation"})
@@ -101,4 +101,4 @@ defmodule ResolvinatorWeb.API.MitigationController do
   end
 
   defp format_errors(changeset), do: Resolvinator.ChangesetErrors.format_errors(changeset)
-end 
+end

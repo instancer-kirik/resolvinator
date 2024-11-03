@@ -105,7 +105,7 @@ defmodule Resolvinator.Suppliers do
   # Helper functions
   def get_active_catalogs(supplier_id) do
     today = Date.utc_today()
-    
+
     Catalog
     |> where(supplier_id: ^supplier_id)
     |> where([c], c.status == "active")
@@ -122,4 +122,84 @@ defmodule Resolvinator.Suppliers do
     |> where(primary: true)
     |> Repo.one()
   end
-end 
+
+  alias Resolvinator.Suppliers.Supplier
+
+  @doc """
+  Returns the list of suppliers.
+
+  ## Examples
+
+      iex> list_suppliers()
+      [%Supplier{}, ...]
+
+  """
+  def list_suppliers do
+    Repo.all(Supplier)
+  end
+
+  @doc """
+  Gets a single supplier.
+
+  Raises `Ecto.NoResultsError` if the Supplier does not exist.
+
+  ## Examples
+
+      iex> get_supplier!(123)
+      %Supplier{}
+
+      iex> get_supplier!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_supplier!(id), do: Repo.get!(Supplier, id)
+
+
+
+  @doc """
+  Updates a supplier.
+
+  ## Examples
+
+      iex> update_supplier(supplier, %{field: new_value})
+      {:ok, %Supplier{}}
+
+      iex> update_supplier(supplier, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_supplier(%Supplier{} = supplier, attrs) do
+    supplier
+    |> Supplier.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a supplier.
+
+  ## Examples
+
+      iex> delete_supplier(supplier)
+      {:ok, %Supplier{}}
+
+      iex> delete_supplier(supplier)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_supplier(%Supplier{} = supplier) do
+    Repo.delete(supplier)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking supplier changes.
+
+  ## Examples
+
+      iex> change_supplier(supplier)
+      %Ecto.Changeset{data: %Supplier{}}
+
+  """
+  def change_supplier(%Supplier{} = supplier, attrs \\ %{}) do
+    Supplier.changeset(supplier, attrs)
+  end
+end

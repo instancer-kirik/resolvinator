@@ -158,6 +158,30 @@ defmodule ResolvinatorWeb.Router do
       live "/messages/:id/edit", MessageLive.Index, :edit
       live "/messages/:id", MessageLive.Show, :show
       live "/messages/:id/show/edit", MessageLive.Show, :edit
+
+      live "/resources", ResourceLive.Index, :index
+      live "/resources/new", ResourceLive.Index, :new
+      live "/resources/:id/edit", ResourceLive.Index, :edit
+      live "/resources/:id", ResourceLive.Show, :show
+      live "/resources/:id/show/edit", ResourceLive.Show, :edit
+
+      live "/requirements", RequirementLive.Index, :index
+      live "/requirements/new", RequirementLive.Index, :new
+      live "/requirements/:id/edit", RequirementLive.Index, :edit
+      live "/requirements/:id", RequirementLive.Show, :show
+      live "/requirements/:id/show/edit", RequirementLive.Show, :edit
+
+      live "/suppliers", SupplierLive.Index, :index
+      live "/suppliers/new", SupplierLive.Index, :new
+      live "/suppliers/:id/edit", SupplierLive.Index, :edit
+      live "/suppliers/:id", SupplierLive.Show, :show
+      live "/suppliers/:id/show/edit", SupplierLive.Show, :edit
+
+      live "/documents", DocumentLive.Index, :index
+      live "/documents/new", DocumentLive.Index, :new
+      live "/documents/:id/edit", DocumentLive.Index, :edit
+      live "/documents/:id", DocumentLive.Show, :show
+      live "/documents/:id/show/edit", DocumentLive.Show, :edit
     end
   end
 
@@ -184,12 +208,12 @@ defmodule ResolvinatorWeb.Router do
 
   scope "/api/v1", ResolvinatorWeb.API do
     pipe_through :api
-    
+
     # Supplier/Source management
     resources "/suppliers", SupplierController do
       resources "/contacts", SupplierContactController
       resources "/catalogs", SupplierCatalogController
-      
+
       get "/performance", SupplierController, :get_performance, as: :performance
       get "/pricing", SupplierController, :get_pricing, as: :pricing
     end
@@ -204,7 +228,7 @@ defmodule ResolvinatorWeb.Router do
           resources "/allocations", AllocationController
         end
       end
-      
+
       # Inventory management routes
       resources "/inventory", InventoryController do
         # If you don't have a separate InventorySourceController, handle these actions in InventoryController

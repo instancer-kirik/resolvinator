@@ -1,10 +1,12 @@
 defmodule ResolvinatorWeb.API.UserJSON do
   import ResolvinatorWeb.API.JSONHelpers
-  alias ResolvinatorWeb.API.ActorJSON
-  alias ResolvinatorWeb.API.ProblemJSON
-  alias ResolvinatorWeb.API.SolutionJSON
-  alias ResolvinatorWeb.API.AdvantageJSON
-  alias ResolvinatorWeb.API.LessonJSON
+  alias ResolvinatorWeb.API.{
+    ActorJSON,
+    ProblemJSON,
+    SolutionJSON,
+    AdvantageJSON,
+    LessonJSON
+  }
 
   @doc """
   Renders a list of users.

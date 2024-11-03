@@ -1,0 +1,32 @@
+<.header>
+  Requirement <%= @requirement.id %>
+  <:subtitle>This is a requirement record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/requirements/#{@requirement}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit requirement</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @requirement.name %></:item>
+  <:item title="Description"><%= @requirement.description %></:item>
+  <:item title="Type"><%= @requirement.type %></:item>
+  <:item title="Priority"><%= @requirement.priority %></:item>
+  <:item title="Status"><%= @requirement.status %></:item>
+  <:item title="Validation criteria"><%= @requirement.validation_criteria %></:item>
+  <:item title="Due date"><%= @requirement.due_date %></:item>
+</.list>
+
+<.back navigate={~p"/requirements"}>Back to requirements</.back>
+
+<.modal :if={@live_action == :edit} id="requirement-modal" show on_cancel={JS.patch(~p"/requirements/#{@requirement}")}>
+  <.live_component
+    module={ResolvinatorWeb.RequirementLive.FormComponent}
+    id={@requirement.id}
+    title={@page_title}
+    action={@live_action}
+    requirement={@requirement}
+    patch={~p"/requirements/#{@requirement}"}
+  />
+</.modal>

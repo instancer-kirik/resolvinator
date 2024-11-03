@@ -1,16 +1,16 @@
 defmodule ResolvinatorWeb.API.ActorJSON do
+  import ResolvinatorWeb.API.JSONHelpers
   alias Resolvinator.Actors.Actor
-  import ResolvinatorWeb.JSONHelpers
-  alias ResolvinatorWeb.UserJSON
+  alias ResolvinatorWeb.API.{UserJSON, ProjectJSON}
 
   @doc """
   Renders a list of actors.
   """
   def index(%{actors: actors, page_info: page_info}) do
-    %{
-      data: for(actor <- actors, do: data(actor)),
-      page_info: page_info
-    }
+    paginate(
+      Enum.map(actors, &data/1),
+      page_info
+    )
   end
 
   @doc """
@@ -25,7 +25,7 @@ defmodule ResolvinatorWeb.API.ActorJSON do
   """
   def data(%Actor{} = actor, opts \\ []) do
     includes = Keyword.get(opts, :includes, [])
-    
+
     base = %{
       id: actor.id,
       type: "actor",
@@ -44,10 +44,13 @@ defmodule ResolvinatorWeb.API.ActorJSON do
     }
 
     relationships = %{}
-    |> maybe_add_relationship("project", actor.project, &ResolvinatorWeb.ProjectJSON.data/1, includes)
+    |> maybe_add_relationship("project", actor.project, &ProjectJSON.data/1, includes)
     |> maybe_add_relationship("parent_actor", actor.parent_actor, &data/1, includes)
     |> maybe_add_relationship("creator", actor.creator, &UserJSON.data/1, includes)
 
-    Map.put(base, :relationships, relationships)
+    %{base | relationships: relationships}
   end
-end 
+
+  defp relationship_data(nil), do: nil
+  defp relationship_data(data), do: %{data: data}
+end

@@ -1,15 +1,15 @@
 defmodule ResolvinatorWeb.API.MitigationTaskController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Risks
- 
+
   def index(conn, %{"mitigation_id" => mitigation_id} = params) do
     page = params["page"] || %{"number" => 1, "size" => 20}
     includes = params["include"]
 
     {tasks, page_info} = Risks.list_mitigation_tasks(mitigation_id, page: page, includes: includes)
-    
+
     conn
     |> put_status(:ok)
     |> json(paginate(
@@ -29,7 +29,7 @@ defmodule ResolvinatorWeb.API.MitigationTaskController do
         conn
         |> put_status(:created)
         |> json(%{data: task_json(task)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -48,7 +48,7 @@ defmodule ResolvinatorWeb.API.MitigationTaskController do
     case Risks.update_mitigation_task(task, task_params) do
       {:ok, task} ->
         json(conn, %{data: task_json(task)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -58,10 +58,10 @@ defmodule ResolvinatorWeb.API.MitigationTaskController do
 
   def delete(conn, %{"id" => id}) do
     task = Risks.get_mitigation_task!(id)
-    
+
     case Risks.delete_mitigation_task(task) do
       {:ok, _} -> send_resp(conn, :no_content, "")
-      {:error, _} -> 
+      {:error, _} ->
         conn
         |> put_status(:unprocessable_entity)
         |> json(%{error: "Could not delete task"})
@@ -84,4 +84,4 @@ defmodule ResolvinatorWeb.API.MitigationTaskController do
   end
 
   defp format_errors(changeset), do: Resolvinator.ChangesetErrors.format_errors(changeset)
-end 
+end

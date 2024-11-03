@@ -30,8 +30,13 @@ defmodule Resolvinator.Accounts.User do
       join_through: "user_lessons"
 
     # Hidden content tracking
-    many_to_many :hidden_descriptions, Resolvinator.Content.Description, 
+    many_to_many :hidden_descriptions, Resolvinator.Content.Description,
       join_through: "user_hidden_descriptions"
+
+    many_to_many :inventory_items, Resolvinator.Resources.InventoryItems.InventoryItem,
+      join_through: "user_inventories",
+      join_keys: [user_id: :id, inventory_item_id: :id],
+      on_replace: :delete
 
     timestamps(type: :utc_datetime)
   end

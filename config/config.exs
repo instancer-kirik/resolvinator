@@ -67,3 +67,16 @@ config :assent,
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
+
+# Add to your existing config:
+
+config :hammer,
+  backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 4,
+                                cleanup_interval_ms: 60_000 * 10]}
+
+# Optional: Configure different rate limits for different environments
+config :resolvinator, Resolvinator.Auth.RateLimiter,
+  socket_connect_limit: 100,
+  socket_connect_window_ms: 60_000,
+  api_request_limit: 1000,
+  api_request_window_ms: 60_000

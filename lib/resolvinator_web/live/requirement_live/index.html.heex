@@ -1,0 +1,47 @@
+<.header>
+  Listing Requirements
+  <:actions>
+    <.link patch={~p"/requirements/new"}>
+      <.button>New Requirement</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="requirements"
+  rows={@streams.requirements}
+  row_click={fn {_id, requirement} -> JS.navigate(~p"/requirements/#{requirement}") end}
+>
+  <:col :let={{_id, requirement}} label="Name"><%= requirement.name %></:col>
+  <:col :let={{_id, requirement}} label="Description"><%= requirement.description %></:col>
+  <:col :let={{_id, requirement}} label="Type"><%= requirement.type %></:col>
+  <:col :let={{_id, requirement}} label="Priority"><%= requirement.priority %></:col>
+  <:col :let={{_id, requirement}} label="Status"><%= requirement.status %></:col>
+  <:col :let={{_id, requirement}} label="Validation criteria"><%= requirement.validation_criteria %></:col>
+  <:col :let={{_id, requirement}} label="Due date"><%= requirement.due_date %></:col>
+  <:action :let={{_id, requirement}}>
+    <div class="sr-only">
+      <.link navigate={~p"/requirements/#{requirement}"}>Show</.link>
+    </div>
+    <.link patch={~p"/requirements/#{requirement}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, requirement}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: requirement.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="requirement-modal" show on_cancel={JS.patch(~p"/requirements")}>
+  <.live_component
+    module={ResolvinatorWeb.RequirementLive.FormComponent}
+    id={@requirement.id || :new}
+    title={@page_title}
+    action={@live_action}
+    requirement={@requirement}
+    patch={~p"/requirements"}
+  />
+</.modal>

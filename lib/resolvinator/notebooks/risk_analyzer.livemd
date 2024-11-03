@@ -1,0 +1,167 @@
+# Advanced Risk Analysis Dashboard
+
+## Introduction
+
+This notebook provides comprehensive risk analysis tools for project management, including:
+- Risk Matrix Visualization
+- Temporal Analysis
+- Category Distribution
+- Mitigation Effectiveness
+- Resource Allocation Analysis
+- Predictive Analytics
+
+## Setup and Data Loading 
+
+```elixir
+# Initialize required modules and libraries
+alias Resolvinator.Notebooks.Setup
+setup = Setup.setup()
+import Explorer.DataFrame
+alias Explorer.Series
+alias Resolvinator.{Repo, Risks, Resources}
+alias Resolvinator.Analytics.RiskAnalyzer
+
+# Setup visualization tools
+Kino.VegaLite.setup()
+
+# Create interactive inputs for analysis parameters
+date_range = Kino.Input.date_range("Date Range")
+category_select = Kino.Input.select("Risk Category", ["All" | Risks.list_categories()])
+impact_threshold = Kino.Input.number("Impact Threshold", default: 5)
+```
+
+## Data Preparation and Validation
+try do
+    Risks.list_risks(includes: [:mitigations, :impacts, :requirements])
+    |> Enum.map(fn risk ->
+      %{
+        id: risk.id,
+        name: risk.name,
+        category: risk.category,
+        probability: risk.probability,
+        impact: risk.impact,
+        status: risk.status,
+        description: risk.description,
+        mitigation_count: length(risk.mitigations),
+        total_impact_score: Enum.sum(Enum.map(risk.impacts, & &1.score)),
+        resource_requirements: length(risk.requirements),
+        created_at: risk.inserted_at,
+        updated_at: risk.updated_at,
+        days_open: Date.diff(Date.utc_today(), Date.from_iso8601!(risk.inserted_at))
+      }
+    end)
+    |> DataFrame.new()
+  rescue
+    e in RuntimeError -> 
+      IO.puts("Error loading risk data: #{inspect(e)}")
+      DataFrame.new([])
+  end
+# Display interactive data table with filtering
+Kino.DataTable.new(risks_with_associations, keys: [:id, :name, :category])
+```elixir
+Create Risk Matrix Heatmap
+matrix_data =
+risks_with_associations
+|> group_by([:probability, :impact])
+|> summarise(count: count())
+|> collect()
+VegaLite.new(width: 400, height: 400)
+|> VegaLite.data(matrix_data)
+|> VegaLite.mark(:rect)
+|> VegaLite.encode_field(:x, "probability", type: :ordinal, title: "Probability")
+|> VegaLite.encode_field(:y, "impact", type: :ordinal, title: "Impact")
+|> VegaLite.encode_field(:color, "count",
+type: :quantitative,
+scale: [scheme: "reds"],
+title: "Number of Risks"
+)
+|> VegaLite.config(view: [stroke: nil])
+|> VegaLite.properties(title: "Risk Matrix Heatmap")
+```
+
+```elixir
+Risk Creation Timeline
+timeline_data =
+risks_with_associations
+|> mutate(month: date_trunc(created_at, "month"))
+|> group_by(:month)
+|> summarise(
+new_risks: count(),
+avg_impact: mean(total_impact_score)
+)
+|> arrange(desc: :month)
+|> collect()
+VegaLite.new(width: 600, height: 300)
+|> VegaLite.data(timeline_data)
+|> VegaLite.mark(:line)
+|> VegaLite.encode_field(:x, "month", type: :temporal, title: "Month")
+|> VegaLite.encode_field(:y, "new_risks", type: :quantitative, title: "New Risks")
+|> VegaLite.encode_field(:color, value: "steelblue")
+|> VegaLite.properties(title: "Risk Creation Timeline")
+```
+
+```elixir
+Category Distribution and Impact Analysis
+category_analysis =
+risks_with_associations
+|> group_by(:category)
+|> summarise(
+count: count(),
+avg_impact: mean(total_impact_score),
+avg_mitigations: mean(mitigation_count),
+avg_requirements: mean(resource_requirements)
+)
+|> arrange(desc: :count)
+|> collect()
+VegaLite.new(width: 500, height: 300)
+|> VegaLite.data(category_analysis)
+|> VegaLite.mark(:bar)
+|> VegaLite.encode_field(:x, "category", type: :nominal, title: "Risk Category")
+|> VegaLite.encode_field(:y, "count", type: :quantitative, title: "Number of Risks")
+|> VegaLite.encode_field(:color, "avg_impact",
+type: :quantitative,
+scale: [scheme: "viridis"],
+title: "Average Impact Score"
+)
+```
+
+```elixir
+Calculate mitigation effectiveness
+mitigation_effectiveness =
+risks_with_associations
+|> filter(mitigation_count > 0)
+|> group_by(:status)
+|> summarise(
+risk_count: count(),
+avg_mitigations: mean(mitigation_count),
+avg_impact: mean(total_impact_score)
+)
+|> mutate(
+effectiveness: 1 - (avg_impact / lag(avg_impact))
+)
+|> collect()
+Visualize mitigation effectiveness
+VegaLite.new(width: 400, height: 300)
+|> VegaLite.data(mitigation_effectiveness)
+|> VegaLite.mark(:bar)
+|> VegaLite.encode_field(:x, "status", type: :nominal)
+|> VegaLite.encode_field(:y, "effectiveness", type: :quantitative)
+|> VegaLite.properties(title: "Mitigation Effectiveness by Risk Status")
+```
+
+```elixir
+Analyze resource requirements vs risk impact
+resource_impact_correlation =
+risks_with_associations
+|> select([:resource_requirements, :total_impact_score, :category])
+|> collect()
+VegaLite.new(width: 500, height: 300)
+|> VegaLite.data(resource_impact_correlation)
+|> VegaLite.mark(:point)
+|> VegaLite.encode_field(:x, "resource_requirements", type: :quantitative)
+|> VegaLite.encode_field(:y, "total_impact_score", type: :quantitative)
+|> VegaLite.encode_field(:color, "category", type: :nominal)
+|> VegaLite.properties(title: "Resource Requirements vs Impact Score")
+```
+
+```

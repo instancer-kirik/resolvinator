@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.API.InventoryController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Resources
  # alias Resolvinator.Resources.InventoryItem
@@ -16,7 +16,7 @@ defmodule ResolvinatorWeb.API.InventoryController do
       includes: includes,
       filters: filters
     )
-    
+
     conn
     |> put_status(:ok)
     |> json(paginate(
@@ -123,7 +123,7 @@ defmodule ResolvinatorWeb.API.InventoryController do
         conn
         |> put_status(:created)
         |> json(%{data: InventoryJSON.data(item)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -154,7 +154,7 @@ defmodule ResolvinatorWeb.API.InventoryController do
         conn
         |> put_status(:not_found)
         |> json(%{error: "Inventory item not found"})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -171,11 +171,11 @@ defmodule ResolvinatorWeb.API.InventoryController do
         conn
         |> put_status(:not_found)
         |> json(%{error: "Inventory item not found"})
-      
+
       {:error, _} ->
         conn
         |> put_status(:unprocessable_entity)
         |> json(%{error: "Could not delete inventory item"})
     end
   end
-end 
+end

@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.API.ProjectController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Projects
  # alias Resolvinator.Projects.Project
@@ -10,7 +10,7 @@ defmodule ResolvinatorWeb.API.ProjectController do
     includes = params["include"]
 
     {projects, page_info} = Projects.list_projects(page: page, includes: includes)
-    
+
     conn
     |> put_status(:ok)
     |> json(paginate(
@@ -25,7 +25,7 @@ defmodule ResolvinatorWeb.API.ProjectController do
         conn
         |> put_status(:created)
         |> json(%{data: project_json(project)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -44,7 +44,7 @@ defmodule ResolvinatorWeb.API.ProjectController do
     case Projects.update_project(project, project_params) do
       {:ok, project} ->
         json(conn, %{data: project_json(project)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -54,11 +54,11 @@ defmodule ResolvinatorWeb.API.ProjectController do
 
   def delete(conn, %{"id" => id}) do
     project = Projects.get_project!(id)
-    
+
     case Projects.delete_project(project) do
       {:ok, _} ->
         send_resp(conn, :no_content, "")
-      
+
       {:error, _} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -90,4 +90,4 @@ defmodule ResolvinatorWeb.API.ProjectController do
       end)
     end)
   end
-end 
+end

@@ -1,16 +1,16 @@
 defmodule ResolvinatorWeb.API.ImpactController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers, only: [paginate: 2]
+  import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Risks
-  alias ResolvinatorWeb.{ImpactJSON, ChangesetErrors}
+  alias ResolvinatorWeb.API.{ImpactJSON, ErrorJSON}
 
   def index(conn, %{"risk_id" => risk_id} = params) do
     page = params["page"] || %{"number" => 1, "size" => 20}
     includes = params["include"]
 
     {impacts, page_info} = Risks.list_impacts(risk_id, page: page, includes: includes)
-    
+
     conn
     |> put_status(:ok)
     |> json(paginate(
@@ -29,18 +29,19 @@ defmodule ResolvinatorWeb.API.ImpactController do
       {:ok, impact} ->
         conn
         |> put_status(:created)
-        |> json(%{data: impact_json(impact)})
-      
+        |> json(%{data: ImpactJSON.data(impact)})
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
+        |> json(ErrorJSON.error(changeset))
     end
   end
 
-  def show(conn, %{"project_id" => project_id, "risk_id" => risk_id, "id" => id}) do
-    impact = Risks.get_impact!(project_id, risk_id, id)
-    json(conn, %{data: impact_json(impact)})
+  def show(conn, %{"project_id" => _project_id, "risk_id" => _risk_id, "id" => id} = params) do
+    includes = params["include"]
+    impact = Risks.get_impact!(id)
+    json(conn, %{data: ImpactJSON.data(impact, includes: includes)})
   end
 
   def update(conn, %{"id" => id, "impact" => impact_params}) do
@@ -48,41 +49,24 @@ defmodule ResolvinatorWeb.API.ImpactController do
 
     case Risks.update_impact(impact, impact_params) do
       {:ok, impact} ->
-        json(conn, %{data: impact_json(impact)})
-      
+        json(conn, %{data: ImpactJSON.data(impact)})
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{errors: ChangesetErrors.format_errors(changeset)})
+        |> json(ErrorJSON.error(changeset))
     end
   end
 
   def delete(conn, %{"id" => id}) do
     impact = Risks.get_impact!(id)
-    
+
     case Risks.delete_impact(impact) do
       {:ok, _} -> send_resp(conn, :no_content, "")
-      {:error, _} -> 
+      {:error, _} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> json(%{error: "Could not delete impact"})
+        |> json(ErrorJSON.error(:delete_failed, "Could not delete impact"))
     end
   end
-
-  defp impact_json(impact) do
-    %{
-      id: impact.id,
-      description: impact.description,
-      area: impact.area,
-      severity: impact.severity,
-      likelihood: impact.likelihood,
-      estimated_cost: impact.estimated_cost,
-      timeframe: impact.timeframe,
-      notes: impact.notes,
-      risk_id: impact.risk_id,
-      inserted_at: impact.inserted_at,
-      updated_at: impact.updated_at
-    }
-  end
-
-end 
+end

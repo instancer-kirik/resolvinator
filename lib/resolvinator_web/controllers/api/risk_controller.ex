@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.API.RiskController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Risks
   alias Resolvinator.Risks.Risk
@@ -18,7 +18,7 @@ defmodule ResolvinatorWeb.API.RiskController do
       filters: filters,
       sort: sort
     )
-    
+
     conn
     |> put_status(:ok)
     |> json(paginate(
@@ -33,12 +33,12 @@ defmodule ResolvinatorWeb.API.RiskController do
         conn
         |> put_status(:created)
         |> json(%{data: RiskJSON.data(risk)})
-      
+
       {:error, %Ecto.Changeset{} = changeset} ->
         conn
         |> put_status(:unprocessable_entity)
         |> json(format_error(changeset))
-      
+
       {:error, type, message} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -46,8 +46,13 @@ defmodule ResolvinatorWeb.API.RiskController do
     end
   end
 
-  def show(conn, %{"project_id" => project_id, "id" => id, "include" => includes}) do
-    includes = String.split(includes, ",")
+  def show(conn, %{"project_id" => project_id, "id" => id} = params) do
+    includes = case params["include"] do
+      nil -> []
+      includes when is_binary(includes) -> String.split(includes, ",")
+      includes when is_list(includes) -> includes
+    end
+
     risk = Risks.get_project_risk!(project_id, id, includes)
     json(conn, %{data: ResolvinatorWeb.RiskJSON.data(risk, includes: includes)})
   end
@@ -67,4 +72,4 @@ defmodule ResolvinatorWeb.API.RiskController do
       send_resp(conn, :no_content, "")
     end
   end
-end 
+end

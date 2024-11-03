@@ -1,0 +1,31 @@
+defmodule Resolvinator.Notebooks.Setup do
+  @moduledoc """
+  Common setup for LiveBook notebooks
+  """
+
+  def setup do
+    Mix.install([
+      {:kino, "~> 0.12.0"},
+      {:vega_lite, "~> 0.1.8"},
+      {:explorer, "~> 0.8.0"},
+      {:flame, "~> 0.3.0"},
+      {:nx, "~> 0.7.0"}
+    ])
+
+    # Import commonly used modules
+    import_if_available(Nx)
+    import_if_available(Explorer.DataFrame)
+    import_if_available(VegaLite)
+
+    # Setup aliases
+    df = Explorer.DataFrame
+
+    # Return commonly used modules and aliases
+    %{
+      df: df,
+      repo: Resolvinator.Repo,
+      resources: Resolvinator.Resources,
+      risks: Resolvinator.Risks
+    }
+  end
+end

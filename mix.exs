@@ -13,13 +13,10 @@ defmodule Resolvinator.MixProject do
     ]
   end
 
-  # Configuration for the OTP application.
-  #
-  # Type `mix help compile.app` for more information.
   def application do
     [
       mod: {Resolvinator.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 
@@ -32,18 +29,48 @@ defmodule Resolvinator.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:pbkdf2_elixir, "~> 2.0"},
+      # Core Phoenix
       {:phoenix, "~> 1.7.12"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.20.2"},
-      {:floki, ">= 0.30.0", only: :test},
+      {:phoenix_live_view, "~> 1.0.0-rc.6"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:bandit, "~> 1.2"},
+
+      # Development
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+
+      # Auth & Security
+      {:pbkdf2_elixir, "~> 2.0"},
+      {:assent, "~> 0.2.9"},
+      {:cors_plug, "~> 3.0"},
+
+      # API
+      {:open_api_spex, "~> 3.16"},
+      {:jason, "~> 1.2"},
+
+      # Caching
+      {:cachex, "~> 3.6"},
+      {:hammer, "~> 6.1"},
+
+      # Email
+      {:swoosh, "~> 1.5"},
+      {:finch, "~> 0.13"},
+
+      # Monitoring
+      {:telemetry_metrics, "~> 1.0.0"},
+      {:telemetry_poller, "~> 1.1.0"},
+
+      # Utilities
+      {:gettext, "~> 0.20"},
+      {:dns_cluster, "~> 0.1.1"},
+      {:flint, "~> 0.4"},
+
+      # Assets
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",
@@ -51,29 +78,20 @@ defmodule Resolvinator.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:swoosh, "~> 1.5"},
-      {:finch, "~> 0.13"},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.20"},
-      {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
-      {:assent, "~> 0.2.9"},
-      {:bandit, "~> 1.2"},
-      {:cors_plug, "~> 3.0"},
-      {:open_api_spex, "~> 3.16"},
-      {:cachex, "~> 3.6"},
-      {:hammer, "~> 6.1"},
-      {:flint, "~> 1.0"}
+
+      # Testing
+      {:floki, ">= 0.30.0", only: :test},
+      # Analysis (dev/test only)
+      {:livebook, "~> 0.14.3", only: [:dev, :test], runtime: false},
+      {:kino, "~> 0.13.0", only: [:dev, :test], runtime: false},
+      {:vega_lite, "~> 0.1.8", only: [:dev, :test], runtime: false},
+      {:explorer, "~> 0.8.0", only: [:dev, :test], runtime: false},
+      {:nx, "~> 0.7.0", only: [:dev, :test], runtime: false},
+      {:flame, "~> 0.3.0", only: [:dev, :test], runtime: false}
+
     ]
   end
 
-  # Aliases are shortcuts or tasks specific to the current project.
-  # For example, to install project dependencies and perform other setup tasks, run:
-  #
-  #     $ mix setup
-  #
-  # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],

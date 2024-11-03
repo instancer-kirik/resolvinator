@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.API.RequirementController do
   use ResolvinatorWeb, :controller
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Resources
   #alias Resolvinator.Resources.Requirement
@@ -11,12 +11,12 @@ defmodule ResolvinatorWeb.API.RequirementController do
 
     {requirements, page_info} = Resources.list_requirements(
       params["project_id"],
-      params["risk_id"], 
-      params["mitigation_id"], 
-      page: page, 
+      params["risk_id"],
+      params["mitigation_id"],
+      page: page,
       includes: includes
     )
-    
+
     conn
     |> put_status(:ok)
     |> json(paginate(
@@ -33,7 +33,7 @@ defmodule ResolvinatorWeb.API.RequirementController do
         conn
         |> put_status(:created)
         |> json(%{data: RequirementJSON.data(requirement)})
-      
+
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -82,4 +82,4 @@ defmodule ResolvinatorWeb.API.RequirementController do
         |> json(%{error: "Requirement not found"})
     end
   end
-end 
+end

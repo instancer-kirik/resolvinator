@@ -1,10 +1,10 @@
 defmodule ResolvinatorWeb.API.InventoryJSON do
-  import ResolvinatorWeb.JSONHelpers
+  import ResolvinatorWeb.API.JSONHelpers
   alias ResolvinatorWeb.API.{ProjectJSON, RequirementJSON, AllocationJSON}
 
   def data(item, opts \\ []) do
     includes = Keyword.get(opts, :includes, [])
-    
+
     base = %{
       id: item.id,
       type: "inventory_item",
@@ -47,4 +47,4 @@ defmodule ResolvinatorWeb.API.InventoryJSON do
       email: user.email
     }
   end
-end 
+end

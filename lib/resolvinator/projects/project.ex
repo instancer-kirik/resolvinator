@@ -50,6 +50,9 @@ defmodule Resolvinator.Projects.Project do
     many_to_many :actors, Resolvinator.Actors.Actor,
       join_through: "project_actors"
 
+    # Add systems relationship
+    has_many :systems, Resolvinator.Systems.System
+
     timestamps(type: :utc_datetime)
   end
 

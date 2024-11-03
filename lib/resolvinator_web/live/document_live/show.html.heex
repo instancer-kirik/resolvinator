@@ -1,0 +1,31 @@
+<.header>
+  Document <%= @document.id %>
+  <:subtitle>This is a document record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/documents/#{@document}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit document</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Title"><%= @document.title %></:item>
+  <:item title="Description"><%= @document.description %></:item>
+  <:item title="File path"><%= @document.file_path %></:item>
+  <:item title="Content type"><%= @document.content_type %></:item>
+  <:item title="Size"><%= @document.size %></:item>
+  <:item title="Status"><%= @document.status %></:item>
+</.list>
+
+<.back navigate={~p"/documents"}>Back to documents</.back>
+
+<.modal :if={@live_action == :edit} id="document-modal" show on_cancel={JS.patch(~p"/documents/#{@document}")}>
+  <.live_component
+    module={ResolvinatorWeb.DocumentLive.FormComponent}
+    id={@document.id}
+    title={@page_title}
+    action={@live_action}
+    document={@document}
+    patch={~p"/documents/#{@document}"}
+  />
+</.modal>

@@ -1,0 +1,33 @@
+<.header>
+  Resource <%= @resource.id %>
+  <:subtitle>This is a resource record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/resources/#{@resource}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit resource</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @resource.name %></:item>
+  <:item title="Type"><%= @resource.type %></:item>
+  <:item title="Description"><%= @resource.description %></:item>
+  <:item title="Quantity"><%= @resource.quantity %></:item>
+  <:item title="Unit"><%= @resource.unit %></:item>
+  <:item title="Cost per unit"><%= @resource.cost_per_unit %></:item>
+  <:item title="Availability status"><%= @resource.availability_status %></:item>
+  <:item title="Metadata"><%= @resource.metadata %></:item>
+</.list>
+
+<.back navigate={~p"/resources"}>Back to resources</.back>
+
+<.modal :if={@live_action == :edit} id="resource-modal" show on_cancel={JS.patch(~p"/resources/#{@resource}")}>
+  <.live_component
+    module={ResolvinatorWeb.ResourceLive.FormComponent}
+    id={@resource.id}
+    title={@page_title}
+    action={@live_action}
+    resource={@resource}
+    patch={~p"/resources/#{@resource}"}
+  />
+</.modal>

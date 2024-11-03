@@ -27,7 +27,14 @@ defmodule ResolvinatorWeb.API.RiskJSON do
   """
   def data(%Risk{} = risk, opts \\ []) do
     includes = Keyword.get(opts, :includes, [])
+    force_preload = Keyword.get(opts, :preload, false)
     
+    risk = if force_preload do
+      Resolvinator.Repo.preload(risk, includes)
+    else
+      risk
+    end
+
     base = %{
       id: risk.id,
       type: "risk",
@@ -112,4 +119,18 @@ defmodule ResolvinatorWeb.API.RiskJSON do
       }
     }
   end
+
+  defp user_data(user) do
+    %{
+      id: user.id,
+      type: "user",
+      attributes: %{
+        email: user.email,
+        username: user.username
+      }
+    }
+  end
 end 
+
+
+# so does this run on the client system? like what if same runtime as pyqt client, but obv I 

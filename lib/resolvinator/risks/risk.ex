@@ -1,60 +1,55 @@
 defmodule Resolvinator.Risks.Risk do
-  use Ecto.Schema
-  import Ecto.Changeset
-  
-  @priority_values ~w(low medium high critical)
-  @status_values ~w(identified analyzing mitigating resolved closed)
-  @probability_values ~w(rare unlikely possible likely certain)
-  @impact_values ~w(negligible minor moderate major severe)
-  
+  use Flint.Schema
+  use Resolvinator.Risks.RiskBehavior
+
+
   schema "risks" do
+    # Define the common fields directly
     field :name, :string
     field :description, :string
     field :probability, :string
     field :impact, :string
-    field :priority, :string    # Could be calculated from probability and impact
+    field :priority, :string
     field :status, :string
-    field :mitigation_status, :string
-    field :detection_date, :date
-    field :review_date, :date
-    
+    field :metadata, :map, default: %{}
+
     # Core relationships
     belongs_to :creator, Resolvinator.Accounts.User
     belongs_to :project, Resolvinator.Projects.Project
     belongs_to :risk_category, Resolvinator.Risks.Category
-    
+
     # Risk relationships
-    many_to_many :related_risks, __MODULE__, 
+    many_to_many :related_risks, __MODULE__,
       join_through: "risk_relationships",
       join_keys: [risk_id: :id, related_risk_id: :id]
-    
+
     # Impact and mitigation tracking
     has_many :impacts, Resolvinator.Risks.Impact
     has_many :mitigations, Resolvinator.Risks.Mitigation
-    
-    # Actor relationships (replaces organization)
+
+    # Actor relationships
     many_to_many :affected_actors, Resolvinator.Actors.Actor,
       join_through: "actor_risk_impacts"
     many_to_many :responsible_actors, Resolvinator.Actors.Actor,
       join_through: "actor_risk_responsibilities"
-    
+
     # Resource tracking
     has_many :resource_allocations, Resolvinator.Resources.Allocation
+
+    # Additional fields specific to Risk
+    field :mitigation_status, :string
+    field :detection_date, :date
+    field :review_date, :date
 
     timestamps(type: :utc_datetime)
   end
 
   def changeset(risk, attrs) do
     risk
-    |> cast(attrs, [:name, :description, :probability, :impact, :priority, 
-                    :status, :mitigation_status, :detection_date, 
-                    :review_date, :creator_id, :project_id, :risk_category_id])
-    |> validate_required([:name, :description, :probability, :impact, 
-                         :status, :creator_id, :project_id])
-    |> validate_inclusion(:probability, @probability_values)
-    |> validate_inclusion(:impact, @impact_values)
-    |> validate_inclusion(:priority, @priority_values)
-    |> validate_inclusion(:status, @status_values)
+    |> base_changeset(attrs)
+    |> cast(attrs, [:mitigation_status, :detection_date, :review_date,
+                    :creator_id, :project_id, :risk_category_id])
+    |> validate_required([:creator_id, :project_id])
     |> calculate_priority()
     |> foreign_key_constraint(:creator_id)
     |> foreign_key_constraint(:project_id)
@@ -73,8 +68,7 @@ defmodule Resolvinator.Risks.Risk do
 
   defp determine_priority(probability, impact) do
     # Assuming you have access to a project context or a default project
-    project = get_default_project() # Replace with actual project retrieval logic
-
+    project = get_default_project()
     {_, priority} = Resolvinator.Risks.RiskMatrix.calculate_risk_score(project, probability, impact)
     priority
   end
