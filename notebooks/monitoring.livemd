@@ -1,0 +1,15 @@
+# System Metrics
+
+```elixir
+# Performance metrics
+query_times = Repo
+|> select([r], %{
+  table_name: fragment("tablename::text"),
+  seq_scan: fragment("seq_scan"),
+  idx_scan: fragment("idx_scan")
+})
+|> from(table: "pg_stat_user_tables")
+|> Repo.all()
+
+Kino.DataTable.new(query_times)
+``` 

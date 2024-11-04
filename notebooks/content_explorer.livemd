@@ -1,0 +1,64 @@
+# Content Explorer and Analysis
+
+## Setup
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.11.0"},
+  {:vega_lite, "~> 0.1.8"},
+  {:kino_vega_lite, "~> 0.1.11"},
+  {:explorer, "~> 0.7.0"}
+])
+
+# Connect to your project
+File.cd!("../")
+Code.require_file("config/config.exs")
+```
+
+## Content Analysis
+
+```elixir
+alias Resolvinator.{
+  Content,
+  Repo,
+  Risks,
+  Resources
+}
+import Ecto.Query
+```
+
+## Risk Distribution Analysis
+
+```elixir
+risks_by_status = Risks.Risk
+|> group_by([r], r.status)
+|> select([r], %{status: r.status, count: count(r.id)})
+|> Repo.all()
+
+VegaLite.new()
+|> VegaLite.data_from_values(risks_by_status)
+|> VegaLite.mark(:bar)
+|> VegaLite.encode_field(:x, "status", type: :nominal)
+|> VegaLite.encode_field(:y, "count", type: :quantitative)
+|> VegaLite.encode_field(:color, "status", type: :nominal)
+```
+
+## Interactive Content Search
+
+```elixir
+search_input = Kino.Input.text("Search content")
+status_select = Kino.Input.select("Status", ["all", "published", "draft", "review"])
+
+form = Kino.Control.form([search: search_input, status: status_select], submit: "Search")
+
+Kino.listen(form, fn %{data: %{search: term, status: status}} ->
+  query = Content
+  |> where([c], ilike(c.name, ^"%#{term}%"))
+  |> then(fn q ->
+    if status != "all", do: where(q, [c], c.status == ^status), else: q
+  end)
+  |> limit(10)
+  |> Repo.all()
+
+  Kino.DataTable.new(query)
+end) 

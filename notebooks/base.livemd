@@ -1,0 +1,81 @@
+# Resolvinator Analysis
+
+## Setup
+
+```elixir
+# Your project already has these dependencies
+alias Resolvinator.{
+  Content,
+  Repo,
+  Risks,
+  Resources
+}
+import Ecto.Query
+
+# Enable Kino for interactive elements
+require Kino
+```
+
+## Quick Stats Dashboard
+
+```elixir
+stats = %{
+  total_risks: Repo.aggregate(Risks.Risk, :count),
+  active_resources: Resources.list_active_resources() |> length(),
+  content_items: Repo.aggregate(Content, :count)
+}
+
+Kino.DataTable.new([stats])
+```
+
+## Risk Distribution Visualization
+
+```elixir
+risks_by_status = Risks.Risk
+|> group_by([r], r.status)
+|> select([r], %{status: r.status, count: count(r.id)})
+|> Repo.all()
+
+VegaLite.new()
+|> VegaLite.data_from_values(risks_by_status)
+|> VegaLite.mark(:bar)
+|> VegaLite.encode_field(:x, "status", type: :nominal)
+|> VegaLite.encode_field(:y, "count", type: :quantitative)
+```
+
+## Scramble Text
+
+```css
+/* Basic unselectable text */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Break words into spans */
+.scrambled {
+  display: inline-block;
+  direction: rtl; /* Right to left */
+  unicode-bidi: bidi-override;
+}
+@font-face {
+  font-family: 'SecureFont';
+  src: url('/fonts/secure.woff2') format('woff2');
+  unicode-range: U+0020-007F; /* Basic Latin */
+}
+
+.secure-text {
+  font-family: 'SecureFont', fallback;
+  /* Randomize character mapping */
+}
+```
+
+```javascript
+function scrambleText(text) {
+  return text.split('').map(char => 
+    `<span style="display:inline-block;direction:rtl">${char}</span>`
+  ).join('');
+    }
+```

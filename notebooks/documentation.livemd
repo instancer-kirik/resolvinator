@@ -1,0 +1,12 @@
+# System Documentation
+
+```elixir
+# Document complex workflows
+Mermaid.new("""
+graph TD
+    A[Risk Created] --> B{Status?}
+    B -->|Draft| C[Review Required]
+    B -->|Review| D[Approval Required]
+    D --> E[Published]
+""")
+``` 

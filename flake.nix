@@ -14,21 +14,16 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            # Elixir and Erlang
-            beam.packages.erlangR26.elixir_1_15
-            beam.packages.erlangR26.erlang
-
-            # Development tools
+            # Updated to Erlang 27
+            beam.packages.erlang_27.elixir
+            beam.packages.erlang_27.erlang
             livebook
-            inotify-tools # For file_system on Linux
+            inotify-tools
             postgresql_15
-
-            # Optional but useful
             git
             direnv
           ];
 
-          # Environment variables
           shellHook = ''
             export LANG=C.UTF-8
             export MIX_HOME=$HOME/.mix

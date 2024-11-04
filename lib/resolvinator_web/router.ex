@@ -23,6 +23,12 @@ defmodule ResolvinatorWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :api_protection do
+    plug :rate_limit
+    plug :verify_origin
+    plug :check_token
+  end
+
   scope "/", ResolvinatorWeb do
     pipe_through :browser
 
@@ -246,5 +252,11 @@ defmodule ResolvinatorWeb.Router do
       get "/alerts", InventoryController, :get_alerts, as: :alerts
       get "/reports", InventoryController, :generate_report, as: :reports
     end
+  end
+
+  scope "/api", ResolvinatorWeb do
+    pipe_through [:api, :api_protection]
+
+    get "/content/:id", ContentController, :show
   end
 end

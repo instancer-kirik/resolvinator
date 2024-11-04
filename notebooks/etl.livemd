@@ -1,0 +1,21 @@
+# Data Import/Export
+
+```elixir
+# Import data from CSV
+csv_data = Explorer.DataFrame.from_csv!("data/risks.csv")
+|> Explorer.DataFrame.filter(row -> row.status == "active")
+|> Explorer.DataFrame.to_rows()
+
+# Transform and load
+Enum.each(csv_data, fn row ->
+  # Transform data
+  attrs = %{
+    name: row.name,
+    description: row.description,
+    status: "draft"
+  }
+  
+  # Load into database
+  Risks.create_risk(attrs)
+end)
+``` 

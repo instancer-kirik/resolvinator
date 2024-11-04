@@ -3,12 +3,13 @@
 ## Introduction
 
 This notebook provides comprehensive risk analysis tools for project management, including:
-- Risk Matrix Visualization
-- Temporal Analysis
-- Category Distribution
-- Mitigation Effectiveness
-- Resource Allocation Analysis
-- Predictive Analytics
+
+* Risk Matrix Visualization
+* Temporal Analysis
+* Category Distribution
+* Mitigation Effectiveness
+* Resource Allocation Analysis
+* Predictive Analytics
 
 ## Setup and Data Loading
 

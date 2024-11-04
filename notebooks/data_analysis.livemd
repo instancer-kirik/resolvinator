@@ -1,0 +1,12 @@
+# Data Analysis and Reporting
+
+```elixir
+# Trend analysis over time
+risks_over_time = Risks.Risk
+|> group_by([r], fragment("DATE_TRUNC('month', ?)", r.inserted_at))
+|> select([r], %{
+  month: fragment("DATE_TRUNC('month', ?)", r.inserted_at),
+  count: count(r.id)
+})
+|> Repo.all()
+``` 

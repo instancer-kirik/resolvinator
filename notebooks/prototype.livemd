@@ -1,0 +1,12 @@
+# Feature Prototyping
+
+```elixir
+# Test new risk scoring algorithm
+defmodule RiskScoring do
+  def calculate_score(risk) do
+    impact_weight = 0.6
+    probability_weight = 0.4
+    
+    (risk.impact * impact_weight) + (risk.probability * probability_weight)
+  end
+end

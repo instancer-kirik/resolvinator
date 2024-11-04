@@ -1,0 +1,11 @@
+# Debug Session
+
+```elixir
+# Interactive debugging
+risk = Risks.Risk
+|> where(id: "problematic-id")
+|> Repo.one()
+|> IO.inspect(label: "Risk Data")
+
+# Test specific functions
+result = Risks.calculate_something(risk)
