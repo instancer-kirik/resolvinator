@@ -1,0 +1,187 @@
+# Schema & Behavior JSON Filter
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jason, "~> 1.4"},
+  {:kino, "~> 0.11.0"}
+])
+
+defmodule SchemaFilter do
+  @behavior_patterns %{
+    "risk" => %{
+      fields: ~w(name description probability impact priority status metadata),
+      values: %{
+        "priority" => ~w(low medium high critical),
+        "status" => ~w(identified analyzing mitigating resolved closed),
+        "probability" => ~w(rare unlikely possible likely certain),
+        "impact" => ~w(negligible minor moderate major severe)
+      }
+    },
+    "content" => %{
+      fields: ~w(name title desc description status visibility metadata tags priority),
+      embedded: %{
+        "voting" => ~w(upvotes downvotes score),
+        "moderation" => ~w(rejection_reason moderated_at moderated_by_id notes)
+      },
+      values: %{
+        "status" => ~w(initial pending approved rejected draft review published archived),
+        "visibility" => ~w(public private)
+      }
+    },
+    "inventory" => %{
+      fields: ~w(name description category status metadata notes),
+      values: %{
+        "status" => ~w(active inactive discontinued pending)
+      }
+    },
+    "attachment" => %{
+      fields: ~w(filename content_type size path description metadata attachable_type attachable_id),
+      values: %{
+        "attachable_type" => ~w(Risk Mitigation Impact MitigationTask)
+      }
+    }
+  }
+
+  def filter_by_behavior(json, behavior_type) when is_map(json) do
+    case Map.get(@behavior_patterns, behavior_type) do
+      nil -> {:error, "Unknown behavior type"}
+      pattern ->
+        filtered = json
+        |> Map.take(pattern.fields)
+        |> add_embedded_fields(Map.get(pattern, :embedded, %{}))
+        |> validate_values(pattern.values)
+        
+        {:ok, filtered}
+    end
+  end
+
+  defp add_embedded_fields(json, embedded) do
+    Enum.reduce(embedded, json, fn {key, fields}, acc ->
+      case Map.get(json, key) do
+        nil -> acc
+        value when is_map(value) -> 
+          Map.put(acc, key, Map.take(value, fields))
+        _ -> acc
+      end
+    end)
+  end
+
+  defp validate_values(json, value_patterns) do
+    Enum.reduce(value_patterns, json, fn {field, valid_values}, acc ->
+      case Map.get(acc, field) do
+        nil -> acc
+        value when value in valid_values -> acc
+        _ -> Map.put(acc, field, "invalid_value")
+      end
+    end)
+  end
+end
+```
+
+## Interactive Filter
+
+```elixir
+json_input = Kino.Input.textarea("Paste your JSON data")
+behavior_input = Kino.Input.select("Select Behavior Type", [
+  "Risk Behavior": "risk",
+  "Content Behavior": "content",
+  "Inventory Behavior": "inventory",
+  "Attachment Behavior": "attachment"
+])
+
+form = Kino.Control.form([
+  json: json_input,
+  behavior: behavior_input
+], submit: "Filter JSON")
+
+result_frame = Kino.Frame.new()
+
+Kino.listen(form, fn %{data: %{json: json_str, behavior: behavior}} ->
+  case Jason.decode(json_str) do
+    {:ok, json_data} ->
+      case SchemaFilter.filter_by_behavior(json_data, behavior) do
+        {:ok, filtered} ->
+          formatted = Jason.encode!(filtered, pretty: true)
+          content = Kino.Layout.grid([
+            Kino.Markdown.new("""
+            ### Filtered Result (#{behavior})
+            ```json
+            #{formatted}
+            ```
+            """)
+          ])
+          Kino.Frame.render(result_frame, content)
+          
+        {:error, error} ->
+          Kino.Frame.render(result_frame, 
+            Kino.Markdown.new("**Error:** #{error}"))
+      end
+      
+    {:error, error} ->
+      Kino.Frame.render(result_frame, 
+        Kino.Markdown.new("**Error parsing JSON:** #{inspect(error)}"))
+  end
+end)
+
+result_frame
+```
+
+## Example Data
+
+```elixir
+# Risk example
+risk_json = %{
+  "name" => "Security Vulnerability",
+  "description" => "Potential SQL injection risk",
+  "probability" => "possible",
+  "impact" => "major",
+  "priority" => "high",
+  "status" => "identified",
+  "metadata" => %{
+    "discovered_by" => "security_team",
+    "cve_id" => "CVE-2024-1234"
+  },
+  "extra_field" => "will be removed"
+}
+
+SchemaFilter.filter_by_behavior(risk_json, "risk")
+```
+
+```elixir
+# Content example
+content_json = %{
+  "name" => "Best Practices",
+  "title" => "Security Best Practices",
+  "desc" => "Guidelines for secure development",
+  "status" => "published",
+  "visibility" => "public",
+  "metadata" => %{"version" => "1.0"},
+  "tags" => ["security", "guidelines"],
+  "priority" => 1,
+  "voting" => %{
+    "upvotes" => 10,
+    "downvotes" => 2,
+    "score" => 0.83
+  }
+}
+
+SchemaFilter.filter_by_behavior(content_json, "content")
+```
+```
+
+This tool:
+
+1. Understands all your behavior patterns (Risk, Content, Inventory, Attachment)
+2. Filters JSON based on allowed fields for each behavior
+3. Validates enum values (status, priority, etc.)
+4. Handles embedded schemas (like voting and moderation)
+5. Preserves metadata structures
+
+To use:
+1. Paste your JSON
+2. Select the behavior type
+3. Get filtered JSON matching your schema patterns
+
+Would you like me to add any specific validation rules or additional behaviors? 

@@ -1,0 +1,82 @@
+<div class="max-w-3xl mx-auto py-8">
+  <.steps
+    steps={@steps}
+    current_step={@current_step}
+  />
+
+  <div class="mt-8">
+    <%= case @current_step do %>
+      <% :basic_info -> %>
+        <.basic_info_form
+          form_data={@form_data}
+          errors={@validation_errors}
+        />
+
+      <% :impact_details -> %>
+        <.impact_details_form
+          form_data={@form_data}
+          errors={@validation_errors}
+          event_type={@event_params["event_type"]}
+        />
+
+      <% :response_actions -> %>
+        <.response_actions_form
+          form_data={@form_data}
+          errors={@validation_errors}
+        />
+
+      <% :relationships -> %>
+        <.relationships_form
+          form_data={@form_data}
+          errors={@validation_errors}
+          project_id={@event_params["project_id"]}
+        />
+
+      <% :ai_review -> %>
+        <.ai_review
+          event_params={@event_params}
+          suggestions={@ai_suggestions}
+          loading={@loading_analysis}
+        />
+
+      <% :confirmation -> %>
+        <.confirmation_step
+          event_params={@event_params}
+          ai_suggestions={@ai_suggestions}
+        />
+    <% end %>
+  </div>
+
+  <div class="mt-8 flex justify-between">
+    <%= if @current_step != List.first(@steps) do %>
+      <.button
+        phx-click="previous_step"
+        type="button"
+      >
+        Previous
+      </.button>
+    <% end %>
+
+    <%= if @current_step == List.last(@steps) do %>
+      <.button
+        phx-click="submit"
+        type="button"
+        class="ml-auto"
+      >
+        Submit Event
+      </.button>
+    <% else %>
+      <.button
+        phx-click="next_step"
+        type="button"
+        class="ml-auto"
+      >
+        Next
+      </.button>
+    <% end %>
+  </div>
+</div>
+
+<.modal :if={@show_help} id="help-modal">
+  <.help_content step={@current_step} />
+</.modal> 

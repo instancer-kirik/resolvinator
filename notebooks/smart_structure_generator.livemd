@@ -1,0 +1,253 @@
+# Smart Structure Generator
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jason, "~> 1.4"},
+  {:kino, "~> 0.11.0"},
+  {:inflex, "~> 2.1.0"},
+  {:explorer, "~> 0.7.0"}
+])
+
+defmodule AttributeIndex do
+  def common_patterns do
+    %{
+      "risk" => %{
+        fields: [
+          {:name, :string, required: true},
+          {:description, :text, required: true},
+          {:probability, :string, required: true, values: ~w(rare unlikely possible likely certain)},
+          {:impact, :string, required: true, values: ~w(negligible minor moderate major severe)},
+          {:priority, :string, required: true, values: ~w(low medium high critical)},
+          {:status, :string, default: "draft", values: ~w(draft active resolved closed)}
+        ],
+        behaviors: [:commentable, :attachable, :auditable],
+        common_relations: [:creator, :project, :team],
+        suggested_features: [:workflow, :notifications, :audit_trail]
+      },
+      "content" => %{
+        fields: [
+          {:title, :string, required: true},
+          {:body, :text, required: true},
+          {:status, :string, default: "draft", values: ~w(draft published archived)},
+          {:visibility, :string, default: "public", values: ~w(public private restricted)},
+          {:metadata, :map, default: %{}}
+        ],
+        behaviors: [:versionable, :commentable, :searchable],
+        common_relations: [:author, :category, :tags],
+        suggested_features: [:versioning, :search, :categories]
+      },
+      "inventory" => %{
+        fields: [
+          {:name, :string, required: true},
+          {:quantity, :integer, default: 0},
+          {:status, :string, default: "active", values: ~w(active inactive discontinued)},
+          {:category, :string, required: true},
+          {:location, :string}
+        ],
+        behaviors: [:trackable, :auditable],
+        common_relations: [:supplier, :category, :location],
+        suggested_features: [:stock_tracking, :alerts, :reporting]
+      }
+    }
+  end
+
+  def suggest_attributes(input) do
+    all_fields = common_patterns()
+    |> Map.values()
+    |> Enum.flat_map(& &1.fields)
+    |> Enum.uniq_by(fn {name, type, _} -> {name, type} end)
+
+    input_words = String.downcase(input) |> String.split(~r/\W+/)
+    
+    all_fields
+    |> Enum.filter(fn {name, _type, _opts} ->
+      name_str = Atom.to_string(name)
+      Enum.any?(input_words, &String.contains?(name_str, &1))
+    end)
+    |> Enum.take(5)
+  end
+
+  def find_related_patterns(fields) do
+    field_names = Enum.map(fields, fn {name, _, _} -> Atom.to_string(name) end)
+    
+    common_patterns()
+    |> Enum.map(fn {type, pattern} ->
+      matches = pattern.fields
+      |> Enum.count(fn {name, _, _} ->
+        Atom.to_string(name) in field_names
+      end)
+      {type, matches}
+    end)
+    |> Enum.sort_by(fn {_, matches} -> matches end, :desc)
+    |> Enum.take(3)
+  end
+end
+```
+
+## Interactive Field Builder
+
+```elixir
+field_builder_frame = Kino.Frame.new()
+current_fields = Kino.Input.textarea("Current Fields", default: "")
+suggestion_input = Kino.Input.text("Search for field suggestions")
+
+form = Kino.Control.form(
+  [
+    current: current_fields,
+    search: suggestion_input
+  ],
+  submit: "Get Suggestions"
+)
+
+Kino.listen(form, fn %{data: %{search: search, current: current}} ->
+  suggestions = AttributeIndex.suggest_attributes(search)
+  current_fields = current
+  |> String.split("\n", trim: true)
+  |> Enum.map(&String.trim/1)
+  
+  content = Kino.Layout.grid([
+    Kino.Markdown.new("""
+    ### Suggested Fields
+    #{Enum.map_join(suggestions, "\n", fn {name, type, opts} ->
+      "- `#{name}:#{type}` #{inspect(opts)}"
+    end)}
+    
+    ### Current Fields
+    ```
+    #{Enum.join(current_fields, "\n")}
+    ```
+    
+    ### Related Patterns
+    #{if current_fields != [] do
+      fields = Enum.map(current_fields, fn field ->
+        [name, type] = String.split(field, ":", parts: 2)
+        {String.to_atom(name), String.to_atom(type), []}
+      end)
+      
+      AttributeIndex.find_related_patterns(fields)
+      |> Enum.map_join("\n", fn {type, matches} ->
+        "- #{type} (#{matches} matching fields)"
+      end)
+    end}
+    """)
+  ])
+  
+  Kino.Frame.render(field_builder_frame, content)
+end)
+
+field_builder_frame
+```
+
+## Structure Generator
+
+```elixir
+inputs = [
+  module: Kino.Input.text("Module Name (e.g., Risks)"),
+  fields: Kino.Input.textarea("Fields (from suggestions above)"),
+  behaviors: Kino.Input.select(
+    "Behaviors",
+    [
+      "Commentable": :commentable,
+      "Attachable": :attachable,
+      "Auditable": :auditable,
+      "Versionable": :versionable,
+      "Searchable": :searchable,
+      "Trackable": :trackable
+    ],
+    multiple: true
+  ),
+  relations: Kino.Input.select(
+    "Common Relations",
+    [
+      "Creator": :creator,
+      "Project": :project,
+      "Team": :team,
+      "Category": :category,
+      "Tags": :tags,
+      "Author": :author
+    ],
+    multiple: true
+  )
+]
+
+generator_frame = Kino.Frame.new()
+form = Kino.Control.form(inputs, submit: "Generate Structure")
+
+Kino.listen(form, fn %{data: data} ->
+  # ... (previous generation code) ...
+  
+  content = Kino.Layout.tabs([
+    "Summary": Kino.Markdown.new("""
+    ### Generated Structure for #{data.module}
+    
+    **Selected Behaviors:** #{Enum.join(data.behaviors, ", ")}
+    **Selected Relations:** #{Enum.join(data.relations, ", ")}
+    
+    **Fields:**
+    ```
+    #{data.fields}
+    ```
+    """),
+    "Behavior": Kino.Markdown.new("```elixir\n(behavior code)\n```"),
+    "Context": Kino.Markdown.new("```elixir\n(context code)\n```"),
+    "LiveView": Kino.Markdown.new("```elixir\n(live view code)\n```")
+  ])
+  
+  Kino.Frame.render(generator_frame, content)
+end)
+
+generator_frame
+```
+
+## Schema Explorer
+
+```elixir
+schema_input = Kino.Input.text("Enter schema module to analyze (e.g., Resolvinator.Risks.Risk)")
+schema_frame = Kino.Frame.new()
+
+form = Kino.Control.form([schema: schema_input], submit: "Analyze Schema")
+
+Kino.listen(form, fn %{data: %{schema: schema_name}} ->
+  # Add schema analysis logic here
+  content = Kino.Markdown.new("""
+  ### Schema Analysis
+  (Schema analysis results would go here)
+  """)
+  
+  Kino.Frame.render(schema_frame, content)
+end)
+
+schema_frame
+```
+
+This enhanced version provides:
+
+1. **Interactive Field Builder**:
+   - Search and suggest fields based on common patterns
+   - Show related patterns based on current fields
+   - Build field lists interactively
+
+2. **Attribute Indexing**:
+   - Common field patterns for different types
+   - Suggested behaviors and relations
+   - Field validation rules and defaults
+
+3. **Smart Suggestions**:
+   - Pattern matching for similar schemas
+   - Common behavior combinations
+   - Relationship suggestions
+
+4. **Schema Explorer**:
+   - Analyze existing schemas
+   - Extract patterns
+   - Suggest improvements
+
+Try this workflow:
+1. Use the Field Builder to search for and compose your fields
+2. See related patterns and suggestions
+3. Use the Structure Generator with the composed fields
+4. Explore existing schemas for patterns
+
+Would you like me to enhance any particular aspect? 

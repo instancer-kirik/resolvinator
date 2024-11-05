@@ -51,6 +51,7 @@ defmodule Resolvinator.Risks.Risk do
                     :creator_id, :project_id, :risk_category_id])
     |> validate_required([:creator_id, :project_id])
     |> calculate_priority()
+    |> apply_ai_validations()
     |> foreign_key_constraint(:creator_id)
     |> foreign_key_constraint(:project_id)
     |> foreign_key_constraint(:risk_category_id)
@@ -76,5 +77,28 @@ defmodule Resolvinator.Risks.Risk do
   defp get_default_project do
     # Implement logic to retrieve a default project or context
     # This is a placeholder function
+  end
+
+  defp apply_ai_validations(changeset) do
+    case Resolvinator.AI.FabricEngineering.generate_validations(__MODULE__) do
+      {:ok, validations} ->
+        apply_generated_validations(changeset, validations)
+      {:error, _} ->
+        # Fallback to default validations if AI service is unavailable
+        changeset
+    end
+  end
+
+  defp apply_generated_validations(changeset, validations) do
+    Enum.reduce(validations, changeset, fn validation, acc ->
+      case validation do
+        %{"field" => field, "type" => "format", "pattern" => pattern} ->
+          validate_format(acc, String.to_atom(field), ~r/#{pattern}/)
+        %{"field" => field, "type" => "length", "min" => min, "max" => max} ->
+          validate_length(acc, String.to_atom(field), min: min, max: max)
+        _ ->
+          acc
+      end
+    end)
   end
 end

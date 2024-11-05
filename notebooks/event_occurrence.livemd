@@ -1,0 +1,309 @@
+# Risk Event Occurrence Register
+
+## Setup
+
+```elixir
+Mix.install([
+  {:resolvinator, path: "../"},
+  {:kino, "~> 0.12"},
+  {:kino_db, "~> 0.2"},
+  {:kino_vega_lite, "~> 0.1.11"},
+  {:timex, "~> 3.7"},
+  {:jason, "~> 1.4"}
+])
+
+alias Resolvinator.Risks
+alias Resolvinator.AI.FabricAnalysis
+```
+
+## Event Registration Form
+
+```elixir
+# Create form inputs using Kino
+event_form = Kino.Control.form(
+  [
+    date: Kino.Input.date("Occurrence Date"),
+    time: Kino.Input.text("Time (HH:MM)"),
+    risk_id: Kino.Input.text("Related Risk ID"),
+    severity: Kino.Input.select("Severity", [
+      "negligible",
+      "minor",
+      "moderate",
+      "major",
+      "severe"
+    ]),
+    impact_areas: Kino.Input.multiple_select("Impact Areas", [
+      "financial",
+      "operational",
+      "technical",
+      "reputational",
+      "regulatory",
+      "safety"
+    ]),
+    description: Kino.Input.textarea("Event Description"),
+    context: Kino.Input.textarea("Context Information"),
+    immediate_actions: Kino.Input.textarea("Immediate Actions Taken"),
+    stakeholders: Kino.Input.text("Affected Stakeholders"),
+    financial_impact: Kino.Input.number("Financial Impact (if applicable)"),
+    evidence_links: Kino.Input.text("Evidence/Documentation Links")
+  ],
+  submit: "Register Event"
+)
+```
+
+## Event Processing
+
+```elixir
+defmodule EventProcessor do
+  def process_event(form_data) do
+    # Combine date and time
+    datetime = combine_datetime(form_data.date, form_data.time)
+    
+    # Format event data
+    event = %{
+      occurred_at: datetime,
+      risk_id: form_data.risk_id,
+      severity: form_data.severity,
+      impact_areas: form_data.impact_areas,
+      description: form_data.description,
+      context: form_data.context,
+      immediate_actions: form_data.immediate_actions,
+      stakeholders: String.split(form_data.stakeholders, ","),
+      financial_impact: form_data.financial_impact,
+      evidence_links: String.split(form_data.evidence_links, ","),
+      metadata: %{
+        registered_at: DateTime.utc_now(),
+        registration_source: "livebook"
+      }
+    }
+    
+    # Get related risk for context
+    case Risks.get_risk!(form_data.risk_id) do
+      nil -> 
+        {:error, "Related risk not found"}
+      risk -> 
+        analyze_event(event, risk)
+    end
+  end
+  
+  defp combine_datetime(date, time) do
+    # Implement datetime combination logic
+    DateTime.utc_now()
+  end
+  
+  defp analyze_event(event, risk) do
+    # Get AI analysis of the event
+    case FabricAnalysis.analyze_event_occurrence(event, risk) do
+      {:ok, analysis} ->
+        %{
+          event: event,
+          risk: risk,
+          analysis: analysis
+        }
+      {:error, reason} ->
+        {:error, "AI analysis failed: #{reason}"}
+    end
+  end
+end
+
+# Process form submissions
+Kino.listen(event_form, fn data ->
+  case EventProcessor.process_event(data) do
+    {:ok, result} -> 
+      Kino.Markdown.new("""
+      ## Event Registered Successfully
+      
+      ### Event Details
+      - Date: #{result.event.occurred_at}
+      - Severity: #{result.event.severity}
+      - Impact Areas: #{Enum.join(result.event.impact_areas, ", ")}
+      
+      ### AI Analysis
+      #{result.analysis.summary}
+      
+      #### Recommendations
+      #{result.analysis.recommendations}
+      
+      #### Risk Profile Update
+      #{result.analysis.risk_profile_update}
+      """)
+      
+    {:error, reason} ->
+      Kino.Markdown.new("""
+      ## Registration Failed
+      
+      Error: #{reason}
+      """)
+  end
+end)
+```
+
+## Event Analysis Dashboard
+
+```elixir
+defmodule EventAnalytics do
+  def generate_severity_chart(events) do
+    events
+    |> Enum.group_by(& &1.severity)
+    |> Enum.map(fn {severity, events} -> %{
+      severity: severity,
+      count: length(events)
+    } end)
+    |> then(fn data ->
+      VegaLite.new()
+      |> VegaLite.data_from_values(data)
+      |> VegaLite.mark(:bar)
+      |> VegaLite.encode_field(:x, "severity", type: :nominal)
+      |> VegaLite.encode_field(:y, "count", type: :quantitative)
+    end)
+  end
+  
+  def generate_impact_area_chart(events) do
+    events
+    |> Enum.flat_map(& &1.impact_areas)
+    |> Enum.frequencies()
+    |> Enum.map(fn {area, count} -> %{
+      area: area,
+      count: count
+    } end)
+    |> then(fn data ->
+      VegaLite.new()
+      |> VegaLite.data_from_values(data)
+      |> VegaLite.mark(:bar)
+      |> VegaLite.encode_field(:x, "area", type: :nominal)
+      |> VegaLite.encode_field(:y, "count", type: :quantitative)
+    end)
+  end
+  
+  def generate_timeline(events) do
+    events
+    |> Enum.map(fn event -> %{
+      date: event.occurred_at,
+      severity: event.severity
+    } end)
+    |> then(fn data ->
+      VegaLite.new()
+      |> VegaLite.data_from_values(data)
+      |> VegaLite.mark(:circle)
+      |> VegaLite.encode_field(:x, "date", type: :temporal)
+      |> VegaLite.encode_field(:y, "severity", type: :nominal)
+      |> VegaLite.encode_field(:size, "severity", type: :nominal)
+    end)
+  end
+end
+
+# Sample event data for demonstration
+sample_events = [
+  %{
+    occurred_at: ~U[2024-01-15 10:00:00Z],
+    severity: "moderate",
+    impact_areas: ["financial", "operational"]
+  },
+  %{
+    occurred_at: ~U[2024-01-20 15:30:00Z],
+    severity: "major",
+    impact_areas: ["technical", "reputational"]
+  }
+]
+
+Kino.Layout.grid([
+  EventAnalytics.generate_severity_chart(sample_events),
+  EventAnalytics.generate_impact_area_chart(sample_events),
+  EventAnalytics.generate_timeline(sample_events)
+])
+```
+
+## AI Insights
+
+```elixir
+defmodule AIInsights do
+  def analyze_patterns(events, risk) do
+    context = """
+    Risk: #{risk.name}
+    Description: #{risk.description}
+    
+    Recent Events:
+    #{format_events(events)}
+    """
+    
+    case FabricAnalysis.analyze_event_patterns(context) do
+      {:ok, analysis} -> format_analysis(analysis)
+      {:error, reason} -> "Analysis failed: #{reason}"
+    end
+  end
+  
+  defp format_events(events) do
+    events
+    |> Enum.map(fn event ->
+      """
+      Date: #{event.occurred_at}
+      Severity: #{event.severity}
+      Impact Areas: #{Enum.join(event.impact_areas, ", ")}
+      Description: #{event.description}
+      """
+    end)
+    |> Enum.join("\n")
+  end
+  
+  defp format_analysis(analysis) do
+    """
+    ## Pattern Analysis
+    
+    ### Trends Identified
+    #{analysis.trends}
+    
+    ### Risk Evolution
+    #{analysis.evolution}
+    
+    ### Recommended Updates
+    #{analysis.recommendations}
+    """
+  end
+end
+
+# Get AI insights for sample events
+if length(sample_events) > 0 do
+  risk = Risks.get_risk!(List.first(sample_events).risk_id)
+  AIInsights.analyze_patterns(sample_events, risk)
+  |> Kino.Markdown.new()
+end
+```
+
+## Export Data
+
+```elixir
+defmodule EventExporter do
+  def export_events(events) do
+    events
+    |> Jason.encode!(pretty: true)
+    |> then(&File.write!("event_register_#{Date.utc_today()}.json", &1))
+  end
+end
+
+# Add export button
+Kino.Control.button("Export Events") |> Kino.listen(fn _ ->
+  EventExporter.export_events(sample_events)
+  Kino.Markdown.new("Events exported successfully!")
+end)
+```
+
+## Notes and Observations
+
+<!-- livebook:{"force_markdown":true} -->
+```markdown
+## Usage Guidelines
+1. Fill in all relevant fields in the event registration form
+2. Provide detailed context and immediate actions taken
+3. Include links to any supporting evidence or documentation
+4. Review AI analysis for insights and recommendations
+
+## Recent Patterns
+- Document observed patterns in event occurrences
+- Note effectiveness of mitigation strategies
+- Track evolution of risk profiles
+
+## Todo
+- [ ] Add more detailed impact analysis
+- [ ] Implement automated notifications
+- [ ] Enhance pattern recognition
+- [ ] Add custom fields for specific risk types

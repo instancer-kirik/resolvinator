@@ -8,19 +8,71 @@
   </:actions>
 </.header>
 
-<.list>
-  <:item title="Name"><%= @risk.name %></:item>
-  <:item title="Description"><%= @risk.description %></:item>
-  <:item title="Probability"><%= @risk.probability %></:item>
-  <:item title="Impact"><%= @risk.impact %></:item>
-  <:item title="Priority"><%= @risk.priority %></:item>
-  <:item title="Status"><%= @risk.status %></:item>
-  <:item title="Mitigation status"><%= @risk.mitigation_status %></:item>
-  <:item title="Detection date"><%= @risk.detection_date %></:item>
-  <:item title="Review date"><%= @risk.review_date %></:item>
-</.list>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+  <div class="bg-white shadow rounded-lg p-6">
+    <.list>
+      <:item title="Name"><%= @risk.name %></:item>
+      <:item title="Description"><%= @risk.description %></:item>
+      <:item title="Probability"><%= @risk.probability %></:item>
+      <:item title="Impact"><%= @risk.impact %></:item>
+      <:item title="Priority"><%= @risk.priority %></:item>
+      <:item title="Status"><%= @risk.status %></:item>
+      <:item title="Mitigation status"><%= @risk.mitigation_status %></:item>
+      <:item title="Detection date"><%= @risk.detection_date %></:item>
+      <:item title="Review date"><%= @risk.review_date %></:item>
+    </.list>
+  </div>
 
-<.back navigate={~p"/risks"}>Back to risks</.back>
+  <div class="bg-white shadow rounded-lg p-6">
+    <div class="mb-6">
+      <h3 class="text-lg font-semibold mb-4">AI Analysis & Recommendations</h3>
+      <%= if @loading_analysis do %>
+        <div class="animate-pulse">
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
+      <% else %>
+        <div class="prose max-w-none">
+          <%= raw(@ai_analysis) %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mt-6">
+      <.form for={@ai_form} phx-submit="ask_ai">
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <.input
+              field={@ai_form[:question]}
+              type="text"
+              placeholder="Ask a follow-up question..."
+            />
+          </div>
+          <.button type="submit" phx-disable-with="Analyzing...">
+            Ask AI
+          </.button>
+        </div>
+      </.form>
+    </div>
+
+    <%= if @ai_conversation && length(@ai_conversation) > 0 do %>
+      <div class="mt-6 space-y-4">
+        <h4 class="font-medium">Conversation History</h4>
+        <%= for {question, answer} <- @ai_conversation do %>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <p class="font-medium text-sm text-gray-600">Q: <%= question %></p>
+            <p class="mt-2 text-sm"><%= raw(answer) %></p>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="mt-8">
+  <.back navigate={~p"/risks"}>Back to risks</.back>
+</div>
 
 <.modal :if={@live_action == :edit} id="risk-modal" show on_cancel={JS.patch(~p"/risks/#{@risk}")}>
   <.live_component

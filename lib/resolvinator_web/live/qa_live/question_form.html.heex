@@ -1,0 +1,351 @@
+<div>
+  <.form
+    for={@form}
+    id="question-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+  >
+    <div class="space-y-6">
+      <!-- Basic Question Info -->
+      <div class="space-y-4">
+        <.input
+          field={@form[:title]}
+          type="text"
+          label="Question Title"
+          placeholder="What's your question?"
+        />
+
+        <div class="flex items-center space-x-4">
+          <.input
+            field={@form[:question_type]}
+            type="select"
+            label="Question Type"
+            options={[
+              {"General Question", "general"},
+              {"Technical Issue", "technical"},
+              {"Process Question", "process"},
+              {"Clarification", "clarification"}
+            ]}
+          />
+
+          <div class="flex items-center mt-6 space-x-2">
+            <.input
+              field={@form[:is_math_question]}
+              type="checkbox"
+              label="Mathematical Question"
+              phx-click="toggle-math"
+              phx-target={@myself}
+            />
+            <.icon name="hero-information-circle" class="w-4 h-4 text-gray-400" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Section -->
+      <%= if @is_math_question do %>
+        <!-- Math-specific content -->
+        <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-medium text-blue-900">Mathematical Content</h3>
+            <.button
+              type="button"
+              phx-click="toggle-advanced"
+              phx-target={@myself}
+              class="text-sm"
+            >
+              <%= if @show_advanced_options, do: "Hide", else: "Show" %> Advanced Options
+            </.button>
+          </div>
+
+          <.live_component
+            module={ResolvinatorWeb.Components.MathInputComponent}
+            id="math-input"
+            form={@form}
+          />
+
+          <%= if @show_advanced_options do %>
+            <div class="mt-4 space-y-4">
+              <.input
+                field={@form[:proof_type]}
+                type="select"
+                label="Proof Type"
+                options={[
+                  {"Direct Proof", "direct"},
+                  {"Proof by Contradiction", "contradiction"},
+                  {"Mathematical Induction", "induction"},
+                  {"Constructive Proof", "constructive"},
+                  {"Visual Proof", "visual"}
+                ]}
+              />
+
+              <.input
+                field={@form[:subject_area]}
+                type="select"
+                label="Subject Area"
+                options={[
+                  {"Algebra", "algebra"},
+                  {"Analysis", "analysis"},
+                  {"Calculus", "calculus"},
+                  {"Geometry", "geometry"},
+                  {"Number Theory", "number_theory"},
+                  {"Logic", "logic"}
+                ]}
+              />
+
+              <.live_component
+                module={ResolvinatorWeb.Components.MathImageUploadComponent}
+                id="math-image-upload"
+                form={@form}
+                uploads={@uploads}
+              />
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <!-- Regular content -->
+        <div class="space-y-4">
+          <.input
+            field={@form[:desc]}
+            type="rich_text"
+            label="Question Details"
+            placeholder="Describe your question..."
+          />
+
+          <.input
+            field={@form[:tags]}
+            type="text"
+            label="Tags"
+            placeholder="Add relevant tags (comma separated)"
+          />
+        </div>
+      <% end %>
+
+      <!-- Common Fields -->
+      <div class="space-y-4 pt-4 border-t">
+        <.input
+          field={@form[:context]}
+          type="textarea"
+          label="Additional Context"
+          placeholder="Any background information that might help..."
+        />
+
+        <.input
+          field={@form[:difficulty_level]}
+          type="select"
+          label="Difficulty Level"
+          options={[
+            {"Beginner", "beginner"},
+            {"Intermediate", "intermediate"},
+            {"Advanced", "advanced"},
+            {"Expert", "expert"}
+          ]}
+        />
+
+        <.input
+          field={@form[:expected_answer_format]}
+          type="text"
+          label="Expected Answer Format"
+          placeholder="e.g., Explanation, Step-by-step solution, Example..."
+        />
+      </div>
+
+      <!-- Add this section before the submit button -->
+      <div class="space-y-6 pt-4 border-t">
+        <!-- File Attachments -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium text-gray-700">
+              Attachments
+            </label>
+            <.button
+              type="button"
+              phx-click={JS.dispatch("click", to: "#attachment-input")}
+              class="text-sm"
+            >
+              Add File
+            </.button>
+          </div>
+
+          <div class="mt-1">
+            <.live_file_input
+              upload={@uploads.attachments}
+              class="hidden"
+              id="attachment-input"
+            />
+
+            <!-- Existing Attachments -->
+            <div class="space-y-2">
+              <%= for attachment <- @attachments do %>
+                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div class="flex items-center space-x-2">
+                    <.icon name="hero-paper-clip" class="w-4 h-4 text-gray-400" />
+                    <span class="text-sm text-gray-600">
+                      <%= attachment.filename %>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    phx-click="remove-attachment"
+                    phx-value-id={attachment.id}
+                    phx-target={@myself}
+                    class="text-red-600 hover:text-red-800"
+                  >
+                    &times;
+                  </button>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Upload Progress -->
+            <%= for entry <- @uploads.attachments.entries do %>
+              <div class="mt-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <.icon name="hero-paper-clip" class="w-4 h-4 text-gray-400" />
+                    <span class="text-sm"><%= entry.client_name %></span>
+                  </div>
+                  <button
+                    type="button"
+                    phx-click="cancel-upload"
+                    phx-value-ref={entry.ref}
+                    phx-target={@myself}
+                    class="text-red-600 hover:text-red-800"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div class="mt-1">
+                  <.progress_bar
+                    value={entry.progress}
+                    max="100"
+                    class="w-full h-2 bg-blue-200 rounded-full"
+                  />
+                </div>
+                <%= for err <- upload_errors(@uploads.attachments, entry) do %>
+                  <div class="mt-1 text-sm text-red-600">
+                    <%= error_to_string(err) %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Content References -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Related Content
+          </label>
+          
+          <div class="space-y-2">
+            <!-- Existing References -->
+            <%= for ref <- @references do %>
+              <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div class="flex items-center space-x-2">
+                  <.icon name="hero-link" class="w-4 h-4 text-gray-400" />
+                  <.link
+                    href={~p"/content/#{ref.id}"}
+                    class="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    <%= ref.title %>
+                  </.link>
+                </div>
+                <button
+                  type="button"
+                  phx-click="remove-reference"
+                  phx-value-id={ref.id}
+                  phx-target={@myself}
+                  class="text-red-600 hover:text-red-800"
+                >
+                  &times;
+                </button>
+              </div>
+            <% end %>
+
+            <!-- Reference Search -->
+            <div class="mt-2">
+              <.input
+                type="text"
+                placeholder="Search content to reference..."
+                phx-keyup="search-references"
+                phx-target={@myself}
+                phx-debounce="300"
+              />
+              
+              <%= if @reference_results do %>
+                <div class="mt-1 bg-white shadow-lg rounded-md border">
+                  <%= for result <- @reference_results do %>
+                    <button
+                      type="button"
+                      phx-click="add-reference"
+                      phx-value-ref={result.id}
+                      phx-target={@myself}
+                      class="w-full text-left px-4 py-2 hover:bg-gray-50"
+                    >
+                      <div class="text-sm font-medium"><%= result.title %></div>
+                      <div class="text-xs text-gray-500">
+                        <%= result.type %> • <%= format_date(result.inserted_at) %>
+                      </div>
+                    </button>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <.button type="submit" phx-disable-with="Saving...">
+          Post Question
+        </.button>
+      </div>
+    </div>
+  </.form>
+
+  <!-- AI Suggestions -->
+  <%= if @ai_suggestions do %>
+    <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+      <h3 class="text-lg font-medium text-gray-900">AI Suggestions</h3>
+      
+      <div class="mt-4 space-y-4">
+        <%= if @similar_questions && length(@similar_questions) > 0 do %>
+          <div>
+            <h4 class="font-medium text-gray-700">Similar Questions</h4>
+            <ul class="mt-2 space-y-2">
+              <%= for question <- @similar_questions do %>
+                <li>
+                  <.link
+                    href={~p"/qa/#{question}"}
+                    class="text-blue-600 hover:text-blue-800"
+                  >
+                    <%= question.title %>
+                  </.link>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div>
+          <h4 class="font-medium text-gray-700">Suggested Improvements</h4>
+          <div class="prose prose-sm mt-2">
+            <%= raw(@ai_suggestions.improvements) %>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-medium text-gray-700">Recommended Tags</h4>
+          <div class="flex gap-2 mt-2">
+            <%= for tag <- @ai_suggestions.tags do %>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <%= tag %>
+              </span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div> 

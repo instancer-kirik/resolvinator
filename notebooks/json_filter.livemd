@@ -1,0 +1,153 @@
+# JSON Filter Tool
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jason, "~> 1.4"},
+  {:kino, "~> 0.11.0"}
+])
+```
+
+## JSON Filter Tools
+
+```elixir
+defmodule JsonFilter do
+  def filter_by_paths(json, paths) when is_list(paths) do
+    paths
+    |> Enum.reduce(%{}, fn path, acc ->
+      case get_nested_value(json, parse_path(path)) do
+        {:ok, value} -> put_nested_value(acc, parse_path(path), value)
+        :error -> acc
+      end
+    end)
+  end
+
+  def get_nested_value(data, path_parts) do
+    try do
+      {:ok, get_in(data, path_parts)}
+    rescue
+      _ -> :error
+    end
+  end
+
+  def put_nested_value(map, [key], value), do: Map.put(map, key, value)
+  def put_nested_value(map, [key | rest], value) do
+    Map.update(map, key, put_nested_value(%{}, rest, value), fn existing ->
+      put_nested_value(existing, rest, value)
+    end)
+  end
+
+  def parse_path(path) when is_binary(path) do
+    path
+    |> String.split(".")
+    |> Enum.map(&parse_array_notation/1)
+    |> List.flatten()
+  end
+
+  def parse_array_notation(segment) do
+    case Regex.run(~r/(.+)\[(\d+)\]/, segment) do
+      [_, key, index] -> [key, String.to_integer(index)]
+      nil -> segment
+    end
+  end
+end
+```
+
+## Interactive Filter
+
+```elixir
+json_input = Kino.Input.textarea("Paste your JSON here")
+paths_input = Kino.Input.textarea("Enter paths to keep (one per line)\nExample:\nuser.name\nuser.email\ndata[0].id")
+form = Kino.Control.form([json: json_input, paths: paths_input], submit: "Filter JSON")
+
+result_frame = Kino.Frame.new()
+
+Kino.listen(form, fn %{data: %{json: json_str, paths: paths_str}} ->
+  case Jason.decode(json_str) do
+    {:ok, json_data} ->
+      paths = paths_str 
+      |> String.split("\n", trim: true)
+      |> Enum.map(&String.trim/1)
+      
+      filtered = JsonFilter.filter_by_paths(json_data, paths)
+      formatted = Jason.encode!(filtered, pretty: true)
+      
+      content = Kino.Layout.grid([
+        Kino.Markdown.new("""
+        ### Filtered Result
+        ```json
+        #{formatted}
+        ```
+        
+        Copy this result to use elsewhere.
+        """)
+      ])
+      
+      Kino.Frame.render(result_frame, content)
+      
+    {:error, error} ->
+      Kino.Frame.render(result_frame, 
+        Kino.Markdown.new("**Error parsing JSON:** #{inspect(error)}"))
+  end
+end)
+
+result_frame
+```
+
+## Quick Examples
+
+```elixir
+example_json = """
+{
+  "user": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "settings": {
+      "theme": "dark",
+      "notifications": true
+    }
+  },
+  "data": [
+    {"id": 1, "value": "first"},
+    {"id": 2, "value": "second"}
+  ],
+  "metadata": {
+    "version": "1.0",
+    "timestamp": "2024-03-20"
+  }
+}
+"""
+
+# Example 1: Get user info only
+paths = ["user.name", "user.email"]
+{:ok, json} = Jason.decode(example_json)
+JsonFilter.filter_by_paths(json, paths)
+```
+
+```elixir
+# Example 2: Get first data item and metadata version
+paths = ["data[0]", "metadata.version"]
+{:ok, json} = Jason.decode(example_json)
+JsonFilter.filter_by_paths(json, paths)
+```
+```
+
+To use this tool:
+
+1. Paste your JSON in the first textarea
+2. Enter the paths you want to keep (one per line), like:
+   ```
+   user.name
+   settings.theme
+   data[0].id
+   ```
+3. Click "Filter JSON" to get the filtered result
+
+The tool supports:
+- Nested paths (user.settings.theme)
+- Array indexing (data[0].id)
+- Multiple paths at once
+- Preserves structure of selected paths
+
+Would you like me to add any specific filtering features? 

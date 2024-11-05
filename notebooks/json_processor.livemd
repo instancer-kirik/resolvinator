@@ -1,0 +1,232 @@
+# JSON Data Processor
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jason, "~> 1.4"},
+  {:explorer, "~> 0.7.0"},
+  {:kino, "~> 0.11.0"},
+  {:vega_lite, "~> 0.1.8"},
+  {:kino_vega_lite, "~> 0.1.7"}
+])
+```
+
+## Test Data
+
+```elixir
+# Sample JSON for testing
+sample_json = """
+{
+  "name": "Test Project",
+  "version": 1.0,
+  "settings": {
+    "enabled": true,
+    "features": ["a", "b", "c"]
+  },
+  "data": [
+    {"id": 1, "value": "test1"},
+    {"id": 2, "value": "test2"}
+  ]
+}
+"""
+
+# Parse and display the sample
+case Jason.decode(sample_json) do
+  {:ok, data} -> data
+  {:error, error} -> "Error: #{inspect(error)}"
+end
+```
+
+## Analysis Tools
+
+```elixir
+defmodule JsonTools do
+  def analyze_structure(json) do
+    %{
+      stats: collect_stats(json),
+      paths: collect_paths(json),
+      schema: infer_schema(json)
+    }
+  end
+  
+  def collect_stats(json, path \\ "", acc \\ %{counts: %{}, types: %{}}) do
+    case json do
+      map when is_map(map) ->
+        map
+        |> Enum.reduce(acc, fn {k, v}, acc ->
+          new_path = if path == "", do: k, else: "#{path}.#{k}"
+          acc = update_in(acc.counts[new_path], &(&1 || 0) + 1)
+          collect_stats(v, new_path, acc)
+        end)
+        
+      list when is_list(list) ->
+        list
+        |> Enum.with_index()
+        |> Enum.reduce(acc, fn {v, i}, acc ->
+          new_path = "#{path}[#{i}]"
+          collect_stats(v, new_path, acc)
+        end)
+        
+      value ->
+        update_in(acc.types[path], &[typeof(value) | &1 || []])
+    end
+  end
+
+  def collect_paths(json, path \\ "", acc \\ []) do
+    case json do
+      map when is_map(map) ->
+        Enum.reduce(map, acc, fn {k, v}, acc ->
+          new_path = if path == "", do: k, else: "#{path}.#{k}"
+          [new_path | collect_paths(v, new_path, acc)]
+        end)
+
+      list when is_list(list) ->
+        Enum.with_index(list)
+        |> Enum.reduce(acc, fn {v, i}, acc ->
+          new_path = "#{path}[#{i}]"
+          [new_path | collect_paths(v, new_path, acc)]
+        end)
+
+      _value ->
+        [path | acc]
+    end
+  end
+
+  def infer_schema(json) do
+    case json do
+      map when is_map(map) ->
+        map
+        |> Enum.map(fn {k, v} -> {k, infer_schema(v)} end)
+        |> Enum.into(%{})
+        |> Map.put(:__type__, "object")
+
+      list when is_list(list) ->
+        if Enum.empty?(list) do
+          %{__type__: "array", items: %{__type__: "unknown"}}
+        else
+          item_schemas = Enum.map(list, &infer_schema/1)
+          common_schema = merge_schemas(item_schemas)
+          %{__type__: "array", items: common_schema}
+        end
+
+      value when is_binary(value) -> %{__type__: "string"}
+      value when is_integer(value) -> %{__type__: "integer"}
+      value when is_float(value) -> %{__type__: "number"}
+      value when is_boolean(value) -> %{__type__: "boolean"}
+      nil -> %{__type__: "null"}
+      _ -> %{__type__: "unknown"}
+    end
+  end
+
+  defp merge_schemas(schemas) do
+    schemas
+    |> Enum.reduce(%{}, fn schema, acc ->
+      Map.merge(acc, schema, fn _k, v1, v2 -> 
+        if v1 == v2, do: v1, else: %{__type__: "mixed", options: [v1, v2]}
+      end)
+    end)
+  end
+  
+  defp typeof(value) when is_binary(value), do: :string
+  defp typeof(value) when is_integer(value), do: :integer
+  defp typeof(value) when is_float(value), do: :float
+  defp typeof(value) when is_boolean(value), do: :boolean
+  defp typeof(nil), do: :null
+  defp typeof(_), do: :unknown
+end
+```
+
+## Analyze Sample Data
+
+```elixir
+# Analyze the sample JSON
+{:ok, data} = Jason.decode(sample_json)
+analysis = JsonTools.analyze_structure(data)
+
+# Display results
+%{
+  "Paths Found" => analysis.paths |> Enum.sort(),
+  "Type Statistics" => analysis.stats.types |> Enum.into(%{}),
+  "Schema" => analysis.schema
+}
+```
+
+## Interactive Analysis
+
+````elixir
+input = Kino.Input.textarea("Paste your JSON here")
+frame = Kino.Frame.new()
+
+form = Kino.Control.form([json: input], submit: "Analyze JSON")
+
+Kino.listen(form, fn %{data: %{json: json_str}} ->
+  case Jason.decode(json_str) do
+    {:ok, data} ->
+      analysis = JsonTools.analyze_structure(data)
+      
+      content = Kino.Layout.grid([
+        Kino.Markdown.new("""
+        ### Paths
+        ```
+        #{Enum.join(analysis.paths, "\n")}
+        ```
+        """),
+        Kino.Markdown.new("""
+        ### Schema
+        ```json
+        #{Jason.encode!(analysis.schema, pretty: true)}
+        ```
+        """)
+      ])
+      
+      Kino.Frame.render(frame, content)
+      
+    {:error, error} ->
+      Kino.Frame.render(frame, Kino.Markdown.new("**Error:** #{inspect(error)}"))
+  end
+end)
+
+frame
+````
+
+### Path Search
+
+````elixir
+search_input = Kino.Input.text("Enter path pattern (e.g., data.*.id)")
+search_frame = Kino.Frame.new()
+
+search_form = Kino.Control.form([pattern: search_input], submit: "Search")
+
+Kino.listen(search_form, fn %{data: %{pattern: pattern}} ->
+  {:ok, data} = Jason.decode(sample_json)
+  paths = JsonTools.collect_paths(data)
+  
+  matched_paths = paths
+  |> Enum.filter(&String.contains?(&1, pattern))
+  |> Enum.sort()
+  
+  content = if Enum.empty?(matched_paths) do
+    Kino.Markdown.new("No matching paths found")
+  else
+    Kino.Markdown.new("""
+    ### Matching Paths
+    ```
+    #{Enum.join(matched_paths, "\n")}
+    ```
+    """)
+  end
+  
+  Kino.Frame.render(search_frame, content)
+end)
+
+search_frame
+````
+
+Try these examples:
+
+1. Use the sample JSON to see how the analysis works
+2. Paste your own JSON in the interactive analysis section
+3. Try searching for specific paths using patterns
+
+Would you like to try any specific JSON data or search patterns?

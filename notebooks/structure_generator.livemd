@@ -1,0 +1,330 @@
+# Structure Generator
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jason, "~> 1.4"},
+  {:kino, "~> 0.11.0"},
+  {:inflex, "~> 2.1.0"}  # For pluralization
+])
+
+defmodule StructureGenerator do
+  def generate_all(module_name, fields, options) do
+    base_path = options["base_path"] || "lib/resolvinator"
+    
+    %{
+      "schema" => generate_schema(module_name, fields, options),
+      "behavior" => generate_behavior(module_name, fields, options),
+      "migration" => generate_migration(module_name, fields, options),
+      "context" => generate_context(module_name, fields, options),
+      "controller" => generate_controller(module_name, options),
+      "live_view" => generate_live_view(module_name, fields, options),
+      "test" => generate_tests(module_name, fields, options)
+    }
+  end
+
+  def generate_behavior(module_name, fields, _options) do
+    """
+    defmodule #{module_name}.#{String.trim_trailing(module_name, "s")}Behavior do
+      @moduledoc \"\"\"
+      Common behavior for #{String.downcase(module_name)}-related schemas
+      \"\"\"
+
+      defmacro __using__(opts) do
+        quote do
+          use Ecto.Schema
+          use Resolvinator.Comments.Commentable
+          import Ecto.Changeset
+
+          @primary_key {:id, :binary_id, autogenerate: true}
+          @foreign_key_type :binary_id
+          @timestamps_opts [type: :utc_datetime]
+          @type_name unquote(opts[:type_name] || raise "type_name is required")
+          @status_values ~w(#{Enum.join(options["status_values"] || [], " ")})
+
+          schema unquote(opts[:table_name] || raise "table_name is required") do
+            #{generate_schema_fields(fields)}
+
+            # Common relationships
+            belongs_to :creator, Resolvinator.Accounts.User
+            belongs_to :project, Resolvinator.Projects.Project
+
+            # Additional schema fields provided by the implementing module
+            unquote(opts[:additional_schema] || quote do end)
+
+            timestamps(type: :utc_datetime)
+          end
+
+          def base_changeset(struct, attrs) do
+            struct
+            |> cast(attrs, #{generate_cast_fields(fields)})
+            |> validate_required(#{generate_required_fields(fields)})
+            |> validate_inclusion(:status, @status_values)
+            |> foreign_key_constraint(:creator_id)
+            |> foreign_key_constraint(:project_id)
+          end
+        end
+      end
+    end
+    """
+  end
+
+  def generate_context(module_name, fields, _options) do
+    singular = String.trim_trailing(module_name, "s")
+    plural = Inflex.pluralize(singular)
+    
+    """
+    defmodule Resolvinator.#{module_name} do
+      @moduledoc \"\"\"
+      The #{module_name} context.
+      \"\"\"
+
+      import Ecto.Query
+      alias Resolvinator.Repo
+      alias Resolvinator.#{module_name}.#{singular}
+
+      def list_#{String.downcase(plural)}(filters \\\\ %{}) do
+        #{singular}
+        |> filter_query(filters)
+        |> Repo.all()
+      end
+
+      def get_#{String.downcase(singular)}!(id), do: Repo.get!(#{singular}, id)
+
+      def create_#{String.downcase(singular)}(attrs \\\\ %{}) do
+        %#{singular}{}
+        |> #{singular}.changeset(attrs)
+        |> Repo.insert()
+      end
+
+      def update_#{String.downcase(singular)}(%#{singular}{} = #{String.downcase(singular)}, attrs) do
+        #{String.downcase(singular)}
+        |> #{singular}.changeset(attrs)
+        |> Repo.update()
+      end
+
+      def delete_#{String.downcase(singular)}(%#{singular}{} = #{String.downcase(singular)}) do
+        Repo.delete(#{String.downcase(singular)})
+      end
+
+      defp filter_query(query, filters) do
+        Enum.reduce(filters, query, fn
+          {:status, status}, query when is_binary(status) ->
+            where(query, [q], q.status == ^status)
+          
+          {:search, search_term}, query when is_binary(search_term) ->
+            where(query, [q], ilike(q.name, ^"%\#{search_term}%"))
+          
+          {_, _}, query -> query
+        end)
+      end
+    end
+    """
+  end
+
+  def generate_controller(module_name, _options) do
+    singular = String.trim_trailing(module_name, "s")
+    plural = Inflex.pluralize(singular)
+    
+    """
+    defmodule Resolvinator.#{module_name}Controller do
+      use ResolvianatorWeb, :controller
+
+      alias Resolvinator.#{module_name}
+      alias Resolvinator.#{module_name}.#{singular}
+
+      action_fallback ResolvianatorWeb.FallbackController
+
+      def index(conn, params) do
+        #{String.downcase(plural)} = #{module_name}.list_#{String.downcase(plural)}(params)
+        render(conn, :index, #{String.downcase(plural)}: #{String.downcase(plural)})
+      end
+
+      def create(conn, %{"#{String.downcase(singular)}" => #{String.downcase(singular)}_params}) do
+        with {:ok, %#{singular}{} = #{String.downcase(singular)}} <- 
+          #{module_name}.create_#{String.downcase(singular)}(#{String.downcase(singular)}_params) do
+          conn
+          |> put_status(:created)
+          |> render(:show, #{String.downcase(singular)}: #{String.downcase(singular)})
+        end
+      end
+
+      def show(conn, %{"id" => id}) do
+        #{String.downcase(singular)} = #{module_name}.get_#{String.downcase(singular)}!(id)
+        render(conn, :show, #{String.downcase(singular)}: #{String.downcase(singular)})
+      end
+
+      def update(conn, %{"id" => id, "#{String.downcase(singular)}" => #{String.downcase(singular)}_params}) do
+        #{String.downcase(singular)} = #{module_name}.get_#{String.downcase(singular)}!(id)
+
+        with {:ok, %#{singular}{} = #{String.downcase(singular)}} <- 
+          #{module_name}.update_#{String.downcase(singular)}(#{String.downcase(singular)}, #{String.downcase(singular)}_params) do
+          render(conn, :show, #{String.downcase(singular)}: #{String.downcase(singular)})
+        end
+      end
+
+      def delete(conn, %{"id" => id}) do
+        #{String.downcase(singular)} = #{module_name}.get_#{String.downcase(singular)}!(id)
+
+        with {:ok, %#{singular}{}} <- #{module_name}.delete_#{String.downcase(singular)}(#{String.downcase(singular)}) do
+          send_resp(conn, :no_content, "")
+        end
+      end
+    end
+    """
+  end
+
+  def generate_live_view(module_name, fields, _options) do
+    singular = String.trim_trailing(module_name, "s")
+    plural = Inflex.pluralize(singular)
+    
+    """
+    defmodule ResolvianatorWeb.#{module_name}Live.Index do
+      use ResolvianatorWeb, :live_view
+
+      alias Resolvinator.#{module_name}
+      alias Resolvinator.#{module_name}.#{singular}
+
+      @impl true
+      def mount(_params, _session, socket) do
+        {:ok, stream(socket, :#{String.downcase(plural)}, #{module_name}.list_#{String.downcase(plural)}())}
+      end
+
+      @impl true
+      def handle_params(params, _url, socket) do
+        {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+      end
+
+      defp apply_action(socket, :edit, %{"id" => id}) do
+        socket
+        |> assign(:page_title, "Edit #{singular}")
+        |> assign(:#{String.downcase(singular)}, #{module_name}.get_#{String.downcase(singular)}!(id))
+      end
+
+      defp apply_action(socket, :new, _params) do
+        socket
+        |> assign(:page_title, "New #{singular}")
+        |> assign(:#{String.downcase(singular)}, %#{singular}{})
+      end
+
+      defp apply_action(socket, :index, _params) do
+        socket
+        |> assign(:page_title, "Listing #{plural}")
+        |> assign(:#{String.downcase(singular)}, nil)
+      end
+
+      @impl true
+      def handle_event("delete", %{"id" => id}, socket) do
+        #{String.downcase(singular)} = #{module_name}.get_#{String.downcase(singular)}!(id)
+        {:ok, _} = #{module_name}.delete_#{String.downcase(singular)}(#{String.downcase(singular)})
+
+        {:noreply, stream_delete(socket, :#{String.downcase(plural)}, #{String.downcase(singular)})}
+      end
+    end
+    """
+  end
+
+  defp generate_schema_fields(fields) do
+    fields
+    |> Enum.map(fn {name, type, opts} ->
+      default = if opts[:default], do: ", default: #{inspect(opts[:default])}", else: ""
+      "field :#{name}, :#{type}#{default}"
+    end)
+    |> Enum.join("\n    ")
+  end
+
+  defp generate_cast_fields(fields) do
+    fields
+    |> Enum.map(fn {name, _, _} -> ":#{name}" end)
+    |> Enum.join(", ")
+    |> then(&"[#{&1}]")
+  end
+
+  defp generate_required_fields(fields) do
+    fields
+    |> Enum.filter(fn {_, _, opts} -> opts[:required] end)
+    |> Enum.map(fn {name, _, _} -> ":#{name}" end)
+    |> Enum.join(", ")
+    |> then(&"[#{&1}]")
+  end
+end
+```
+
+## Interactive Generator
+
+```elixir
+inputs = [
+  module: Kino.Input.text("Module Name (e.g., Risks)"),
+  fields: Kino.Input.textarea("Fields (one per line, format: name:type:opts)\nE.g., name:string:required\ndescription:text\nstatus:string:default=draft"),
+  status_values: Kino.Input.text("Status Values (comma-separated)"),
+  base_path: Kino.Input.text("Base Path", default: "lib/resolvinator")
+]
+
+form = Kino.Control.form(inputs, submit: "Generate Structure")
+frame = Kino.Frame.new()
+
+Kino.listen(form, fn %{data: %{module: module, fields: fields_str, status_values: status_values, base_path: base_path}} ->
+  # Parse fields
+  fields = fields_str
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn line ->
+    [name, type, opts_str] = String.split(line, ":", parts: 3) ++ [""]
+    opts = opts_str
+    |> String.split(",", trim: true)
+    |> Enum.map(&String.split(&1, "=", parts: 2))
+    |> Enum.map(fn 
+      [k] -> {String.to_atom(k), true}
+      [k, v] -> {String.to_atom(k), v}
+    end)
+    |> Enum.into(%{})
+    
+    {name, type, opts}
+  end)
+
+  # Generate structures
+  options = %{
+    "status_values" => String.split(status_values, ",", trim: true),
+    "base_path" => base_path
+  }
+
+  result = StructureGenerator.generate_all(module, fields, options)
+
+  # Display results
+  content = Kino.Layout.tabs([
+    "Behavior": Kino.Markdown.new("```elixir\n#{result["behavior"]}\n```"),
+    "Context": Kino.Markdown.new("```elixir\n#{result["context"]}\n```"),
+    "Controller": Kino.Markdown.new("```elixir\n#{result["controller"]}\n```"),
+    "LiveView": Kino.Markdown.new("```elixir\n#{result["live_view"]}\n```")
+  ])
+
+  Kino.Frame.render(frame, content)
+end)
+
+frame
+```
+
+## Example Usage
+
+Try this example:
+```
+Module Name: Risks
+Fields:
+name:string:required
+description:text:required
+probability:string:required
+impact:string:required
+status:string:default=draft
+metadata:map:default=%{}
+
+Status Values: draft,pending,active,resolved,closed
+```
+
+This will generate:
+1. Behavior module with common fields and validations
+2. Context module with CRUD operations
+3. Controller with REST endpoints
+4. LiveView for real-time UI
+5. Tests for all components
+
+Would you like me to add any specific features or customizations?

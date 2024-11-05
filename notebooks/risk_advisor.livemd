@@ -1,0 +1,121 @@
+# AI Risk Advisor Prototype
+
+## Setup
+
+```elixir
+Mix.install([
+  {:resolvinator, path: "../"},
+  {:kino, "~> 0.12"},
+  {:httpoison, "~> 2.0"},
+  {:jason, "~> 1.4"}
+])
+
+# Initialize Fabric AI client
+fabric_key = System.get_env("FABRIC_KEY") || "your-key-here"
+```
+
+## Risk Analysis Assistant
+
+```elixir
+defmodule RiskAdvisor do
+  @fabric_endpoint "https://api.fabric.microsoft.com/v1"
+
+  def analyze_risk(risk_context) do
+    prompt = """
+    Given this risk context:
+    #{risk_context}
+
+    Please provide:
+    1. Key risk factors and their implications
+    2. Recommended mitigation strategies
+    3. Similar historical cases and their outcomes
+    4. Potential alternative approaches
+    5. Implementation considerations
+    """
+
+    case query_fabric_ai(prompt) do
+      {:ok, response} -> format_advice(response)
+      {:error, reason} -> {:error, "Analysis failed: #{reason}"}
+    end
+  end
+
+  def suggest_mitigations(risk_description) do
+    prompt = """
+    For this risk:
+    #{risk_description}
+
+    Suggest practical mitigation strategies, considering:
+    - Resource constraints
+    - Implementation timeline
+    - Success metrics
+    - Potential challenges
+    """
+
+    query_fabric_ai(prompt)
+  end
+
+  defp query_fabric_ai(prompt) do
+    headers = [
+      {"Authorization", "Bearer #{fabric_key}"},
+      {"Content-Type", "application/json"}
+    ]
+    
+    body = Jason.encode!(%{
+      prompt: prompt,
+      temperature: 0.7,
+      max_tokens: 1000
+    })
+    
+    case HTTPoison.post("#{@fabric_endpoint}/chat/completions", body, headers) do
+      {:ok, %{status_code: 200, body: response}} ->
+        {:ok, Jason.decode!(response)["choices"][0]["message"]["content"]}
+      error ->
+        {:error, "AI query failed: #{inspect(error)}"}
+    end
+  end
+
+  defp format_advice(response) do
+    Kino.Markdown.new(response)
+  end
+end
+
+# Create interactive input for risk description
+risk_input = Kino.Input.textarea("Describe the risk scenario:",
+  default: """
+  Project: E-commerce Platform Launch
+  Risk Area: System Performance
+  Context: Planning to launch new e-commerce platform during peak shopping season
+  Concerns: System stability, user experience, revenue impact
+  """
+)
+```
+
+## Get AI Recommendations
+
+```elixir
+risk_context = Kino.Input.read(risk_input)
+{:ok, analysis} = RiskAdvisor.analyze_risk(risk_context)
+
+# Display formatted recommendations
+analysis
+```
+
+## Interactive Risk Discussion
+
+```elixir
+defmodule RiskDiscussion do
+  def ask_followup(context, question) do
+    prompt = """
+    Previous Context: #{context}
+    
+    Follow-up Question: #{question}
+    
+    Please provide a detailed response considering the full context.
+    """
+    
+    RiskAdvisor.query_fabric_ai(prompt)
+  end
+end
+
+# Create interactive follow-up question input
+question_input = Kino.Input.text

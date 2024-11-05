@@ -23,8 +23,33 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import HandCanvasHook from "./hooks/hand_canvas_hook";
 
+// Import KaTeX
+import katex from 'katex'
+import 'katex/dist/katex.css'
+
 let Hooks = {};
 Hooks.HandCanvasHook = HandCanvasHook;
+Hooks.MathPreview = {
+  mounted() {
+    this.renderMath()
+  },
+  updated() {
+    this.renderMath()
+  },
+  renderMath() {
+    const mathElements = this.el.querySelectorAll('.math')
+    mathElements.forEach(element => {
+      try {
+        katex.render(element.textContent, element, {
+          throwOnError: false,
+          displayMode: true
+        })
+      } catch (e) {
+        console.error('Math rendering error:', e)
+      }
+    })
+  }
+}
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {

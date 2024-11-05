@@ -1,0 +1,316 @@
+# Collaborative Code Editor Design
+
+## Setup
+
+```elixir
+Mix.install([
+  {:phoenix_live_view, "~> 0.20"},
+  {:jason, "~> 1.4"},
+  {:kino, "~> 0.11.0"},
+  {:burrito, "~> 1.0"},  # For deployments
+  {:rewire, "~> 0.9"},   # For testing/mocking
+  {:diff_match_patch, "~> 0.2"} # For text diffing
+])
+
+defmodule CollabEditor.Design do
+  @moduledoc """
+  Design patterns for collaborative editing features
+  """
+  
+  def architecture do
+    """
+    # Collaborative Editor Architecture
+    
+    ## Core Components:
+    
+    1. EditorPresence - Tracks active users and cursors
+    2. DocumentState - Manages document state and operations
+    3. OperationalTransform - Handles concurrent edits
+    4. SyncManager - Manages state synchronization
+    
+    ## Data Flow:
+                    ┌─────────────────┐
+                    │   LiveView UI   │
+                    └────────┬────────┘
+                             │
+                    ┌────────┴────────┐
+                    │  Phoenix PubSub │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+    ┌─────────┴───────────┐    ┌──────────┴──────────┐
+    │    DocumentState    │    │   EditorPresence    │
+    │     (GenServer)    │    │     (Presence)      │
+    └─────────┬──────────┘    └──────────┬──────────┘
+              │                           │
+              └──────────────┬────────────┘
+                            │
+                   ┌────────┴────────┐
+                   │   SyncManager   │
+                   └────────┬────────┘
+                            │
+                   ┌────────┴────────┐
+                   │    Database     │
+                   └─────────────────┘
+    """
+  end
+end
+
+defmodule CollabEditor.DocumentState do
+  @moduledoc """
+  Manages document state and operations
+  """
+  use GenServer
+  
+  defstruct [:id, :content, :version, operations: [], users: %{}]
+  
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: via_tuple(opts[:id]))
+  end
+  
+  def init(opts) do
+    {:ok, %__MODULE__{
+      id: opts[:id],
+      content: opts[:initial_content] || "",
+      version: 0
+    }}
+  end
+  
+  def handle_cast({:apply_operation, operation, user_id}, state) do
+    # Apply operational transform
+    {transformed_op, new_content} = 
+      OperationalTransform.apply(operation, state.content, state.operations)
+    
+    new_state = %{state |
+      content: new_content,
+      version: state.version + 1,
+      operations: [transformed_op | state.operations]
+    }
+    
+    broadcast_update(new_state)
+    {:noreply, new_state}
+  end
+  
+  defp via_tuple(id), do: {:via, Registry, {CollabEditor.Registry, id}}
+  
+  defp broadcast_update(state) do
+    Phoenix.PubSub.broadcast(
+      CollabEditor.PubSub,
+      "document:#{state.id}",
+      {:doc_updated, state}
+    )
+  end
+end
+
+defmodule CollabEditor.OperationalTransform do
+  @moduledoc """
+  Handles concurrent edit operations
+  """
+  
+  def apply(operation, content, previous_ops) do
+    # Transform operation against previous operations
+    transformed = transform_operation(operation, previous_ops)
+    # Apply transformed operation to content
+    new_content = apply_operation(transformed, content)
+    {transformed, new_content}
+  end
+  
+  defp transform_operation(op, []), do: op
+  defp transform_operation(op, [prev | rest]) do
+    transformed = transform_pair(op, prev)
+    transform_operation(transformed, rest)
+  end
+  
+  defp transform_pair(op1, op2) do
+    # Implement operational transform algorithm
+    # This is a simplified version
+    case {op1, op2} do
+      {{:insert, pos1, text1}, {:insert, pos2, _}} when pos1 > pos2 ->
+        {:insert, pos1 + String.length(text1), text1}
+      {{:delete, pos1, len1}, {:insert, pos2, text2}} when pos1 > pos2 ->
+        {:delete, pos1 + String.length(text2), len1}
+      # Add more transformation rules
+      _ -> op1
+    end
+  end
+end
+```
+
+## LiveView Implementation
+
+```elixir
+defmodule CollabEditorWeb.EditorLive do
+  use Phoenix.LiveView
+  
+  def mount(%{"id" => id}, _session, socket) do
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(CollabEditor.PubSub, "document:#{id}")
+      CollabEditor.EditorPresence.track_user(self(), id, socket.assigns.current_user)
+    end
+    
+    {:ok, assign(socket,
+      document_id: id,
+      content: CollabEditor.DocumentState.get_content(id),
+      users: CollabEditor.EditorPresence.list_users(id),
+      cursor_positions: %{}
+    )}
+  end
+  
+  def handle_event("edit", %{"operation" => operation}, socket) do
+    CollabEditor.DocumentState.apply_operation(
+      socket.assigns.document_id,
+      operation,
+      socket.assigns.current_user.id
+    )
+    {:noreply, socket}
+  end
+  
+  def handle_event("cursor_move", %{"position" => position}, socket) do
+    CollabEditor.EditorPresence.update_cursor(
+      socket.assigns.document_id,
+      socket.assigns.current_user.id,
+      position
+    )
+    {:noreply, socket}
+  end
+  
+  def handle_info({:doc_updated, new_state}, socket) do
+    {:noreply, assign(socket, content: new_state.content)}
+  end
+  
+  def handle_info({:presence_diff, diff}, socket) do
+    {:noreply, update_presence(socket, diff)}
+  end
+  
+  def render(assigns) do
+    ~H"""
+    <div class="editor-container">
+      <div class="user-list">
+        <%= for {user_id, user} <- @users do %>
+          <div class="user-indicator" style={"background: #{user.color}"}>
+            <%= user.name %>
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="editor"
+        phx-hook="Editor"
+        id="editor"
+        data-document-id={@document_id}
+      >
+        <%= @content %>
+      </div>
+      
+      <%= for {user_id, pos} <- @cursor_positions do %>
+        <div class="cursor"
+          style={"left: #{pos.x}px; top: #{pos.y}px; background: #{@users[user_id].color}"}
+        />
+      <% end %>
+    </div>
+    """
+  end
+end
+```
+
+## Burrito Deployment
+
+```elixir
+# config/burrito.exs
+config :burrito,
+  app: :collab_editor,
+  output_dir: "rel/burrito",
+  steps: [
+    :assemble,
+    :compress
+  ],
+  targets: [
+    macos: [os: :darwin, cpu: :x86_64],
+    linux: [os: :linux, cpu: :x86_64],
+    windows: [os: :windows, cpu: :x86_64]
+  ]
+
+# mix.exs
+def project do
+  [
+    app: :collab_editor,
+    deps: [
+      {:burrito, "~> 1.0", runtime: false}
+    ],
+    releases: [
+      collab_editor: [
+        steps: [:assemble, :tar],
+        include_executables_for: [:unix, :windows]
+      ]
+    ]
+  ]
+end
+```
+
+## Testing with Rewire
+
+```elixir
+defmodule CollabEditor.DocumentStateTest do
+  use ExUnit.Case
+  use Rewire
+  
+  # Rewire allows us to mock dependencies
+  rewire CollabEditor.DocumentState, OperationalTransform: MockOperationalTransform
+  
+  test "applies operations with transformation" do
+    operation = {:insert, 0, "Hello"}
+    
+    # Mock the transformation
+    MockOperationalTransform
+    |> expect(:apply, fn ^operation, "", [] ->
+      {operation, "Hello"}
+    end)
+    
+    {:ok, pid} = DocumentState.start_link(id: "test-doc")
+    :ok = DocumentState.apply_operation("test-doc", operation, "user-1")
+    
+    assert DocumentState.get_content("test-doc") == "Hello"
+  end
+end
+```
+
+Key features:
+
+1. **Real-time Collaboration**:
+   - Operational Transform for concurrent edits
+   - Presence tracking for active users
+   - Cursor position synchronization
+
+2. **State Management**:
+   - GenServer-based document state
+   - PubSub for real-time updates
+   - Registry for document process lookup
+
+3. **Deployment**:
+   - Burrito for creating standalone executables
+   - Cross-platform support
+   - Easy distribution
+
+4. **Testing**:
+   - Rewire for dependency mocking
+   - Comprehensive test coverage
+   - Isolated component testing
+
+To use:
+
+1. Start the server:
+```bash
+mix phx.server
+```
+
+2. Create standalone executable:
+```bash
+mix burrito.build
+```
+
+3. Run tests:
+```bash
+mix test
+```
+
+Would you like me to expand on any particular aspect?

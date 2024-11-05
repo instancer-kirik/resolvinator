@@ -10,7 +10,9 @@ import Config
 config :resolvinator,
   ecto_repos: [Resolvinator.Repo],
   generators: [timestamp_type: :utc_datetime],
-  cache_ttl: :timer.minutes(5)
+  cache_ttl: :timer.minutes(5),
+  fabric_endpoint: System.get_env("FABRIC_ENDPOINT"),
+  fabric_key: System.get_env("FABRIC_KEY")
 
 # Configures the endpoint
 config :resolvinator, ResolvinatorWeb.Endpoint,
