@@ -1,22 +1,36 @@
 defmodule Resolvinator.Content.Answer do
   use Flint.Schema
+  alias Flint.Schema
+  import Ecto.Changeset
+  import Ecto.Query
+
   use Resolvinator.Content.ContentBehavior,
-    type_name: "answer",
+    type_name: :answer,
     table_name: "answers",
     relationship_table: "answer_relationships",
-    description_table: "answer_descriptions"
-
-  schema_field do
-    field :answer_type, :string
-    field :is_accepted, :boolean, default: false
-    field :references, {:array, :string}, default: []
-    field :code_snippets, {:array, :map}, default: []
-
-    belongs_to :question, Resolvinator.Content.Question
-
-    # Track answer revisions
-    has_many :revisions, Resolvinator.Content.AnswerRevision
-  end
+    description_table: "answer_descriptions",
+    relationship_keys: [answer_id: :id, related_answer_id: :id],
+    description_keys: [answer_id: :id, description_id: :id],
+    additional_schema: [
+      fields: [
+        answer_type: :string,
+        is_accepted: {:boolean, default: false},
+        references: {{:array, :string}, default: []},
+        code_snippets: {{:array, :map}, default: []}
+      ],
+      relationships: [
+        belongs_to: [
+          question: [
+            module: Resolvinator.Content.Question
+          ]
+        ],
+        has_many: [
+          revisions: [
+            module: Resolvinator.Content.AnswerRevision
+          ]
+        ]
+      ]
+    ]
 
   def changeset(answer, attrs) do
     answer

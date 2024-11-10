@@ -16,7 +16,7 @@ defmodule Resolvinator.Risks.Risk do
     # Core relationships
     belongs_to :creator, Resolvinator.Accounts.User
     belongs_to :project, Resolvinator.Projects.Project
-    belongs_to :risk_category, Resolvinator.Risks.Category
+    belongs_to :category, Resolvinator.Risks.Category, foreign_key: :risk_category_id
 
     # Risk relationships
     many_to_many :related_risks, __MODULE__,

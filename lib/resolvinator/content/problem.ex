@@ -1,8 +1,7 @@
 defmodule Resolvinator.Content.Problem do
-
-  alias Flint.Schema
-  import Ecto.Changeset
-  import Ecto.Query
+  use Ecto.Schema
+  use Flint.Schema
+  @derive {Jason.Encoder, only: [:id, :name, :desc, :status, :metadata]}
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :problem,
@@ -14,12 +13,7 @@ defmodule Resolvinator.Content.Problem do
     additional_schema: [
       embeds_many: [
         impacts: [
-          schema: %{
-            area: :string,
-            severity: :string,
-            description: :string,
-            estimated_cost: :decimal
-          }
+          module: Resolvinator.Content.Impact
         ]
       ],
       relationships: [
@@ -29,6 +23,18 @@ defmodule Resolvinator.Content.Problem do
             join_through: "user_problems",
             join_keys: [problem_id: :id, user_id: :id],
             on_replace: :delete
+          ],
+          related_risks: [
+            module: Resolvinator.Risks.Risk,
+            join_through: "problem_risk_relationships",
+            join_keys: [problem_id: :id, risk_id: :id],
+            on_replace: :delete
+          ]
+        ],
+        has_many: [
+          mitigations: [
+            module: Resolvinator.Risks.Mitigation,
+            foreign_key: :problem_id
           ]
         ]
       ]
@@ -37,8 +43,9 @@ defmodule Resolvinator.Content.Problem do
   def changeset(problem, attrs) do
     problem
     |> base_changeset(attrs)
-    |> cast_embed(:impacts)
+    |> cast_embed(:impacts, with: &Resolvinator.Content.Impact.changeset/2)
     |> cast_assoc(:users_with_problem)
+    |> cast_assoc(:mitigations)
   end
 
   def users_with_problem_changeset(problem, users) do

@@ -7,7 +7,7 @@ defmodule Resolvinator.Comments.Comment do
   @foreign_key_type :binary_id
 
   schema "comments" do
-    field :content, :text
+    field :content, :string
     field :status, :string, default: "active"
     field :metadata, :map, default: %{}
     field :commentable_type, :string

@@ -150,8 +150,8 @@ defmodule ResolvinatorWeb.Components.EntitySearchComponent do
   defp placeholder_for_type(:user), do: "Search users..."
   defp placeholder_for_type(:project), do: "Search projects..."
 
-  defp relative_time(datetime) do
-    # Add your time formatting logic here
-    "recently"
+  defp relative_time(_datetime) do
+    # Implementation or placeholder
+    "some time ago"
   end
 end 

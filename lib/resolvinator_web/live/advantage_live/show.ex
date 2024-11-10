@@ -34,18 +34,6 @@ defmodule ResolvinatorWeb.AdvantageLive.Show do
     {:noreply, assign(socket, page_title: page_title(socket.assigns.live_action), advantage: updated_advantage, source: updated_advantage, source_type: "advantage")}
   end
 
-  @impl true
-  def handle_info({:update_source, updated_source}, socket) do
-    hidden_description_ids = Content.get_hidden_description_ids(socket.assigns.current_user.id)
-
-    updated_descriptions = Enum.map(updated_source.descriptions, fn description ->
-      Map.put(description, :hidden, description.id in hidden_description_ids)
-    end)
-
-    updated_source = Map.put(updated_source, :descriptions, updated_descriptions)
-
-    {:noreply, assign(socket, source: updated_source, advantage: updated_source)}
-  end
 
   @impl true
   def handle_event("hide-description", %{"id" => id}, socket) do
@@ -90,9 +78,35 @@ defmodule ResolvinatorWeb.AdvantageLive.Show do
   end
 
   @impl true
+  def handle_info({:update_source, updated_source}, socket) do
+    hidden_description_ids = Content.get_hidden_description_ids(socket.assigns.current_user.id)
+
+    updated_descriptions = Enum.map(updated_source.descriptions, fn description ->
+      Map.put(description, :hidden, description.id in hidden_description_ids)
+    end)
+
+    updated_source = Map.put(updated_source, :descriptions, updated_descriptions)
+
+    {:noreply, assign(socket, source: updated_source, advantage: updated_source)}
+  end
+
+  @impl true
   def handle_info({:search, query}, socket) do
     results = Content.searchAll(query, socket.assigns.current_user.id)
     {:noreply, assign(socket, results: results, loading: false)}
+  end
+
+  @impl true
+  def handle_info({ResolvinatorWeb.AdvantageLive.FormComponent, {:saved, advantage}}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "Advantage updated successfully")
+     |> push_patch(to: ~p"/advantages/#{advantage}")}
+  end
+
+  @impl true
+  def handle_info(_message, socket) do
+    {:noreply, socket}
   end
 
   defp page_title(:show), do: "Show Advantage"

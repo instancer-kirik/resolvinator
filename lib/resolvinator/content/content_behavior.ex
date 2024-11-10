@@ -27,20 +27,23 @@ defmodule Resolvinator.Content.ContentBehavior do
   end
 
   defmacro __using__(opts) do
+    additional_schema = Keyword.get(opts, :additional_schema, [])
+
     quote do
+      use Ecto.Schema
       use Flint.Schema
-      use Resolvinator.Comments.Commentable
       import Ecto.Changeset
       import Ecto.Query
 
       @primary_key {:id, :binary_id, autogenerate: true}
       @foreign_key_type :binary_id
       @timestamps_opts [type: :utc_datetime]
+      @derive {Jason.Encoder, only: [:id, :name, :desc, :status, :metadata]}
 
       @status_values ~w(initial pending approved rejected draft review published archived)
-      @type_name unquote(opts[:type_name] || raise "type_name is required")
-      @relationship_table unquote(opts[:relationship_table] || raise "relationship_table is required")
-      @description_table unquote(opts[:description_table] || raise "description_table is required")
+      @type_name unquote(opts[:type_name]) || raise "type_name is required"
+      @relationship_table unquote(opts[:relationship_table]) || raise "relationship_table is required"
+      @description_table unquote(opts[:description_table]) || raise "description_table is required"
 
       schema unquote(opts[:table_name] || raise "table_name is required") do
         # Basic content fields
@@ -54,10 +57,9 @@ defmodule Resolvinator.Content.ContentBehavior do
         field :tags, {:array, :string}, default: []
         field :priority, :integer
 
-         # Embedded schemas for structured data
-        embeds_one :voting, Resolvinator.Content.ContentBehavior.Voting
-        embeds_one :moderation, Resolvinator.Content.ContentBehavior.Moderation
-
+        # Embedded schemas
+        embeds_one :voting, Voting, on_replace: :delete
+        embeds_one :moderation, Moderation, on_replace: :delete
 
         # Common relationships
         belongs_to :creator, Resolvinator.Accounts.User
@@ -69,30 +71,23 @@ defmodule Resolvinator.Content.ContentBehavior do
           join_keys: unquote(opts[:relationship_keys]),
           on_replace: :delete
 
-        # Descriptions for internationalization
+        # Descriptions
         many_to_many :descriptions, Resolvinator.Content.Description,
           join_through: @description_table,
-          join_keys: unquote(opts[:description_keys] || [:content_id, :language_id]),
+          join_keys: unquote(opts[:description_keys]),
           on_replace: :delete
 
-        # Content type relationships
-        many_to_many :problems, Resolvinator.Content.Problem,
-          join_through: "#{@type_name}_problem_relationships",
-          on_replace: :delete
+        # Comments relationship (moved from Commentable)
+        has_many :comments, Resolvinator.Comments.Comment, foreign_key: :content_id
 
-        many_to_many :solutions, Resolvinator.Content.Solution,
-          join_through: "#{@type_name}_solution_relationships",
-          on_replace: :delete
-
-        many_to_many :advantages, Resolvinator.Content.Advantage,
-          join_through: "#{@type_name}_advantage_relationships",
-          on_replace: :delete
-
-        # Additional schema fields provided by the implementing module
-        unquote(opts[:additional_schema] || quote do end)
+        # Add additional schema fields if provided
+        unquote_splicing(process_additional_schema(additional_schema))
 
         timestamps(type: :utc_datetime)
       end
+
+      # Now add Commentable behavior after schema is defined
+      use Resolvinator.Comments.Commentable
 
       def base_changeset(struct, attrs) do
         struct
@@ -145,5 +140,57 @@ defmodule Resolvinator.Content.ContentBehavior do
       def draft(content), do: change(content, %{status: "draft"})
       def review(content), do: change(content, %{status: "review"})
     end
+  end
+
+  # Helper function to process additional schema definitions
+  defp process_additional_schema(additional_schema) do
+    Enum.flat_map(additional_schema, fn
+      {:fields, fields} ->
+        Enum.map(fields, fn {name, type} ->
+          case type do
+            {type, opts} ->
+              quote do: field(unquote(name), unquote(type), unquote(opts))
+            type ->
+              quote do: field(unquote(name), unquote(type))
+          end
+        end)
+      
+      {:embeds_many, embeds} ->
+        Enum.map(embeds, fn {name, opts} ->
+          module = opts[:schema]
+          quote do: embeds_many(unquote(name), unquote(module))
+        end)
+      
+      {:embeds_one, embeds} ->
+        Enum.map(embeds, fn {name, opts} ->
+          module = opts[:module] || opts[:schema]
+          quote do: embeds_one(unquote(name), unquote(module))
+        end)
+      
+      {:relationships, rels} ->
+        Enum.flat_map(rels, fn
+          {:belongs_to, items} ->
+            Enum.map(items, fn {name, opts} ->
+              quote do: belongs_to(unquote(name), unquote(opts[:module]))
+            end)
+          
+          {:has_many, items} ->
+            Enum.map(items, fn {name, opts} ->
+              quote do: has_many(unquote(name), unquote(opts[:module]))
+            end)
+          
+          {:many_to_many, items} ->
+            Enum.map(items, fn {name, opts} ->
+              quote do
+                many_to_many unquote(name), unquote(opts[:module]),
+                  join_through: unquote(opts[:join_through]),
+                  join_keys: unquote(opts[:join_keys]),
+                  on_replace: unquote(Keyword.get(opts, :on_replace, :delete))
+              end
+            end)
+        end)
+      
+      _ -> []
+    end)
   end
 end

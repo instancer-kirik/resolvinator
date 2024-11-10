@@ -1,8 +1,6 @@
 defmodule ResolvinatorWeb.API.AllocationController do
   use ResolvinatorWeb, :controller
-  alias Resolvinator.ChangesetErrors
   import ResolvinatorWeb.API.JSONHelpers#, only: [paginate: 2]
-  #alias ResolvinatorWeb.JSONHelpers
   alias Resolvinator.Resources
   alias ResolvinatorWeb.API.{AllocationJSON, ErrorJSON}
 

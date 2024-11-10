@@ -1,7 +1,6 @@
 defmodule Resolvinator.Events.Event do
   use Ecto.Schema
   import Ecto.Changeset
-  use Resolvinator.Comments.Commentable
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -49,6 +48,9 @@ defmodule Resolvinator.Events.Event do
 
     timestamps(type: :utc_datetime)
   end
+
+  # Add Commentable behavior after schema definition
+  use Resolvinator.Comments.Commentable
 
   def changeset(event, attrs) do
     event

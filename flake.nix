@@ -22,6 +22,9 @@
             postgresql_15
             git
             direnv
+            libyaml
+            pkg-config
+            gcc
           ];
 
           shellHook = ''
@@ -29,6 +32,7 @@
             export MIX_HOME=$HOME/.mix
             export HEX_HOME=$HOME/.hex
             export PATH=$MIX_HOME/escripts:$PATH
+            export ERL_INCLUDE_PATH=${pkgs.beam.packages.erlang_27.erlang}/lib/erlang/usr/include
 
             # Initialize mix if needed
             if [ ! -f $MIX_HOME/rebar3 ]; then

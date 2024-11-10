@@ -1,6 +1,5 @@
 defmodule ResolvinatorWeb.API.SupplierJSON do
   alias Resolvinator.Suppliers.Supplier
-  import ResolvinatorWeb.API.JSONHelpers
 
   def data(%Supplier{} = supplier, _opts \\ []) do
     %{

@@ -18,6 +18,7 @@ defmodule Resolvinator.Risks.Mitigation do
     
     belongs_to :risk, Resolvinator.Risks.Risk
     belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :problem, Resolvinator.Content.Problem
     
     many_to_many :responsible_actors, Resolvinator.Actors.Actor,
       join_through: "actor_mitigation_responsibilities"
@@ -32,12 +33,12 @@ defmodule Resolvinator.Risks.Mitigation do
     mitigation
     |> cast(attrs, [:description, :strategy, :status, :effectiveness, 
                     :cost, :start_date, :target_date, :completion_date, 
-                    :notes, :risk_id, :creator_id])
-    |> validate_required([:description, :strategy, :status, 
-                         :risk_id, :creator_id])
+                    :notes, :risk_id, :creator_id, :problem_id])
+    |> validate_required([:description, :strategy, :status])
     |> validate_inclusion(:strategy, @strategy_values)
     |> validate_inclusion(:status, @status_values)
     |> foreign_key_constraint(:risk_id)
     |> foreign_key_constraint(:creator_id)
+    |> foreign_key_constraint(:problem_id)
   end 
 end

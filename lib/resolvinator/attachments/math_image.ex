@@ -1,5 +1,6 @@
 defmodule Resolvinator.Attachments.MathImage do
   use Ecto.Schema
+  import Ecto.Changeset
 
   @primary_key false
   embedded_schema do
@@ -19,4 +20,40 @@ defmodule Resolvinator.Attachments.MathImage do
     |> validate_coordinates()
     |> validate_annotations()
   end
+
+  defp validate_coordinates(changeset) do
+    case get_change(changeset, :coordinates) do
+      nil -> changeset
+      coordinates when is_list(coordinates) ->
+        if Enum.all?(coordinates, &valid_coordinate?/1) do
+          changeset
+        else
+          add_error(changeset, :coordinates, "contains invalid coordinate format")
+        end
+      _ ->
+        add_error(changeset, :coordinates, "must be a list of coordinates")
+    end
+  end
+
+  defp validate_annotations(changeset) do
+    case get_change(changeset, :annotations) do
+      nil -> changeset
+      annotations when is_list(annotations) ->
+        if Enum.all?(annotations, &valid_annotation?/1) do
+          changeset
+        else
+          add_error(changeset, :annotations, "contains invalid annotation format")
+        end
+      _ ->
+        add_error(changeset, :annotations, "must be a list of annotations")
+    end
+  end
+
+  defp valid_coordinate?(%{"x" => x, "y" => y}) when is_number(x) and is_number(y), do: true
+  defp valid_coordinate?(_), do: false
+
+  defp valid_annotation?(%{"type" => type, "data" => data}) when is_map(data) do
+    type in ["arrow", "circle", "text", "line"]
+  end
+  defp valid_annotation?(_), do: false
 end

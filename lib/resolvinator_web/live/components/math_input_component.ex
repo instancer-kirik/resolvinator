@@ -2,6 +2,16 @@ defmodule ResolvinatorWeb.Components.MathInputComponent do
   use ResolvinatorWeb, :live_component
 
   @impl true
+  def mount(socket) do
+    {:ok,
+     socket
+     |> assign(:preview_html, "")
+     |> assign(:preview_error, nil)
+     |> assign(:show_proof_structure, false)
+     |> stream(:proof_steps, [])}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="math-input-container">
@@ -37,26 +47,26 @@ defmodule ResolvinatorWeb.Components.MathInputComponent do
                   placeholder="Given/Assumptions"
                 />
 
-                <div class="proof-steps" id="proof-steps" phx-update="append">
-                  <%= for {step, i} <- Enum.with_index(@proof_steps) do %>
+                <div id="proof-steps" phx-update="stream">
+                  <div :for={{dom_id, step} <- @streams.proof_steps} id={dom_id}>
                     <div class="flex items-center space-x-2">
-                      <span class="text-gray-500"><%= i + 1 %>.</span>
+                      <span class="text-gray-500"><%= step.index + 1 %>.</span>
                       <.input
-                        field={@form[:"step_#{i}"]}
+                        field={@form[:"step_#{step.index}"]}
                         type="text"
-                        value={step}
+                        value={step.content}
                         placeholder="Proof step"
                       />
                       <.button
                         type="button"
                         phx-click="remove-step"
-                        phx-value-index={i}
+                        phx-value-index={step.index}
                         phx-target={@myself}
                       >
                         &times;
                       </.button>
                     </div>
-                  <% end %>
+                  </div>
                 </div>
 
                 <.button
@@ -96,16 +106,6 @@ defmodule ResolvinatorWeb.Components.MathInputComponent do
   end
 
   @impl true
-  def mount(socket) do
-    {:ok,
-     socket
-     |> assign(:preview_html, "")
-     |> assign(:preview_error, nil)
-     |> assign(:proof_steps, [])
-     |> assign(:show_proof_structure, false)}
-  end
-
-  @impl true
   def handle_event("preview-math", %{"latex" => latex}, socket) do
     case render_math(latex) do
       {:ok, html} ->
@@ -113,6 +113,25 @@ defmodule ResolvinatorWeb.Components.MathInputComponent do
       {:error, error} ->
         {:noreply, assign(socket, preview_error: error)}
     end
+  end
+
+  @impl true
+  def handle_event("add-step", _params, socket) do
+    step = %{
+      id: System.unique_integer([:positive]),
+      index: length(socket.assigns.streams.proof_steps),
+      content: ""
+    }
+    {:noreply, stream_insert(socket, :proof_steps, step)}
+  end
+
+  @impl true
+  def handle_event("remove-step", %{"index" => index}, socket) do
+    index = String.to_integer(index)
+    {:noreply, 
+     socket.assigns.streams.proof_steps
+     |> Enum.find(fn {_id, step} -> step.index == index end)
+     |> then(fn {id, _} -> stream_delete(socket, :proof_steps, id) end)}
   end
 
   defp math_tools do

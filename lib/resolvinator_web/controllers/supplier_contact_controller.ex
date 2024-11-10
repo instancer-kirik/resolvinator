@@ -2,7 +2,6 @@ defmodule ResolvinatorWeb.SupplierContactController do
   use ResolvinatorWeb, :controller
 
   alias Resolvinator.Suppliers
-  alias Resolvinator.Suppliers.Contact
 
   action_fallback ResolvinatorWeb.FallbackController
 

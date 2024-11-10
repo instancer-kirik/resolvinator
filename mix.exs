@@ -82,12 +82,12 @@ defmodule Resolvinator.MixProject do
       # Testing
       {:floki, ">= 0.30.0", only: :test},
       # Analysis (dev/test only)
-      {:livebook, "~> 0.14.3", only: [:dev, :test], runtime: false},
       {:kino, "~> 0.13.0", only: [:dev, :test], runtime: false},
       {:vega_lite, "~> 0.1.8", only: [:dev, :test], runtime: false},
       {:explorer, "~> 0.8.0", only: [:dev, :test], runtime: false},
       {:nx, "~> 0.7.0", only: [:dev, :test], runtime: false},
-      {:flame, "~> 0.3.0", only: [:dev, :test], runtime: false}
+      {:flame, "~> 0.3.0", only: [:dev, :test], runtime: false},
+      {:mogrify, "~> 0.9.3"}
 
     ]
   end

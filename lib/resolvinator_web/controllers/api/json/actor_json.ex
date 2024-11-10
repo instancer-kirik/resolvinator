@@ -50,7 +50,4 @@ defmodule ResolvinatorWeb.API.ActorJSON do
 
     %{base | relationships: relationships}
   end
-
-  defp relationship_data(nil), do: nil
-  defp relationship_data(data), do: %{data: data}
 end

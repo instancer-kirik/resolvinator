@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.Components.MathImageUploadComponent do
   use ResolvinatorWeb, :live_component
-  alias Phoenix.LiveView.JS
+  import ResolvinatorWeb.Components.ProgressComponents
 
   @impl true
   def render(assigns) do
@@ -26,32 +26,36 @@ defmodule ResolvinatorWeb.Components.MathImageUploadComponent do
             </div>
           </label>
 
-          <%= if @uploads.math_image.entries != [] do %>
-            <%= for entry <- @uploads.math_image.entries do %>
-              <div class="mt-2">
-                <div class="flex items-center space-x-2">
-                  <span class="text-sm font-medium"><%= entry.client_name %></span>
-                  <button
-                    type="button"
-                    phx-click="cancel-upload"
-                    phx-value-ref={entry.ref}
-                    phx-target={@myself}
-                    class="text-red-600 hover:text-red-800"
-                  >
-                    &times;
-                  </button>
-                </div>
-
-                <div class="mt-2">
+          <div class="mt-4">
+            <%= if @uploads.math_image.entries != [] do %>
+              <%= for entry <- @uploads.math_image.entries do %>
+                <div class="mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm"><%= entry.client_name %></span>
+                    <button
+                      type="button"
+                      phx-click="cancel-upload"
+                      phx-value-ref={entry.ref}
+                      phx-target={@myself}
+                      class="text-red-600 hover:text-red-800"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                  
                   <.progress_bar
-                    value={entry.progress}
-                    max="100"
-                    class="w-full h-2 bg-blue-200 rounded-full"
+                    progress={entry.progress}
+                    class="mb-2"
+                    color={if entry.progress >= 100, do: "green", else: "blue"}
                   />
+
+                  <%= for err <- upload_errors(@uploads.math_image, entry) do %>
+                    <div class="text-red-500 text-sm mt-1"><%= error_to_string(err) %></div>
+                  <% end %>
                 </div>
-              </div>
+              <% end %>
             <% end %>
-          <% end %>
+          </div>
         </div>
 
         <div class="w-1/3">
@@ -150,4 +154,10 @@ defmodule ResolvinatorWeb.Components.MathImageUploadComponent do
       %{type: "angle", icon: "∠"}
     ]
   end
+
+  # Helper function to convert upload errors to user-friendly messages
+  defp error_to_string(:too_large), do: "File is too large"
+  defp error_to_string(:too_many_files), do: "Too many files"
+  defp error_to_string(:not_accepted), do: "Unacceptable file type"
+  defp error_to_string(err), do: "Error: #{err}"
 end

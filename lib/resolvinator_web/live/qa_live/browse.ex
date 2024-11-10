@@ -430,4 +430,77 @@ defmodule ResolvinatorWeb.QALive.Browse do
       %{name: "number-theory", count: 43}
     ]
   end
+
+  defp pagination(assigns) do
+    ~H"""
+    <div class="flex items-center justify-between px-4 py-3 border-t">
+      <div class="flex-1 flex justify-between items-center">
+        <div>
+          <p class="text-sm text-gray-700">
+            Showing page <span class="font-medium"><%= @page %></span>
+            of <span class="font-medium"><%= @total_pages %></span>
+          </p>
+        </div>
+        <div class="flex space-x-2">
+          <.link
+            :if={@page > 1}
+            patch={~p"/qa?#{build_params(assigns, page: @page - 1)}"}
+            class="button-outline"
+          >
+            Previous
+          </.link>
+          <.link
+            :if={@page < @total_pages}
+            patch={~p"/qa?#{build_params(assigns, page: @page + 1)}"}
+            class="button-outline"
+          >
+            Next
+          </.link>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp format_time_ago(datetime) do
+    now = DateTime.utc_now()
+    diff = DateTime.diff(now, datetime, :second)
+
+    cond do
+      diff < 60 ->
+        "just now"
+      diff < 3600 ->
+        "#{div(diff, 60)} minutes ago"
+      diff < 86400 ->
+        "#{div(diff, 3600)} hours ago"
+      diff < 2_592_000 ->
+        "#{div(diff, 86400)} days ago"
+      diff < 31_536_000 ->
+        "#{div(diff, 2_592_000)} months ago"
+      true ->
+        "#{div(diff, 31_536_000)} years ago"
+    end
+  end
+
+  defp apply_params(socket, params) do
+    socket
+    |> maybe_apply_filter(params)
+    |> maybe_apply_sort(params)
+    |> maybe_apply_page(params)
+  end
+
+  defp maybe_apply_filter(socket, %{"filter" => filter}) do
+    assign(socket, :filter_form, to_form(filter))
+  end
+  defp maybe_apply_filter(socket, _), do: socket
+
+  defp maybe_apply_sort(socket, %{"sort" => sort}) do
+    assign(socket, :sort_by, sort)
+  end
+  defp maybe_apply_sort(socket, _), do: socket
+
+  defp maybe_apply_page(socket, %{"page" => page}) do
+    assign(socket, :page, String.to_integer(page))
+  end
+  defp maybe_apply_page(socket, _), do: socket
 end

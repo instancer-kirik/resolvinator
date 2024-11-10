@@ -1,0 +1,152 @@
+# Riddle Prototyping
+
+## Setup
+
+```elixir
+Mix.install([
+  {:jason, "~> 1.4"}
+])
+
+defmodule RiddleFormat do
+  @doc """
+  Formats a riddle in FAT (Format, Answer, Type) style
+  """
+  def format_fat(riddle) do
+    %{
+      format: riddle.text,
+      answer: riddle.solution,
+      type: determine_type(riddle)
+    }
+  end
+
+  @doc """
+  Determines the riddle type based on its characteristics
+  """
+  def determine_type(riddle) do
+    cond do
+      has_wordplay?(riddle) -> :wordplay
+      has_math?(riddle) -> :mathematical
+      has_logic?(riddle) -> :logical
+      true -> :general
+    end
+  end
+
+  defp has_wordplay?(riddle) do
+    String.contains?(riddle.text, ["pun", "spell", "word", "letter"]) ||
+    String.contains?(riddle.solution, ["pun", "spell", "word", "letter"])
+  end
+
+  defp has_math?(riddle) do
+    String.contains?(riddle.text, ["number", "count", "add", "subtract"]) ||
+    Regex.match?(~r/\d+/, riddle.text)
+  end
+
+  defp has_logic?(riddle) do
+    String.contains?(riddle.text, ["if", "then", "either", "or", "all", "none"])
+  end
+end
+
+# Example riddles for testing
+riddles = [
+    
+  %{
+    text: "What has keys but no locks, space but no room, and you can enter but not go in?",
+    solution: "A keyboard",
+    difficulty: :medium
+  },
+  %{
+    text: "If 2 + 2 = Fish and 3 + 3 = Eight, what is 4 + 4?",
+    solution: "Bait",
+    difficulty: :hard
+  },
+  %{
+    text: "What word becomes shorter when you add two letters to it?",
+    solution: "Short",
+    difficulty: :medium
+  }
+]
+```
+
+## Testing Format Types
+
+```elixir
+# Test formatting each riddle
+Enum.map(riddles, &RiddleFormat.format_fat/1)
+```
+
+## Analyzing Patterns
+
+```elixir
+# Group riddles by type
+riddles
+|> Enum.map(&RiddleFormat.format_fat/1)
+|> Enum.group_by(& &1.type)
+```
+
+## Experimenting with New Formats
+
+```elixir
+defmodule RiddleExperiments do
+  def format_with_hints(riddle) do
+    base = RiddleFormat.format_fat(riddle)
+    Map.put(base, :hints, generate_hints(riddle))
+  end
+  
+  def format_with_difficulty(riddle) do
+    base = RiddleFormat.format_fat(riddle)
+    Map.put(base, :difficulty, riddle.difficulty)
+  end
+  
+  defp generate_hints(riddle) do
+    # Example hint generation logic
+    [
+      String.slice(riddle.solution, 0..2) <> "...",
+      "Contains #{String.length(riddle.solution)} letters",
+      "First letter: #{String.first(riddle.solution)}"
+    ]
+  end
+end
+
+# Test new formats
+riddles
+|> Enum.map(&RiddleExperiments.format_with_hints/1)
+```
+
+## Interactive Testing
+
+```elixir
+# Create a new riddle and test formatting
+new_riddle = %{
+  text: "I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?",
+  solution: "An echo",
+  difficulty: :easy
+}
+
+RiddleFormat.format_fat(new_riddle)
+|> IO.inspect(label: "Basic FAT Format")
+
+RiddleExperiments.format_with_hints(new_riddle)
+|> IO.inspect(label: "FAT Format with Hints")
+
+RiddleExperiments.format_with_difficulty(new_riddle)
+|> IO.inspect(label: "FAT Format with Difficulty")
+```
+
+## Notes
+
+The FAT (Format, Answer, Type) structure helps organize riddles in a consistent way:
+
+- **Format**: The actual riddle text
+- **Answer**: The solution
+- **Type**: Categorization based on riddle characteristics
+  - Wordplay
+  - Mathematical
+  - Logical
+  - General
+
+Additional features to consider:
+- Difficulty ratings
+- Hint generation
+- Category-specific formatting
+- Solution explanations
+- Related riddles 

@@ -6,7 +6,8 @@ defmodule ResolvinatorWeb.APIAuthPlug do
 
   def call(conn, _opts) do
     with ["Bearer " <> token] <- get_req_header(conn, "authorization"),
-         {:ok, user} <- authenticate_token(token) do
+         {:ok, claims} <- Resolvinator.Auth.verify_token(token),
+         user when not is_nil(user) <- Resolvinator.Accounts.get_user!(claims.user_id) do
       assign(conn, :current_user, user)
     else
       _ ->
@@ -15,11 +16,5 @@ defmodule ResolvinatorWeb.APIAuthPlug do
         |> json(%{error: "Unauthorized"})
         |> halt()
     end
-  end
-
-  defp authenticate_token(token) do
-    # Implement your token verification logic here
-    # For example, using Guardian or a similar library
-    Resolvinator.Accounts.get_user_by_session_token(token)
   end
 end 

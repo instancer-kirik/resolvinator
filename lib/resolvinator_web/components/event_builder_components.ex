@@ -1,12 +1,12 @@
 defmodule ResolvinatorWeb.EventBuilderComponents do
   use Phoenix.Component
   import ResolvinatorWeb.CoreComponents
+  import ResolvinatorWeb.Components.FormComponents
 
   def basic_info_form(assigns) do
     ~H"""
     <div class="space-y-6">
-      <.form_group>
-        <:title>Event Details</:title>
+      <.form_group title="Event Details">
         <.input
           field={@form_data[:title]}
           type="text"
@@ -33,8 +33,7 @@ defmodule ResolvinatorWeb.EventBuilderComponents do
         />
       </.form_group>
 
-      <.form_group>
-        <:title>Timing & Location</:title>
+      <.form_group title="Timing & Location">
         <.input
           field={@form_data[:occurred_at]}
           type="datetime-local"
@@ -59,8 +58,7 @@ defmodule ResolvinatorWeb.EventBuilderComponents do
   def impact_details_form(assigns) do
     ~H"""
     <div class="space-y-6">
-      <.form_group>
-        <:title>Impact Assessment</:title>
+      <.form_group title="Impact Assessment">
         <.input
           field={@form_data[:severity]}
           type="select"
@@ -81,8 +79,7 @@ defmodule ResolvinatorWeb.EventBuilderComponents do
         />
       </.form_group>
 
-      <.form_group>
-        <:title>Impact Areas</:title>
+      <.form_group title="Impact Areas">
         <.checkbox_group
           field={@form_data[:impact_areas]}
           options={[

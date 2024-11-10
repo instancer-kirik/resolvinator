@@ -9,17 +9,21 @@ defmodule Resolvinator.Events do
   alias Resolvinator.AI.FabricAnalysis
 
   def list_events(project_id, opts \\ []) do
+    preloads = Keyword.get(opts, :preload, [])
+
     Event
     |> where([e], e.project_id == ^project_id)
     |> apply_filters(opts[:filters])
     |> apply_sorting(opts[:sort])
-    |> preload(opts[:preload] || [])
+    |> preload(^preloads)
     |> Repo.paginate(opts[:page] || %{})
   end
 
   def get_event!(id, opts \\ []) do
+    preloads = Keyword.get(opts, :preload, [])
+
     Event
-    |> preload(opts[:preload] || [])
+    |> preload(^preloads)
     |> Repo.get!(id)
   end
 

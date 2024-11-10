@@ -154,8 +154,6 @@ defmodule Resolvinator.Suppliers do
   """
   def get_supplier!(id), do: Repo.get!(Supplier, id)
 
-
-
   @doc """
   Updates a supplier.
 

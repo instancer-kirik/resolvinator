@@ -2,6 +2,7 @@ defmodule ResolvinatorWeb.Router do
   use ResolvinatorWeb, :router
 
   import ResolvinatorWeb.UserAuth
+  import ResolvinatorWeb.Plugs.APIProtection
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -11,22 +12,16 @@ defmodule ResolvinatorWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
-    # plug :fetch_github_user # <-- add this
-
   end
 
   pipeline :api do
     plug :accepts, ["json"]
-    plug :fetch_session
-    plug :protect_from_forgery
-    plug ResolvinatorWeb.APIAuthPlug
-    plug :put_secure_browser_headers
+    plug :verify_origin
+    plug :rate_limit
   end
 
-  pipeline :api_protection do
-    plug :rate_limit
-    plug :verify_origin
-    plug :check_token
+  pipeline :api_auth do
+    plug ResolvinatorWeb.APIAuthPlug
   end
 
   scope "/", ResolvinatorWeb do
@@ -34,11 +29,6 @@ defmodule ResolvinatorWeb.Router do
 
     get "/", PageController, :home
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", ResolvinatorWeb do
-  #   pipe_through :api
-  # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:resolvinator, :dev_routes) do
@@ -190,6 +180,47 @@ defmodule ResolvinatorWeb.Router do
       live "/documents/:id/show/edit", DocumentLive.Show, :edit
 
       live "/news/broadcast", NewsLive.Broadcast, :index
+
+      # Organization Routes
+      live "/organizations", OrganizationLive.Index, :index
+      live "/organizations/new", OrganizationLive.Index, :new
+      live "/organizations/:id/edit", OrganizationLive.Index, :edit
+      live "/organizations/:id", OrganizationLive.Show, :show
+      live "/organizations/:id/show/edit", OrganizationLive.Show, :edit
+
+      # Contact Routes
+      live "/contacts", ContactLive.Index, :index
+      live "/contacts/new", ContactLive.Index, :new
+      live "/contacts/:id/edit", ContactLive.Index, :edit
+      live "/contacts/:id", ContactLive.Show, :show
+      live "/contacts/:id/show/edit", ContactLive.Show, :edit
+
+      # Team Routes
+      live "/teams", TeamLive.Index, :index
+      live "/teams/new", TeamLive.Index, :new
+      live "/teams/:id/edit", TeamLive.Index, :edit
+      live "/teams/:id", TeamLive.Show, :show
+      live "/teams/:id/show/edit", TeamLive.Show, :edit
+
+      # Q&A Routes
+      live "/questions", QuestionLive.Index, :index
+      live "/questions/new", QuestionLive.Index, :new
+      live "/questions/:id/edit", QuestionLive.Index, :edit
+      live "/questions/:id", QuestionLive.Show, :show
+      live "/questions/:id/show/edit", QuestionLive.Show, :edit
+
+      live "/answers", AnswerLive.Index, :index
+      live "/answers/new", AnswerLive.Index, :new
+      live "/answers/:id/edit", AnswerLive.Index, :edit
+      live "/answers/:id", AnswerLive.Show, :show
+      live "/answers/:id/show/edit", AnswerLive.Show, :edit
+
+      # Project Routes
+      live "/projects", ProjectLive.Index, :index
+      live "/projects/new", ProjectLive.Index, :new
+      live "/projects/:id/edit", ProjectLive.Index, :edit
+      live "/projects/:id", ProjectLive.Show, :show
+      live "/projects/:id/show/edit", ProjectLive.Show, :edit
     end
   end
 
@@ -205,60 +236,77 @@ defmodule ResolvinatorWeb.Router do
     end
   end
 
-  # Add this scope for API authentication
-  scope "/api/v1/auth", ResolvinatorWeb do
-    pipe_through :api
-
-    post "/login", SessionController, :create
-    delete "/logout", SessionController, :delete
-    post "/refresh", SessionController, :refresh
-  end
-
+  # API routes
   scope "/api/v1", ResolvinatorWeb.API do
     pipe_through :api
 
-    # Supplier/Source management
-    resources "/suppliers", SupplierController do
-      resources "/contacts", SupplierContactController
-      resources "/catalogs", SupplierCatalogController
-
-      get "/performance", SupplierController, :get_performance, as: :performance
-      get "/pricing", SupplierController, :get_pricing, as: :pricing
+    # Unauthenticated routes
+    scope "/auth" do
+      post "/login", SessionController, :create
+      post "/refresh", SessionController, :refresh
     end
 
-    resources "/projects", ProjectController do
-      resources "/actors", ActorController
-      resources "/risks", RiskController do
-        resources "/impacts", ImpactController
-        resources "/mitigations", MitigationController do
-          resources "/tasks", MitigationTaskController
-          resources "/requirements", RequirementController
-          resources "/allocations", AllocationController
+    # Protected routes
+    scope "/" do
+      pipe_through :api_auth
+
+      delete "/auth/logout", SessionController, :delete
+      resources "/suppliers", SupplierController do
+        resources "/contacts", SupplierContactController
+        resources "/catalogs", SupplierCatalogController
+
+        get "/performance", SupplierController, :get_performance, as: :performance
+        get "/pricing", SupplierController, :get_pricing, as: :pricing
+      end
+      resources "/projects", ProjectController do
+        resources "/actors", ActorController
+        resources "/risks", RiskController do
+          resources "/impacts", ImpactController
+          resources "/mitigations", MitigationController do
+            resources "/tasks", MitigationTaskController
+            resources "/requirements", RequirementController
+            resources "/allocations", AllocationController
+          end
         end
+
+        # Inventory management routes
+        resources "/inventory", InventoryController do
+          # If you don't have a separate InventorySourceController, handle these actions in InventoryController
+          get "/sources/:id/availability", InventoryController, :check_availability, as: :availability
+          get "/sources/:id/pricing", InventoryController, :get_pricing, as: :pricing
+          post "/sources/:id/order", InventoryController, :create_order, as: :order
+
+          get "/analysis", InventoryController, :analyze_item, as: :analysis
+          get "/trends", InventoryController, :get_trends, as: :trends
+          post "/adjust", InventoryController, :adjust_stock, as: :adjust
+          get "/sources", InventoryController, :list_sources, as: :sources
+          post "/compare_sources", InventoryController, :compare_sources, as: :compare_sources
+        end
+
+        get "/alerts", InventoryController, :get_alerts, as: :alerts
+        get "/reports", InventoryController, :generate_report, as: :reports
       end
-
-      # Inventory management routes
-      resources "/inventory", InventoryController do
-        # If you don't have a separate InventorySourceController, handle these actions in InventoryController
-        get "/sources/:id/availability", InventoryController, :check_availability, as: :availability
-        get "/sources/:id/pricing", InventoryController, :get_pricing, as: :pricing
-        post "/sources/:id/order", InventoryController, :create_order, as: :order
-
-        get "/analysis", InventoryController, :analyze_item, as: :analysis
-        get "/trends", InventoryController, :get_trends, as: :trends
-        post "/adjust", InventoryController, :adjust_stock, as: :adjust
-        get "/sources", InventoryController, :list_sources, as: :sources
-        post "/compare_sources", InventoryController, :compare_sources, as: :compare_sources
-      end
-
-      get "/alerts", InventoryController, :get_alerts, as: :alerts
-      get "/reports", InventoryController, :generate_report, as: :reports
     end
   end
 
   scope "/api", ResolvinatorWeb do
-    pipe_through [:api, :api_protection]
+    pipe_through :api
 
     get "/content/:id", ContentController, :show
+  end
+
+  # Authenticated routes
+  scope "/", ResolvinatorWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    # Add your protected routes here
+    resources "/content", ContentController, only: [:create, :edit, :update, :delete]
+  end
+
+  # Public routes with potential content protection
+  scope "/", ResolvinatorWeb do
+    pipe_through :browser
+
+    resources "/content", ContentController, only: [:index, :show]
   end
 end

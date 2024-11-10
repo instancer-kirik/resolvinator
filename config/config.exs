@@ -82,3 +82,19 @@ config :resolvinator, Resolvinator.Auth.RateLimiter,
   socket_connect_window_ms: 60_000,
   api_request_limit: 1000,
   api_request_window_ms: 60_000
+
+# Livebook configuration
+# config :livebook,
+#   app_service_name: :resolvinator,
+#   app_service_url: nil,
+#   authentication_mode: :token,
+#   default_runtime: {Livebook.Runtime.ElixirStandalone, []},
+#   cookie: :resolvinator_cookie,
+#   ip: {127, 0, 0, 1},
+#   port: 8080
+
+# # Separate configuration for Livebook.Apps
+# config :livebook, Livebook.Apps,
+#   retry_backoff_base_ms: 1000,
+#   retry_backoff_max_ms: 30_000,
+#   shutdown_backoff_ms: 5_000

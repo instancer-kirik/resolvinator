@@ -53,7 +53,7 @@ defmodule Resolvinator.AI.FabricAnalysis do
     """
   end
 
-  defp query_fabric_ai(prompt) do
+  defp query_fabric_ai(_prompt) do
     # Implementation of Microsoft Fabric API call
     # This is a placeholder - implement actual API call
     {:ok, "AI analysis response..."}

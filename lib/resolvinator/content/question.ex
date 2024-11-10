@@ -1,47 +1,68 @@
 defmodule Resolvinator.Content.Question do
+  @derive {Jason.Encoder, only: [:id, :name, :desc, :status, :metadata]}
+  use Ecto.Schema
   use Flint.Schema
+  alias Flint.Schema
+  import Ecto.Changeset
+
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
+
   use Resolvinator.Content.ContentBehavior,
-    type_name: "question",
+    type_name: :question,
     table_name: "questions",
     relationship_table: "question_relationships",
-    description_table: "question_descriptions"
-
-  schema_field do
-    # Q&A specific fields
-    field :question_type, :string
-    field :context, :string
-    field :expected_answer_format, :string
-    field :difficulty_level, :string
-    field :is_answered, :boolean, default: false
-    field :answer_count, :integer, default: 0
-    field :accepted_answer_id, :binary_id
-
-    # Relationships
-    has_many :answers, Resolvinator.Content.Answer, foreign_key: :question_id
-    belongs_to :accepted_answer, Resolvinator.Content.Answer
-
-    # Topic/Category relationships
-    many_to_many :topics, Resolvinator.Content.Topic,
-      join_through: "question_topic_relationships"
-
-    # Math-specific fields
-    field :subject_area, :string  # algebra, calculus, number_theory, etc.
-    field :theorem_references, {:array, :string}
-    field :difficulty_rating, :integer  # 1-10 scale
-    field :requires_proof, :boolean, default: false
-    field :proof_technique_hints, {:array, :string}
-
-    # Embedded math content
-    embeds_one :math_content, Resolvinator.Content.MathContent
-
-    # Additional relationships
-    many_to_many :prerequisites, __MODULE__,
-      join_through: "question_prerequisites",
-      join_keys: [:question_id, :prerequisite_id]
-
-    many_to_many :related_theorems, Resolvinator.Content.Theorem,
-      join_through: "question_theorem_relationships"
-  end
+    description_table: "question_descriptions",
+    relationship_keys: [question_id: :id, related_question_id: :id],
+    description_keys: [question_id: :id, description_id: :id],
+    additional_schema: [
+      fields: [
+        question_type: :string,
+        context: :string,
+        expected_answer_format: :string,
+        difficulty_level: :string,
+        is_answered: {:boolean, default: false},
+        answer_count: {:integer, default: 0},
+        subject_area: :string,
+        theorem_references: {{:array, :string}, default: []},
+        difficulty_rating: :integer,
+        requires_proof: {:boolean, default: false},
+        proof_technique_hints: {{:array, :string}, default: []}
+      ],
+      embeds_one: [
+        math_content: [
+          module: Resolvinator.Content.MathContent
+        ]
+      ],
+      relationships: [
+        has_many: [
+          answers: [
+            module: Resolvinator.Content.Answer,
+            foreign_key: :question_id
+          ]
+        ],
+        belongs_to: [
+          accepted_answer: [
+            module: Resolvinator.Content.Answer
+          ]
+        ],
+        many_to_many: [
+          topics: [
+            module: Resolvinator.Content.Topic,
+            join_through: "question_topic_relationships"
+          ],
+          prerequisites: [
+            module: __MODULE__,
+            join_through: "question_prerequisites",
+            join_keys: [question_id: :id, prerequisite_id: :id]
+          ],
+          related_theorems: [
+            module: Resolvinator.Content.Theorem,
+            join_through: "question_theorem_relationships"
+          ]
+        ]
+      ]
+    ]
 
   def changeset(question, attrs) do
     question

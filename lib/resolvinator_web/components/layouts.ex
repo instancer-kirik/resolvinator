@@ -9,6 +9,7 @@ defmodule ResolvinatorWeb.Layouts do
   `use ResolvinatorWeb, :live_view`.
   """
   use ResolvinatorWeb, :html
+  import ResolvinatorWeb.Components.NavigationComponents
 
   embed_templates "layouts/*"
 end
