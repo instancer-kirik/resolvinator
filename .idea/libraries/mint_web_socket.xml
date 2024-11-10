@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="mint_web_socket" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mint_web_socket/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mint_web_socket/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mint_web_socket/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/mint_web_socket/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/mint_web_socket/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mint_web_socket/lib" />
+    </SOURCES>
+  </library>
+</component>

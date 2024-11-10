@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="igniter" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/igniter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/igniter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/igniter/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/igniter/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/igniter/lib" />
+      <root url="file://$PROJECT_DIR$/deps/igniter/lib" />
+    </SOURCES>
+  </library>
+</component>

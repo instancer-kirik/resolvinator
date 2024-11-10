@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="jumper" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/jumper/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/jumper/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/jumper/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/jumper/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/jumper/lib" />
+      <root url="file://$PROJECT_DIR$/deps/jumper/lib" />
+    </SOURCES>
+  </library>
+</component>

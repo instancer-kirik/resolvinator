@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="flame" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/flame/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/flame/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/flame/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/flame/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/flame/lib" />
+      <root url="file://$PROJECT_DIR$/deps/flame/lib" />
+    </SOURCES>
+  </library>
+</component>

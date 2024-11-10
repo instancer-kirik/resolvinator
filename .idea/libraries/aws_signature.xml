@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="aws_signature" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/aws_signature/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/aws_signature/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/aws_signature/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/aws_signature/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/aws_signature/src" />
+      <root url="file://$PROJECT_DIR$/deps/aws_signature/src" />
+    </SOURCES>
+  </library>
+</component>

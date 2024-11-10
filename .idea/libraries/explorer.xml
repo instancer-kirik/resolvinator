@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="explorer" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/explorer/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/explorer/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/explorer/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/explorer/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/explorer/lib" />
+      <root url="file://$PROJECT_DIR$/deps/explorer/lib" />
+    </SOURCES>
+  </library>
+</component>

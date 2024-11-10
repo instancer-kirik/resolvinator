@@ -188,6 +188,8 @@ defmodule ResolvinatorWeb.Router do
       live "/documents/:id/edit", DocumentLive.Index, :edit
       live "/documents/:id", DocumentLive.Show, :show
       live "/documents/:id/show/edit", DocumentLive.Show, :edit
+
+      live "/news/broadcast", NewsLive.Broadcast, :index
     end
   end
 

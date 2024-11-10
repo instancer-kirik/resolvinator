@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="glob_ex" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/glob_ex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/glob_ex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/glob_ex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/glob_ex/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/glob_ex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/glob_ex/lib" />
+    </SOURCES>
+  </library>
+</component>

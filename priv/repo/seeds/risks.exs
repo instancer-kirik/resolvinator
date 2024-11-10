@@ -1,15 +1,33 @@
 # Risk Management Seeds
 
-# Create Risk Categories
+# Create Risk Categories with more detailed assessment criteria
 risk_categories = [
   %{
     name: "Technical Risk",
     description: "Risks related to technical implementation and architecture",
     color: "#FF4444",
     assessment_criteria: %{
-      "probability_factors" => ["Technical complexity", "Team expertise", "Technology maturity"],
-      "impact_factors" => ["System downtime", "Data loss", "Performance degradation"],
-      "mitigation_guidelines" => ["Technical review", "Proof of concept", "Redundancy"],
+      "probability_factors" => [
+        "Technical complexity",
+        "Team expertise",
+        "Technology maturity",
+        "Integration dependencies",
+        "Technical debt"
+      ],
+      "impact_factors" => [
+        "System downtime",
+        "Data loss",
+        "Performance degradation",
+        "Security vulnerabilities",
+        "Scalability issues"
+      ],
+      "mitigation_guidelines" => [
+        "Technical review",
+        "Proof of concept",
+        "Redundancy",
+        "Automated testing",
+        "Performance monitoring"
+      ],
       "review_frequency_days" => 14
     }
   },
@@ -18,9 +36,27 @@ risk_categories = [
     description: "Risks affecting business operations and objectives",
     color: "#FFA500",
     assessment_criteria: %{
-      "probability_factors" => ["Market conditions", "Competition", "Regulatory changes"],
-      "impact_factors" => ["Revenue loss", "Market share", "Customer satisfaction"],
-      "mitigation_guidelines" => ["Market analysis", "Contingency planning", "Insurance"],
+      "probability_factors" => [
+        "Market conditions",
+        "Competition",
+        "Regulatory changes",
+        "Economic factors",
+        "Stakeholder alignment"
+      ],
+      "impact_factors" => [
+        "Revenue loss",
+        "Market share",
+        "Customer satisfaction",
+        "Brand reputation",
+        "Operational costs"
+      ],
+      "mitigation_guidelines" => [
+        "Market analysis",
+        "Contingency planning",
+        "Insurance",
+        "Stakeholder management",
+        "Compliance monitoring"
+      ],
       "review_frequency_days" => 30
     }
   }
@@ -105,26 +141,86 @@ created_actors = Enum.map(actors, fn actor ->
   })
 end)
 
-# Create Risks
+# Create Risks with more detailed attributes
 risks = [
   %{
-    title: "Data Migration Failure",
+    name: "Data Migration Failure",
     description: "Risk of data loss or corruption during migration",
-    probability: "medium",
-    impact_level: "high",
-    status: "active",
+    probability: "likely",
+    impact: "major",
+    priority: "high",
+    status: "analyzing",
     detection_date: ~D[2024-03-01],
+    review_date: ~D[2024-03-15],
+    metadata: %{
+      "technical_complexity" => "high",
+      "data_volume" => "large",
+      "previous_incidents" => 2,
+      "affected_systems" => ["CRM", "Billing", "Analytics"],
+      "risk_indicators" => [
+        "Complex data transformations",
+        "Legacy system constraints",
+        "Tight timeline"
+      ],
+      "factor_ratings" => %{
+        "probability_factors" => %{
+          "technical_complexity" => 4,
+          "team_expertise" => 3,
+          "technology_maturity" => 2,
+          "integration_dependencies" => 4,
+          "technical_debt" => 3
+        },
+        "impact_factors" => %{
+          "system_downtime" => 4,
+          "data_loss" => 5,
+          "performance_degradation" => 3,
+          "security_vulnerabilities" => 2,
+          "scalability_issues" => 3
+        }
+      }
+    },
     category_id: Enum.at(categories, 0).id,
     project_id: project1.id,
     creator_id: user1.id
   },
   %{
-    title: "Market Competition",
-    description: "New competitor entering the market",
-    probability: "high",
-    impact_level: "medium",
-    status: "active",
+    name: "Market Competition",
+    description: "New competitor entering the market with innovative features",
+    probability: "possible",
+    impact: "severe",
+    priority: "critical",
+    status: "mitigating",
     detection_date: ~D[2024-03-15],
+    review_date: ~D[2024-03-30],
+    metadata: %{
+      "market_share_impact" => "25%",
+      "competitor_analysis" => %{
+        "strengths" => ["Innovation", "Pricing", "Market presence"],
+        "weaknesses" => ["New entrant", "Limited track record"]
+      },
+      "affected_products" => ["Core Platform", "Enterprise Suite"],
+      "risk_indicators" => [
+        "Declining market share",
+        "Customer feedback",
+        "Industry trends"
+      ],
+      "factor_ratings" => %{
+        "probability_factors" => %{
+          "market_conditions" => 4,
+          "competition" => 5,
+          "regulatory_changes" => 2,
+          "economic_factors" => 3,
+          "stakeholder_alignment" => 3
+        },
+        "impact_factors" => %{
+          "revenue_loss" => 5,
+          "market_share" => 4,
+          "customer_satisfaction" => 4,
+          "brand_reputation" => 3,
+          "operational_costs" => 3
+        }
+      }
+    },
     category_id: Enum.at(categories, 1).id,
     project_id: project1.id,
     creator_id: user1.id
@@ -133,12 +229,15 @@ risks = [
 
 created_risks = Enum.map(risks, fn risk ->
   Repo.insert!(%Resolvinator.Risks.Risk{
-    title: risk.title,
+    name: risk.name,
     description: risk.description,
     probability: risk.probability,
-    impact_level: risk.impact_level,
+    impact: risk.impact,
+    priority: risk.priority,
     status: risk.status,
     detection_date: risk.detection_date,
+    review_date: risk.review_date,
+    metadata: risk.metadata,
     category_id: risk.category_id,
     project_id: risk.project_id,
     creator_id: risk.creator_id
@@ -272,4 +371,4 @@ Enum.each(created_actors, fn actor ->
       updated_at: now
     }
   ])
-end) 
+end)

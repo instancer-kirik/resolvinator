@@ -51,57 +51,6 @@
         </li>
         <li>
           <.link
-            href={~p"/problems"}
-           
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
-            Problems
-          </.link>
-        </li>
-        
-        <li>
-          <.link
-            href={~p"/solutions"}
-           
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
-            Solutions
-          </.link>
-        </li>
-        <li>
-          <.link
-            href={~p"/lessons"}
-         
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
-            Lessons
-          </.link>
-        </li>
-        <li>
-          <.link
-            href={~p"/advantages"}
-          
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
-            Advantages
-          </.link>
-        </li>
-        
-        
-         <li>
-          <.link
-            href={~p"/handsigns"}
-          
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
-            handsigns
-          </.link>
-        </li>
-        
-        
-        
-        <li>
-          <.link
             href={~p"/users/settings"}
             class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
           >
@@ -136,6 +85,9 @@
         </li>
       <% end %>
     </ul>
+
+    <.nav_menu current_user={@current_user} />
+    
     <%= @inner_content %>
   </body>
 </html>

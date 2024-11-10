@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="spark" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spark/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spark/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/spark/lib" />
+      <root url="file://$PROJECT_DIR$/deps/spark/lib" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="spitfire" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spitfire/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spitfire/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spitfire/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/spitfire/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/spitfire/lib" />
+      <root url="file://$PROJECT_DIR$/deps/spitfire/src" />
+      <root url="file://$PROJECT_DIR$/deps/spitfire/lib" />
+      <root url="file://$PROJECT_DIR$/deps/spitfire/src" />
+    </SOURCES>
+  </library>
+</component>

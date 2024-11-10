@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="vega_lite" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/vega_lite/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/vega_lite/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/vega_lite/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/vega_lite/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/vega_lite/lib" />
+      <root url="file://$PROJECT_DIR$/deps/vega_lite/lib" />
+    </SOURCES>
+  </library>
+</component>

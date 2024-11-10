@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="kubereq" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/kubereq/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/kubereq/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/kubereq/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/kubereq/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/kubereq/lib" />
+      <root url="file://$PROJECT_DIR$/deps/kubereq/lib" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="eini" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/eini/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/eini/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/eini/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/eini/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/eini/src" />
+      <root url="file://$PROJECT_DIR$/deps/eini/src" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="iso8601" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/iso8601/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/iso8601/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/iso8601/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/iso8601/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/iso8601/src" />
+      <root url="file://$PROJECT_DIR$/deps/iso8601/src" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="livebook" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/livebook/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/livebook/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/livebook/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/livebook/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/livebook/lib" />
+      <root url="file://$PROJECT_DIR$/deps/livebook/lib" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="open_api_spex" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/open_api_spex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/open_api_spex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/open_api_spex/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/open_api_spex/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/open_api_spex/lib" />
+      <root url="file://$PROJECT_DIR$/deps/open_api_spex/lib" />
+    </SOURCES>
+  </library>
+</component>

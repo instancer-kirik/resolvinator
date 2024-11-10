@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="pluggable" type="mix">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/pluggable/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/pluggable/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/pluggable/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/pluggable/ebin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/pluggable/lib" />
+      <root url="file://$PROJECT_DIR$/deps/pluggable/lib" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,67 @@
+<div class="max-w-3xl mx-auto py-8">
+  <div class="bg-white shadow rounded-lg p-6">
+    <h2 class="text-2xl font-bold mb-6">Broadcast News</h2>
+
+    <.form for={@form} phx-submit="broadcast" class="space-y-6">
+      <div class="space-y-4">
+        <.input
+          field={@form[:title]}
+          type="text"
+          label="Title"
+          required
+        />
+
+        <.input
+          field={@form[:message]}
+          type="textarea"
+          label="Message"
+          required
+        />
+
+        <.input
+          field={@form[:priority]}
+          type="select"
+          label="Priority"
+          options={[
+            {"Low", "low"},
+            {"Normal", "normal"},
+            {"High", "high"},
+            {"Urgent", "urgent"}
+          ]}
+          required
+        />
+      </div>
+
+      <.button type="submit" class="w-full">
+        Broadcast News
+      </.button>
+    </.form>
+  </div>
+
+  <div class="mt-8 bg-white shadow rounded-lg p-6">
+    <h3 class="text-xl font-semibold mb-4">Recent Broadcasts</h3>
+    
+    <div class="space-y-4">
+      <%= if Enum.empty?(@notifications) do %>
+        <p class="text-gray-500 text-center py-4">No broadcasts yet</p>
+      <% end %>
+
+      <%= for notification <- @notifications do %>
+        <div class="flex items-center justify-between border-b pb-2">
+          <div>
+            <p class="font-medium"><%= notification.title %></p>
+            <p class="text-sm text-gray-500">
+              <%= Calendar.strftime(notification.timestamp, "%Y-%m-%d %H:%M:%S") %>
+            </p>
+          </div>
+          <span class={[
+            "px-2 py-1 rounded-full text-sm",
+            priority_color(notification.priority)
+          ]}>
+            <%= notification.priority %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div> 
