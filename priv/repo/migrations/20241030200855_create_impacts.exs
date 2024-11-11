@@ -2,7 +2,9 @@ defmodule Resolvinator.Repo.Migrations.CreateImpacts do
   use Ecto.Migration
 
   def change do
-    create table(:impacts) do
+    create table(:impacts, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :description, :text
       add :area, :string, null: false
       add :severity, :string, null: false

@@ -4,6 +4,7 @@ defmodule Resolvinator.Repo.Migrations.CreateComments do
   def change do
     create table(:comments, primary_key: false) do
       add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :content, :text, null: false
       add :status, :string, default: "active"
       add :parent_id, references(:comments, on_delete: :nilify_all, type: :binary_id)

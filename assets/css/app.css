@@ -1,6 +1,7 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import "../../node_modules/katex/dist/katex.css";
 
 /* This file is for your main application CSS */
 
@@ -8,3 +9,20 @@
     text-decoration: line-through;
     color: gray;
   }
+
+/* Update KaTeX font paths */
+@font-face {
+  font-family: 'KaTeX_AMS';
+  src: url('/assets/fonts/KaTeX_AMS-Regular.woff2') format('woff2'),
+       url('/assets/fonts/KaTeX_AMS-Regular.woff') format('woff'),
+       url('/assets/fonts/KaTeX_AMS-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Add other KaTeX font-face declarations similarly */
+
+/* Import the rest of KaTeX CSS */
+@import "../../node_modules/katex/dist/katex.css";
+
+/* Your other styles */

@@ -87,14 +87,17 @@ defmodule Resolvinator.MixProject do
       {:explorer, "~> 0.8.0", only: [:dev, :test], runtime: false},
       {:nx, "~> 0.7.0", only: [:dev, :test], runtime: false},
       {:flame, "~> 0.3.0", only: [:dev, :test], runtime: false},
-      {:mogrify, "~> 0.9.3"}
+      {:mogrify, "~> 0.9.3"},
+      {:guardian, "~> 2.3"},
+      {:corsica, "~> 2.1"},
+      {:bcrypt_elixir, "~> 3.0"}
 
     ]
   end
 
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build", "copy_katex_fonts"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],

@@ -2,7 +2,9 @@ defmodule Resolvinator.Repo.Migrations.CreateResources do
   use Ecto.Migration
 
   def change do
-    create table(:resources) do
+    create table(:resources, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :type, :string, null: false
       add :description, :text

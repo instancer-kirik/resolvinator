@@ -1,6 +1,22 @@
 defmodule ResolvinatorWeb.API.SupplierJSON do
   alias Resolvinator.Suppliers.Supplier
 
+  def index(%{suppliers: suppliers}) do
+    %{data: for(supplier <- suppliers, do: data(supplier))}
+  end
+
+  def show(%{supplier: supplier}) do
+    %{data: data(supplier)}
+  end
+
+  def performance(%{performance: performance}) do
+    %{data: performance}
+  end
+
+  def pricing(%{pricing: pricing}) do
+    %{data: pricing}
+  end
+
   def data(%Supplier{} = supplier, _opts \\ []) do
     %{
       id: supplier.id,

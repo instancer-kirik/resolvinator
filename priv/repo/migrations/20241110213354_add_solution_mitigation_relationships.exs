@@ -4,6 +4,7 @@ defmodule Resolvinator.Repo.Migrations.AddSolutionMitigationRelationships do
   def change do
     create table(:solution_mitigation_links, primary_key: false) do
       add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :solution_id, references(:solutions, type: :binary_id, on_delete: :delete_all), null: false
       add :mitigation_id, references(:mitigations, on_delete: :delete_all), null: false
       add :relationship_type, :string

@@ -2,7 +2,9 @@ defmodule Resolvinator.Repo.Migrations.CreateProblems do
   use Ecto.Migration
 
   def change do
-    create table(:problems) do
+    create table(:problems, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :desc, :string, null: false
       add :upvotes, :integer, default: 0
@@ -15,7 +17,9 @@ defmodule Resolvinator.Repo.Migrations.CreateProblems do
     end
 
     # Join table for users who "have" the problem
-    create table(:user_problems) do
+    create table(:user_problems, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :user_id, references(:users, on_delete: :delete_all)
       add :problem_id, references(:problems, on_delete: :delete_all)
       

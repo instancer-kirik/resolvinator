@@ -4,6 +4,7 @@ defmodule Resolvinator.Repo.Migrations.CreateNotifications do
   def change do
     create table(:notifications, primary_key: false) do
       add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :title, :string, null: false
       add :content, :text
       add :type, :string, null: false

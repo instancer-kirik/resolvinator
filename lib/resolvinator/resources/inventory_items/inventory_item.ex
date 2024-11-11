@@ -1,8 +1,7 @@
 defmodule Resolvinator.Resources.InventoryItems.InventoryItem do
 
   import Ecto.Changeset
-  import Ecto.Query
-
+  
   use Resolvinator.Resources.InventoryBehavior,
     type_name: :inventory_item,
     table_name: "inventory_items",

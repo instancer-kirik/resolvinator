@@ -3,7 +3,7 @@ defmodule ResolvinatorWeb.API.MitigationController do
   import ResolvinatorWeb.API.JSONHelpers
 
   alias Resolvinator.Risks
-  #alias Resolvinator.Risks.Mitigation
+  alias ResolvinatorWeb.API.MitigationJSON
 
   def index(conn, %{"risk_id" => risk_id} = params) do
     page = params["page"] || %{"number" => 1, "size" => 20}

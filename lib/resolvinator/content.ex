@@ -596,4 +596,16 @@ defmodule Resolvinator.Content do
     |> where([s, us], us.user_id == ^user_id)
     |> Repo.all()
   end
+
+  def get_content!(id) do
+    # Try to find the content in both Problems and Solutions
+    case Repo.get(Problem, id) do
+      nil ->
+        case Repo.get(Solution, id) do
+          nil -> raise Ecto.NoResultsError, queryable: Problem
+          solution -> solution
+        end
+      problem -> problem
+    end
+  end
 end

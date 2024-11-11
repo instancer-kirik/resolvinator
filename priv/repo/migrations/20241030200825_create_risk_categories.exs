@@ -2,7 +2,9 @@ defmodule Resolvinator.Repo.Migrations.CreateRiskCategories do
   use Ecto.Migration
 
   def change do
-    create table(:risk_categories) do
+    create table(:risk_categories, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :description, :text
       add :color, :string

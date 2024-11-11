@@ -618,4 +618,30 @@ defmodule Resolvinator.Risks do
     |> Repo.update()
     |> notify_subscribers({:category_unhidden, category})
   end
+
+  def list_risk_mitigations(risk_id, opts \\ []) do
+    page = Keyword.get(opts, :page, 1)
+    includes = Keyword.get(opts, :includes, [])
+
+    query = from m in Mitigation,
+      where: m.risk_id == ^risk_id,
+      preload: ^includes
+
+    paginated = Repo.paginate(query, page: page)
+    
+    {paginated.entries, %{
+      page_number: paginated.page_number,
+      page_size: paginated.page_size,
+      total_pages: paginated.total_pages,
+      total_entries: paginated.total_entries
+    }}
+  end
+
+  def get_risk_mitigation!(project_id, risk_id, id) do
+    Mitigation
+    |> join(:inner, [m], r in Risk, on: m.risk_id == r.id)
+    |> where([m, r], r.project_id == ^project_id and m.risk_id == ^risk_id and m.id == ^id)
+    |> preload([:risk, :tasks, :creator])
+    |> Repo.one!()
+  end
 end

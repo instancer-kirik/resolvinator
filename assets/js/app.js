@@ -23,9 +23,12 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import HandCanvasHook from "./hooks/hand_canvas_hook";
 
-// Import KaTeX
-import katex from 'katex'
-import 'katex/dist/katex.css'
+// Import KaTeX from node_modules
+import katex from '../../node_modules/katex/dist/katex.mjs'
+import '../../node_modules/katex/dist/katex.css'
+
+// Make KaTeX available globally if needed
+window.katex = katex;
 
 let Hooks = {};
 Hooks.HandCanvasHook = HandCanvasHook;

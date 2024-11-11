@@ -2,7 +2,9 @@ defmodule Resolvinator.Repo.Migrations.CreateDocuments do
   use Ecto.Migration
 
   def change do
-    create table(:documents) do
+    create table(:documents, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :title, :string, null: false
       add :description, :text
       add :file_path, :string, null: false

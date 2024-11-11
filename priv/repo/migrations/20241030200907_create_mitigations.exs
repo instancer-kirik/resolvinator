@@ -2,7 +2,9 @@ defmodule Resolvinator.Repo.Migrations.CreateMitigations do
   use Ecto.Migration
 
   def change do
-    create table(:mitigations) do
+    create table(:mitigations, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :description, :text, null: false
       add :strategy, :string, null: false
       add :status, :string, default: "not_started", null: false

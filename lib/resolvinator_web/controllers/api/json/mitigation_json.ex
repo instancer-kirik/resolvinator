@@ -1,4 +1,5 @@
 defmodule ResolvinatorWeb.API.MitigationJSON do
+  alias ResolvinatorWeb.API.{RiskJSON, MitigationTaskJSON, UserJSON}
   import ResolvinatorWeb.API.JSONHelpers
 
   def data(mitigation, opts \\ []) do
@@ -24,9 +25,9 @@ defmodule ResolvinatorWeb.API.MitigationJSON do
     }
 
     relationships = %{}
-    |> maybe_add_relationship("risk", mitigation.risk, &ResolvinatorWeb.RiskJSON.data/1, includes)
-    |> maybe_add_relationship("tasks", mitigation.tasks, &ResolvinatorWeb.MitigationTaskJSON.data/1, includes)
-    |> maybe_add_relationship("creator", mitigation.creator, &ResolvinatorWeb.UserJSON.data/1, includes)
+    |> maybe_add_relationship("risk", mitigation.risk, &RiskJSON.data/1, includes)
+    |> maybe_add_relationship("tasks", mitigation.tasks, &MitigationTaskJSON.data/1, includes)
+    |> maybe_add_relationship("creator", mitigation.creator, &UserJSON.data/1, includes)
 
     Map.put(base, :relationships, relationships)
   end

@@ -38,10 +38,35 @@ config :resolvinator, Resolvinator.Mailer, adapter: Swoosh.Adapters.Local
 config :esbuild,
   version: "0.17.11",
   resolvinator: [
-    args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*  --external:react --external:react-dom --external:react-router --external:@react-three/fiber --external:three --loader:.js=jsx --loader:.jsx=jsx),
+    args: ~w(
+      js/app.js 
+      --bundle 
+      --target=es2017 
+      --outdir=../priv/static/assets 
+      --external:/fonts/* 
+      --external:/images/* 
+      --external:react 
+      --external:react-dom 
+      --external:react-router 
+      --external:@react-three/fiber 
+      --external:three 
+      --loader:.js=jsx 
+      --loader:.jsx=jsx
+      --loader:.ttf=file
+      --loader:.woff=file
+      --loader:.woff2=file
+      --public-path=/assets
+      --asset-names=[name]-[hash]
+    ),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
+
+# Add this configuration for handling CSS imports
+config :esbuild,
+  css: [
+    args: ~w(css/app.css --bundle --outdir=../priv/static/assets),
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 # Configure tailwind (the version is required)
@@ -98,3 +123,17 @@ config :resolvinator, Resolvinator.Auth.RateLimiter,
 #   retry_backoff_base_ms: 1000,
 #   retry_backoff_max_ms: 30_000,
 #   shutdown_backoff_ms: 5_000
+
+# Guardian configuration
+config :resolvinator, Resolvinator.Guardian,
+  issuer: "resolvinator",
+  secret_key: "your_secret_key_here", # Replace with a real secret in production
+  ttl: {30, :days},
+  token_ttl: %{
+    "access" => {2, :hours},
+    "refresh" => {30, :days}
+  }
+
+config :resolvinator, Resolvinator.Repo,
+  migration_primary_key: [type: :binary_id],
+  migration_foreign_key: [type: :binary_id]

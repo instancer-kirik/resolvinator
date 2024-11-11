@@ -2,6 +2,21 @@
   "dependencies": {
     "@react-three/fiber": "^8.16.8",
     "@types/three": "^0.165.0",
+    "katex": "^0.16.11",
     "three": "^0.165.0"
-  }
+  },
+  "name": "resolvinator",
+  "version": "1.0.0",
+  "description": "To start your Phoenix server:",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

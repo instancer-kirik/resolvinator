@@ -2,7 +2,9 @@ defmodule Resolvinator.Repo.Migrations.CreateSolutions do
   use Ecto.Migration
 
   def change do
-    create table(:solutions) do
+    create table(:solutions, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :desc, :string, null: false
       add :upvotes, :integer, default: 0
@@ -15,7 +17,9 @@ defmodule Resolvinator.Repo.Migrations.CreateSolutions do
     end
 
     # Join table for users who "use" the solution
-    create table(:user_solutions) do
+    create table(:user_solutions, primary_key: false) do
+      add :id, :binary_id, primary_key: true
+      add :id, :binary_id, primary_key: true
       add :user_id, references(:users, on_delete: :delete_all)
       add :solution_id, references(:solutions, on_delete: :delete_all)
       
