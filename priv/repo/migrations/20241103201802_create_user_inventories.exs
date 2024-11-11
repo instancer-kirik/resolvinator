@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateUserInventories do
   def change do
     create table(:user_inventories, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :quantity, :decimal, null: false
       add :status, :string, default: "active"
       add :metadata, :map, default: %{}

@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateResourceAllocations do
   def change do
     create table(:resource_allocations, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :type, :string, null: false
       add :amount, :decimal, null: false

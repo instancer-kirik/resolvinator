@@ -69,8 +69,8 @@ defmodule MigrationFixer do
   defp fix_indexes(content) do
     content
     |> String.replace(
-      ~r/create unique_index\(:([^\s,]+),\s*\[(:[^\]]+)\](?!\s*,\s*name:)/,
-      "create unique_index(:\\1, [\\2], name: :\\1_\\2_index"
+      ~r/create unique_index\(:([^\s,]+),\s*\[(:[^\]]+)\],\s*name:[^)]+\)/,
+      "create unique_index(:\\1, [\\2])"
     )
   end
 end

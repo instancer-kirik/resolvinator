@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateRequirements do
   def change do
     create table(:requirements, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :description, :text
       add :type, :string, null: false

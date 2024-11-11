@@ -5,8 +5,7 @@ defmodule Resolvinator.Repo.Migrations.CreateOtherHomogeneousRelationships do
     def change do
       create table(:solution_relationships, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
-        add :solution_id, references(:solutions, on_delete: :delete_all)
+      add :solution_id, references(:solutions, on_delete: :delete_all)
         add :related_solution_id, references(:solutions, on_delete: :delete_all)
 
       end
@@ -15,8 +14,7 @@ defmodule Resolvinator.Repo.Migrations.CreateOtherHomogeneousRelationships do
 
       create table(:lesson_relationships, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
-        add :lesson_id, references(:lessons, on_delete: :delete_all)
+      add :lesson_id, references(:lessons, on_delete: :delete_all)
         add :related_lesson_id, references(:lessons, on_delete: :delete_all)
 
       end
@@ -25,8 +23,7 @@ defmodule Resolvinator.Repo.Migrations.CreateOtherHomogeneousRelationships do
    
       create table(:advantage_relationships, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
-        add :advantage_id, references(:advantages, on_delete: :delete_all)
+      add :advantage_id, references(:advantages, on_delete: :delete_all)
         add :related_advantage_id, references(:advantages, on_delete: :delete_all)
 
       end

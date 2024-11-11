@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateTags do
   def change do
     create table(:tags, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :description, :text
       add :color, :string
@@ -19,7 +18,6 @@ defmodule Resolvinator.Repo.Migrations.CreateTags do
     create unique_index(:tags, [:name])
 
     create table(:taggings, primary_key: false) do
-      add :id, :binary_id, primary_key: true
       add :id, :binary_id, primary_key: true
       add :tag_id, references(:tags, on_delete: :delete_all, type: :binary_id), null: false
       add :taggable_id, :binary_id, null: false

@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateInventoryItems do
   def change do
     create table(:inventory_items, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :description, :string
       add :category, :string

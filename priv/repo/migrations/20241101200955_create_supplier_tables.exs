@@ -5,7 +5,6 @@ defmodule Resolvinator.Repo.Migrations.CreateSupplierTables do
     # Create suppliers table
     create table(:suppliers, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :code, :string
       add :type, :string
@@ -32,7 +31,6 @@ defmodule Resolvinator.Repo.Migrations.CreateSupplierTables do
 
     # Create supplier_contacts table
     create table(:supplier_contacts, primary_key: false) do
-      add :id, :binary_id, primary_key: true
       add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :email, :string

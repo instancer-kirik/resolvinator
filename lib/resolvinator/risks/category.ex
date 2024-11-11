@@ -6,6 +6,7 @@ defmodule Resolvinator.Risks.Category do
     field :name, :string
     field :description, :string
     field :color, :string
+    field :status, :string, default: "active"
     
     # Category-specific assessment criteria
     field :assessment_criteria, :map, default: %{
@@ -22,15 +23,17 @@ defmodule Resolvinator.Risks.Category do
     field :hidden, :boolean, default: false
     field :hidden_at, :utc_datetime
     belongs_to :hidden_by, Resolvinator.Accounts.User
+    field :deleted_at, :utc_datetime
 
     timestamps(type: :utc_datetime)
   end
 
   def changeset(category, attrs) do
     category
-    |> cast(attrs, [:name, :description, :color, :assessment_criteria, 
-                    :project_id, :creator_id, :hidden, :hidden_at, :hidden_by_id])
+    |> cast(attrs, [:name, :description, :color, :status, :assessment_criteria, 
+                    :project_id, :creator_id, :hidden, :hidden_at, :hidden_by_id, :deleted_at])
     |> validate_required([:name, :project_id, :creator_id])
+    |> validate_inclusion(:status, ["active", "inactive", "archived"])
     |> validate_assessment_criteria()
     |> foreign_key_constraint(:project_id)
     |> foreign_key_constraint(:creator_id)

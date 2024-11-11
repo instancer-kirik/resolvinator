@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateAdvantages do
   def change do
     create table(:advantages, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :desc, :string, null: false
       add :upvotes, :integer, default: 0
@@ -18,7 +17,6 @@ defmodule Resolvinator.Repo.Migrations.CreateAdvantages do
 
     # Join table for users who "experience" the advantage
     create table(:user_advantages, primary_key: false) do
-      add :id, :binary_id, primary_key: true
       add :id, :binary_id, primary_key: true
       add :user_id, references(:users, type: :binary_id, on_delete: :delete_all)
       add :advantage_id, references(:advantages, type: :binary_id, on_delete: :delete_all)

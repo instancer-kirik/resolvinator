@@ -4,19 +4,19 @@ defmodule Resolvinator.Repo.Migrations.AddConstraintsAndIndexes do
   def change do
     # Risk Categories constraints
     alter table(:risk_categories) do
+      add :status, :string
+    end
+    alter table(:risk_categories) do
       modify :status, :string, null: false, default: "active"
     end
     create constraint(:risk_categories, :status_must_be_valid,
       check: "status IN ('active', 'inactive', 'archived')")
 
-    # Risk indexes
-    create index(:risks, [:probability])
-    create index(:risks, [:impact])
-    create index(:risks, [:priority])
-    create index(:risks, [:status])
-    create index(:risks, [:category_id])
-    create index(:risks, [:project_id])
-    create index(:risks, [:creator_id])
+    # Only create indexes that don't exist in original migration
+    create_if_not_exists index(:risks, [:probability])
+    create_if_not_exists index(:risks, [:impact])
+    create_if_not_exists index(:risks, [:priority])
+    create_if_not_exists index(:risks, [:status])
 
     # Mitigation strategy constraints
     alter table(:mitigations) do

@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateAuditLogs do
   def change do
     create table(:audit_logs, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :action, :string, null: false
       add :entity_type, :string, null: false
       add :entity_id, :binary_id, null: false

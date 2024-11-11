@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateproblemSolutionRelationships do
   def change do
     create table(:problem_solution_relationships, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :problem_id, references(:problems, on_delete: :delete_all)
       add :solution_id, references(:solutions, on_delete: :delete_all)
       

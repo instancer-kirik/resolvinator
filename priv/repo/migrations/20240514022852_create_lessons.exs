@@ -4,7 +4,6 @@ defmodule Resolvinator.Repo.Migrations.CreateLessons do
   def change do
     create table(:lessons, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :id, :binary_id, primary_key: true
       add :name, :string, null: false
       add :desc, :string, null: false
       add :upvotes, :integer, default: 0
@@ -18,7 +17,6 @@ defmodule Resolvinator.Repo.Migrations.CreateLessons do
 
     # Join table for users who "learned" the lesson
     create table(:user_lessons, primary_key: false) do
-      add :id, :binary_id, primary_key: true
       add :id, :binary_id, primary_key: true
       add :user_id, references(:users, on_delete: :delete_all)
       add :lesson_id, references(:lessons, on_delete: :delete_all)
