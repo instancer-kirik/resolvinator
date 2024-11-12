@@ -275,24 +275,24 @@ if admin do
 
       # Create problem and solution
       {:ok, problem} = Seeds.Helper.safe_run "problem", fn ->
-        # Create problem with all attributes at once
-        Repo.insert(%Problem{
+        # First create a basic problem
+        {:ok, prob} = Repo.insert(%Problem{
           name: "Triangle Side Length Calculation",
           desc: "Calculate the length of a right triangle's hypotenuse",
           creator_id: admin.id,
           project_id: project.id,
           status: "published",
-          impacts: [
-            %{
-              severity: "medium",
-              likelihood: "high",
-              description: "Common calculation error in engineering"
-            }
-          ]
+          visibility: "public",
+          metadata: %{},
+          tags: []
         })
+
+        # Return just the basic problem for now
+        prob
       end
 
       {:ok, solution} = Seeds.Helper.safe_run "solution", fn ->
+        # Create basic solution
         Repo.insert(%Solution{
           name: "Using the Pythagorean Formula",
           desc: "Apply a² + b² = c² to find the missing side",
@@ -300,6 +300,16 @@ if admin do
           project_id: project.id,
           status: "published"
         })
+      end
+
+      # After both are created, update their relationships
+      Seeds.Helper.safe_run "update_relationships", fn ->
+        problem = Repo.preload(problem, [:solutions])
+        
+        problem
+        |> Ecto.Changeset.change()
+        |> Ecto.Changeset.put_assoc(:solutions, [solution])
+        |> Repo.update!()
       end
 
       # Create advantage and lesson

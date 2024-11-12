@@ -94,8 +94,7 @@ defmodule Resolvinator.Content.ContentBehavior do
       def base_changeset(struct, attrs) do
         struct
         |> cast(attrs, [
-          :name, :title, :desc, :description,
-          :status, :visibility, :metadata, :tags,
+          :name, :desc, :status, :visibility, :metadata, :tags,
           :priority, :creator_id, :project_id
         ])
         |> cast_embed(:voting)
