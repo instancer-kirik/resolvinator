@@ -39,8 +39,10 @@ resolvinator-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Secrets and environment variables
 .env
 .env.*
+!.env.example
 
 .direnv
 .nix-shell

@@ -87,25 +87,41 @@ defmodule Resolvinator.Risks.Risk do
   end
 
   defp apply_ai_validations(changeset) do
-    case Resolvinator.AI.FabricEngineering.generate_validations(__MODULE__) do
-      {:ok, validations} ->
-        apply_generated_validations(changeset, validations)
-      {:error, _} ->
-        # Fallback to default validations if AI service is unavailable
-        changeset
+    if Application.get_env(:resolvinator, :enable_ai_validations, false) do
+      schema_info = %{
+        schema: __schema__(:fields) |> Enum.map(&{&1, __schema__(:type, &1)}) |> Map.new(),
+        framework: "ecto",
+        include_documentation: true
+      }
+
+      case Resolvinator.AI.FabricClient.generate_validations(schema_info) do
+        {:ok, validations} ->
+          apply_generated_validations(changeset, validations)
+        {:error, _} ->
+          # Fallback to default validations
+          apply_default_validations(changeset)
+      end
+    else
+      # Skip AI validations entirely
+      apply_default_validations(changeset)
     end
   end
 
+  defp apply_default_validations(changeset) do
+    changeset
+    |> validate_required([:name, :description, :probability, :impact, :status])
+    |> validate_length(:name, min: 3, max: 255)
+    |> validate_length(:description, min: 10, max: 1000)
+  end
+
   defp apply_generated_validations(changeset, validations) do
-    Enum.reduce(validations, changeset, fn validation, acc ->
-      case validation do
-        %{"field" => field, "type" => "format", "pattern" => pattern} ->
-          validate_format(acc, String.to_atom(field), ~r/#{pattern}/)
-        %{"field" => field, "type" => "length", "min" => min, "max" => max} ->
-          validate_length(acc, String.to_atom(field), min: min, max: max)
-        _ ->
-          acc
-      end
-    end)
+    changeset
+    |> validate_required(validations.required)
+    |> validate_inclusion(:impact, validations.inclusion.impact)
+    |> validate_inclusion(:probability, validations.inclusion.probability)
+    |> validate_inclusion(:status, validations.inclusion.status)
+    |> validate_inclusion(:mitigation_status, validations.inclusion.mitigation_status)
+    |> validate_length(:name, validations.length.name)
+    |> validate_length(:description, validations.length.description)
   end
 end

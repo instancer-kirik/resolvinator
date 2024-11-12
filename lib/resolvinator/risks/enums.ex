@@ -50,6 +50,9 @@ defmodule Resolvinator.Risks.Enums do
     closed: %{}
   }
 
+  # Mitigation statuses
+  @mitigation_statuses [:not_started, :in_progress, :completed]
+
   # Getters
   def risk_priorities, do: @risk_priorities
   def risk_appetites, do: @risk_appetites
@@ -65,6 +68,9 @@ defmodule Resolvinator.Risks.Enums do
   def severity_values, do: @severity_values
   def priority_values, do: @priority_values
   def valid_status_transitions, do: @valid_status_transitions
+
+  # Mitigation statuses getters
+  def mitigation_statuses, do: @mitigation_statuses
 
   # Validation helpers
   def valid_risk_priority?(priority) when priority in @risk_priorities, do: true
@@ -93,6 +99,9 @@ defmodule Resolvinator.Risks.Enums do
 
   def valid_resource_type?(type) when type in @resource_types, do: true
   def valid_resource_type?(_), do: false
+
+  def valid_mitigation_status?(status) when status in @mitigation_statuses, do: true
+  def valid_mitigation_status?(_), do: false
 
   @doc """
   Checks if a status transition is valid and returns the transition message if it is

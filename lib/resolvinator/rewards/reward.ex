@@ -27,6 +27,7 @@ defmodule Resolvinator.Rewards.Reward do
     belongs_to :creator, Resolvinator.Accounts.User
     belongs_to :risk, Resolvinator.Risks.Risk
     belongs_to :mitigation, Resolvinator.Risks.Mitigation
+    belongs_to :resource, Resolvinator.Resources.Resource
 
     has_many :prerequisites, Resolvinator.Rewards.RewardPrerequisite
     has_many :reward_claims, Resolvinator.Rewards.RewardClaim
@@ -40,7 +41,8 @@ defmodule Resolvinator.Rewards.Reward do
       :name, :description, :value, :status, :achievement_date,
       :expiry_date, :criteria, :reward_type, :tier,
       :probability, :timeline, :dependencies, :metadata,
-      :project_id, :achiever_id, :creator_id, :risk_id, :mitigation_id
+      :project_id, :achiever_id, :creator_id, :risk_id, :mitigation_id,
+      :resource_id
     ])
     |> validate_required([:name, :value, :status, :reward_type])
     |> validate_risk_reward_fields()
@@ -50,6 +52,7 @@ defmodule Resolvinator.Rewards.Reward do
     |> foreign_key_constraint(:creator_id)
     |> foreign_key_constraint(:risk_id)
     |> foreign_key_constraint(:mitigation_id)
+    |> foreign_key_constraint(:resource_id)
   end
 
   def risk_reward_changeset(reward, attrs) do

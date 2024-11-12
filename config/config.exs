@@ -11,8 +11,8 @@ config :resolvinator,
   ecto_repos: [Resolvinator.Repo],
   generators: [timestamp_type: :utc_datetime],
   cache_ttl: :timer.minutes(5),
-  fabric_endpoint: System.get_env("FABRIC_API_ENDPOINT", "http://localhost:4000/api"),
-  fabric_key: System.get_env("FABRIC_API_KEY", "your-default-key"),
+  fabric_endpoint: System.get_env("FABRIC_API_ENDPOINT"),
+  fabric_key: System.get_env("FABRIC_API_KEY"),
   azure_tenant_id: System.get_env("AZURE_TENANT_ID"),
   azure_client_id: System.get_env("AZURE_CLIENT_ID"),
   azure_client_secret: System.get_env("AZURE_CLIENT_SECRET")
@@ -130,7 +130,7 @@ config :resolvinator, Resolvinator.Auth.RateLimiter,
 # Guardian configuration
 config :resolvinator, Resolvinator.Guardian,
   issuer: "resolvinator",
-  secret_key: "your_secret_key_here", # Replace with a real secret in production
+  secret_key: System.get_env("GUARDIAN_SECRET_KEY"),
   ttl: {30, :days},
   token_ttl: %{
     "access" => {2, :hours},

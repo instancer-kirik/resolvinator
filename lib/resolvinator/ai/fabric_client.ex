@@ -125,4 +125,43 @@ defmodule Resolvinator.AI.FabricClient do
         {:error, "Network error: #{inspect(reason)}"}
     end
   end
+
+  @doc """
+  Generates validations for a schema using Power BI/Fabric AI capabilities.
+  """
+  def generate_validations(schema_info) do
+    with {:ok, token} <- get_access_token(),
+         {:ok, workspace} <- get_analysis_workspace(token) do
+      
+      # For now, return some basic validations
+      {:ok, %{
+        required: [:name, :description, :impact, :probability],
+        length: %{
+          name: [min: 3, max: 255],
+          description: [min: 10, max: 1000]
+        },
+        inclusion: %{
+          impact: ["Low", "Medium", "High", "Critical"],
+          probability: ["Low", "Medium", "High", "Very High"],
+          status: ["Open", "Closed", "In Progress"],
+          mitigation_status: ["Not Started", "In Progress", "Completed"]
+        }
+      }}
+    else
+      {:error, reason} ->
+        Logger.error("Failed to generate validations: #{inspect(reason)}")
+        {:error, "Failed to generate validations"}
+    end
+  end
+
+  defp get_analysis_workspace(token) do
+    case list_workspaces() do
+      {:ok, %{"value" => workspaces}} ->
+        workspace = Enum.find(workspaces, &(&1["name"] == "Risk Analysis"))
+        {:ok, workspace || List.first(workspaces)}
+      
+      error ->
+        error
+    end
+  end
 end

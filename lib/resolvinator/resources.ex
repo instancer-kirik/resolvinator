@@ -216,4 +216,32 @@ defmodule Resolvinator.Resources do
   def change_resource(%Resource{} = resource, attrs \\ %{}) do
     Resource.changeset(resource, attrs)
   end
+
+  @doc """
+  Lists resources for a specific project.
+  """
+  def list_project_resources(project_id, opts \\ []) do
+    Resource
+    |> where([r], r.project_id == ^project_id)
+    |> preload([:rewards, :allocations])
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a resource with preloaded associations.
+  """
+  def get_resource_with_associations!(id) do
+    Resource
+    |> Repo.get!(id)
+    |> Repo.preload([:project, :rewards, :allocations, :requirements])
+  end
+
+  @doc """
+  Creates a resource with project association.
+  """
+  def create_project_resource(project_id, attrs) do
+    %Resource{project_id: project_id}
+    |> Resource.changeset(attrs)
+    |> Repo.insert()
+  end
 end

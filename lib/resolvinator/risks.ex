@@ -644,4 +644,87 @@ defmodule Resolvinator.Risks do
     |> preload([:risk, :tasks, :creator])
     |> Repo.one!()
   end
+
+  def list_available_actors(%{id: nil}, _opts) do
+    # For new risks, return all actors
+    from(a in Resolvinator.Actors.Actor,
+      order_by: [asc: :name]
+    )
+    |> Repo.all()
+  end
+
+  def list_available_actors(risk, opts \\ []) do
+    filters = Keyword.get(opts, :filters, %{})
+    sort = Keyword.get(opts, :sort, [asc: :name])
+    
+    query = from a in Resolvinator.Actors.Actor,
+      where: a.id not in subquery(
+        from ar in "actor_risk_impacts",
+        where: ar.risk_id == ^risk.id,
+        select: ar.actor_id
+      )
+
+    query
+    |> apply_filters(filters)
+    |> apply_sorting(sort)
+    |> Repo.all()
+  end
+
+  def list_related_actors(%{id: nil}), do: []
+  def list_related_actors(risk) do
+    risk
+    |> Repo.preload([:affected_actors, :responsible_actors])
+    |> then(fn risk -> 
+      risk.affected_actors ++ risk.responsible_actors
+      |> Enum.uniq_by(& &1.id)
+    end)
+  end
+
+  def add_actor_to_risk(%{id: nil}, _actor_id, _role), do: {:error, :risk_not_saved}
+  def add_actor_to_risk(risk_id, actor_id, role \\ :affected) do
+    table = case role do
+      :affected -> "actor_risk_impacts"
+      :responsible -> "actor_risk_responsibilities"
+    end
+
+    Repo.insert_all(table, [
+      %{
+        risk_id: risk_id,
+        actor_id: actor_id,
+        inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+        updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+      }
+    ])
+  end
+
+  def remove_actor_from_risk(%{id: nil}, _actor_id, _role), do: {:error, :risk_not_saved}
+  def remove_actor_from_risk(risk_id, actor_id, role \\ :affected) do
+    table = case role do
+      :affected -> "actor_risk_impacts"
+      :responsible -> "actor_risk_responsibilities"
+    end
+
+    from(r in table,
+      where: r.risk_id == ^risk_id and r.actor_id == ^actor_id
+    )
+    |> Repo.delete_all()
+  end
+
+  def list_available_mitigations(%{id: nil}), do: []
+  def list_available_mitigations(risk) do
+    from(m in Resolvinator.Risks.Mitigation,
+      where: m.risk_id != ^risk.id,
+      order_by: [asc: :name]
+    )
+    |> Repo.all()
+  end
+
+  def list_related_mitigations(%{id: nil}), do: []
+  def list_related_mitigations(risk) do
+    risk
+    |> Repo.preload(:mitigations)
+    |> Map.get(:mitigations)
+  end
+
+  # Similar functions for mitigations
 end

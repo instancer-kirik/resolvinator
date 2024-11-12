@@ -37,6 +37,34 @@
   </:action>
 </.table>
 
+<%= if @show_actors_modal do %>
+  <.live_component
+    module={ResolvinatorWeb.Components.RelationshipModalComponent}
+    id="actors-modal"
+    title="Manage Related Actors"
+    subtitle="Add or remove actors associated with this risk"
+    item_type="Actors"
+    relationship_type="actors"
+    available_items={Risks.list_available_actors(@current_risk)}
+    related_items={Risks.list_related_actors(@current_risk)}
+    on_cancel={JS.push("close_actors_modal")}
+  />
+<% end %>
+
+<%= if @show_mitigations_modal do %>
+  <.live_component
+    module={ResolvinatorWeb.Components.RelationshipModalComponent}
+    id="mitigations-modal"
+    title="Manage Mitigations"
+    subtitle="Add or remove mitigations for this risk"
+    item_type="Mitigations"
+    relationship_type="mitigations"
+    available_items={Risks.list_available_mitigations(@current_risk)}
+    related_items={Risks.list_related_mitigations(@current_risk)}
+    on_cancel={JS.push("close_mitigations_modal")}
+  />
+<% end %>
+
 <.modal :if={@live_action in [:new, :edit]} id="risk-modal" show on_cancel={JS.patch(~p"/risks")}>
   <.live_component
     module={ResolvinatorWeb.RiskLive.FormComponent}

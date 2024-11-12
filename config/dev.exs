@@ -2,10 +2,10 @@ import Config
 
 # Configure your database
 config :resolvinator, Resolvinator.Repo,
-  username: "postgres",
-  password: "root",
-  hostname: "localhost",
-  database: "resolvinator_dev",
+  username: System.get_env("POSTGRES_USER", "postgres"),
+  password: System.get_env("POSTGRES_PASSWORD", "root"),
+  hostname: System.get_env("POSTGRES_HOST", "localhost"),
+  database: System.get_env("POSTGRES_DB", "resolvinator_dev"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -93,11 +93,9 @@ config :assent,
 #(Caution: in production you would pass these secret as env vars read in runtime.exs)
 
 config :resolvinator,
-  fabric_endpoint: "http://localhost:4000/api",
-  fabric_key: "your-development-key"
-
-# Development-specific configuration (if needed)
-config :resolvinator,
-  azure_tenant_id: "your-tenant-id",
-  azure_client_id: "your-client-id",
-  azure_client_secret: "your-client-secret"
+  fabric_endpoint: System.get_env("FABRIC_API_ENDPOINT", "http://localhost:4000/api"),
+  fabric_key: System.get_env("FABRIC_API_KEY"),
+  azure_tenant_id: System.get_env("AZURE_TENANT_ID"),
+  azure_client_id: System.get_env("AZURE_CLIENT_ID"),
+  azure_client_secret: System.get_env("AZURE_CLIENT_SECRET"),
+  enable_ai_validations: false  # Enable this only when you have proper Azure credentials

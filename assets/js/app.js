@@ -54,6 +54,19 @@ Hooks.MathPreview = {
   }
 }
 
+Hooks.Modal = {
+  mounted() {
+    console.log("Modal mounted", this.el.id, this.el.dataset.show)
+    if (this.el.dataset.show === "true") {
+      this.showModal()
+    }
+  },
+  showModal() {
+    console.log("Showing modal", this.el.id)
+    // Your existing show modal logic
+  }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
@@ -74,4 +87,26 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
+
+// Show modal
+window.addEventListener("js:show_modal", e => {
+  const modalId = e.detail.id
+  const modalEl = document.getElementById(modalId)
+  if (modalEl) {
+    modalEl.classList.remove("hidden")
+    const containerEl = document.getElementById(`${modalId}-container`)
+    if (containerEl) containerEl.classList.remove("hidden")
+  }
+})
+
+// Hide modal
+window.addEventListener("js:hide_modal", e => {
+  const modalId = e.detail.id
+  const modalEl = document.getElementById(modalId)
+  if (modalEl) {
+    modalEl.classList.add("hidden")
+    const containerEl = document.getElementById(`${modalId}-container`)
+    if (containerEl) containerEl.classList.add("hidden")
+  }
+})
 

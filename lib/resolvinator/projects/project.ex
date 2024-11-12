@@ -121,6 +121,10 @@ defmodule Resolvinator.Projects.Project do
     # Add systems relationship
     has_many :systems, Resolvinator.Systems.System
 
+    # Add resources relationship
+    has_many :resources, Resolvinator.Resources.Resource
+    has_many :rewards, Resolvinator.Rewards.Reward
+
     timestamps(type: :utc_datetime)
   end
 
