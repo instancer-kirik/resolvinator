@@ -5,7 +5,6 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
   alias Resolvinator.Risks.Enums
   alias Phoenix.Naming
   alias Phoenix.LiveView.JS
-  alias ResolvinatorWeb.Components.RelationshipModalComponent
   require Logger
 
   @impl true
@@ -237,13 +236,5 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
     |> Enum.map(fn status -> 
       {status |> to_string() |> Naming.humanize(), status}
     end)
-  end
-
-  # Alternative: create a helper function for consistent formatting
-  defp format_label(atom) do
-    atom
-    |> to_string()
-    |> String.replace("_", " ")
-    |> String.capitalize()
   end
 end

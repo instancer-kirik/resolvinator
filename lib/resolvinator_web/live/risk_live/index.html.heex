@@ -65,13 +65,19 @@
   />
 <% end %>
 
-<.modal :if={@live_action in [:new, :edit]} id="risk-modal" show on_cancel={JS.patch(~p"/risks")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="risk-modal"
+  show
+  on_cancel={JS.patch(~p"/risks")}
+>
   <.live_component
     module={ResolvinatorWeb.RiskLive.FormComponent}
     id={@risk.id || :new}
     title={@page_title}
     action={@live_action}
     risk={@risk}
+    current_user={@current_user}
     patch={~p"/risks"}
   />
 </.modal>

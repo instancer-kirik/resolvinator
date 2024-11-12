@@ -4,17 +4,12 @@ defmodule ResolvinatorWeb.RiskLive.Index do
 
   alias Resolvinator.Risks
   alias Resolvinator.Risks.Risk
+  alias Phoenix.LiveView.JS
 
   @impl true
   def mount(_params, _session, socket) do
     Logger.debug("Mounting RiskLive.Index")
-    {:ok, 
-     socket
-     |> stream(:risks, Risks.list_risks())
-     |> assign(:show_actors_modal, false)
-     |> assign(:show_mitigations_modal, false)
-     |> assign(:current_risk, nil)
-     |> assign(:risk, %Risk{})}
+    {:ok, stream(socket, :risks, Risks.list_risks())}
   end
 
   @impl true
@@ -61,26 +56,44 @@ defmodule ResolvinatorWeb.RiskLive.Index do
 
   @impl true
   def handle_params(params, url, socket) do
-    Logger.debug("handle_params: #{inspect(params)}, URL: #{url}, live_action: #{inspect(socket.assigns.live_action)}")
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    Logger.debug("Applying edit action")
-    socket
-    |> assign(:page_title, "Edit Risk")
-    |> assign(:risk, Risks.get_risk!(id))
+    Logger.debug("handle_params: #{inspect(params)}, URL: #{url}")
+    
+    live_action = case URI.parse(url).path do
+      "/risks/new" -> :new
+      "/risks/" <> id when byte_size(id) > 0 -> :edit
+      _ -> :index
+    end
+    
+    Logger.debug("Setting live_action to: #{inspect(live_action)}")
+    
+    socket = socket
+      |> assign(:live_action, live_action)
+      |> apply_action(live_action, params)
+      
+    Logger.debug("""
+    Socket assigns after handle_params:
+    - live_action: #{inspect(socket.assigns.live_action)}
+    - page_title: #{inspect(socket.assigns.page_title)}
+    - risk: #{inspect(socket.assigns.risk)}
+    """)
+      
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :new, _params) do
-    Logger.debug("Applying new action")
+    Logger.debug("Applying :new action")
     socket
     |> assign(:page_title, "New Risk")
     |> assign(:risk, %Risk{})
   end
 
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Edit Risk")
+    |> assign(:risk, Risks.get_risk!(id))
+  end
+
   defp apply_action(socket, :index, _params) do
-    Logger.debug("Applying index action")
     socket
     |> assign(:page_title, "Listing Risks")
     |> assign(:risk, nil)
@@ -104,61 +117,57 @@ defmodule ResolvinatorWeb.RiskLive.Index do
     {:noreply, push_patch(socket, to: ~p"/risks")}
   end
 
+  @impl true
+  def handle_event("modal-closed", _, socket) do
+    {:noreply, push_patch(socket, to: ~p"/risks")}
+  end
+
   def render(assigns) do
+    Logger.debug("""
+    Rendering with:
+    - live_action: #{inspect(assigns.live_action)}
+    - show modal?: #{inspect(assigns.live_action in [:new, :edit])}
+    - risk: #{inspect(assigns.risk)}
+    """)
+    
     ~H"""
-    <.header>
-      Listing Risks
-      <:actions>
-        <.link patch={~p"/risks/new"}>
-          <.button>New Risk</.button>
-        </.link>
-      </:actions>
-    </.header>
+    <div class="relative z-0">
+      <.header>
+        Listing Risks
+        <:actions>
+          <.link navigate={~p"/risks/new"}>
+            <.button>New Risk</.button>
+          </.link>
+        </:actions>
+      </.header>
 
-    <.table
-      id="risks"
-      rows={@streams.risks}
-    >
-      <:col :let={risk} label="Name"><%= risk.name %></:col>
-      <:col :let={risk} label="Description"><%= risk.description %></:col>
-      <:col :let={risk} label="Status"><%= risk.status %></:col>
-      <:action :let={risk}>
-        <.link patch={~p"/risks/#{risk}/edit"}>Edit</.link>
-      </:action>
-    </.table>
+      <.table
+        id="risks"
+        rows={@streams.risks}
+      >
+        <:col :let={{_id, risk}} label="Name"><%= risk.name %></:col>
+        <:col :let={{_id, risk}} label="Description"><%= risk.description %></:col>
+        <:col :let={{_id, risk}} label="Status"><%= risk.status %></:col>
+        <:action :let={{_id, risk}}>
+          <.link patch={~p"/risks/#{risk}/edit"}>Edit</.link>
+        </:action>
+      </.table>
 
-    <.modal :if={@live_action in [:new, :edit]} id="risk-modal" show>
-      <.live_component
-        module={ResolvinatorWeb.RiskLive.FormComponent}
-        id={@risk.id || :new}
-        title={@page_title}
-        action={@live_action}
-        risk={@risk}
-        patch={~p"/risks"}
-      />
-    </.modal>
-
-    <%= if @show_actors_modal do %>
-      <.modal id="actors-modal" show>
+      <.modal :if={@live_action in [:new, :edit]} 
+              id="risk-modal" 
+              show
+              on_cancel={JS.navigate(~p"/risks")}>
         <.live_component
-          module={ResolvinatorWeb.RiskLive.ActorsComponent}
-          id="actors-modal"
-          risk={@current_risk}
+          module={ResolvinatorWeb.RiskLive.FormComponent}
+          id={@risk.id || :new}
+          title={@page_title}
+          action={@live_action}
+          risk={@risk}
+          current_user={@current_user}
           return_to={~p"/risks"}
         />
       </.modal>
-    <% end %>
-
-    <%= if @show_mitigations_modal do %>
-      <.modal id="mitigations-modal" show>
-        <.live_component
-          module={ResolvinatorWeb.RiskLive.MitigationsComponent}
-          id="mitigations-modal"
-          risk={@current_risk}
-          return_to={~p"/risks"}
-        />
-      </.modal>
-    <% end %>
+    </div>
     """
   end
 end

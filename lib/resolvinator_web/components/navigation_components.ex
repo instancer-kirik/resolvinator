@@ -16,7 +16,7 @@ defmodule ResolvinatorWeb.Components.NavigationComponents do
         <div class="flex justify-between h-16">
           <div class="flex">
             <div class="flex-shrink-0 flex items-center">
-              <.link navigate="/" class="text-xl font-bold text-gray-800">
+              <.link patch="/" class="text-xl font-bold text-gray-800">
                 Resolvinator
               </.link>
             </div>
@@ -24,16 +24,16 @@ defmodule ResolvinatorWeb.Components.NavigationComponents do
             <%!-- Desktop Navigation --%>
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
               <%= if @current_user do %>
-                <.nav_link navigate="/problems" active={current_path(assigns) =~ "/problems"}>
+                <.nav_link patch="/problems" active={current_path(assigns) =~ "/problems"}>
                   Problems
                 </.nav_link>
-                <.nav_link navigate="/solutions" active={current_path(assigns) =~ "/solutions"}>
+                <.nav_link patch="/solutions" active={current_path(assigns) =~ "/solutions"}>
                   Solutions
                 </.nav_link>
-                <.nav_link navigate="/risks" active={current_path(assigns) =~ "/risks"}>
+                <.nav_link patch="/risks" active={current_path(assigns) =~ "/risks"}>
                   Risks
                 </.nav_link>
-                <.nav_link navigate="/events" active={current_path(assigns) =~ "/events"}>
+                <.nav_link patch="/events" active={current_path(assigns) =~ "/events"}>
                   Events
                 </.nav_link>
               <% end %>
@@ -55,14 +55,14 @@ defmodule ResolvinatorWeb.Components.NavigationComponents do
   end
 
   # Navigation link component
-  attr :navigate, :string, required: true
+  attr :patch, :string, required: true
   attr :active, :boolean, default: false
   slot :inner_block, required: true
 
   def nav_link(assigns) do
     ~H"""
     <.link
-      navigate={@navigate}
+      patch={@patch}
       class={[
         "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium",
         @active && "border-blue-500 text-gray-900",

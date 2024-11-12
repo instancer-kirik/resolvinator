@@ -311,4 +311,6 @@ defmodule ResolvinatorWeb.Router do
 
     resources "/content", ContentController, only: [:index, :show]
   end
+
+  
 end

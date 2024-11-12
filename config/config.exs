@@ -14,7 +14,7 @@ config :resolvinator,
   fabric_endpoint: System.get_env("FABRIC_API_ENDPOINT"),
   fabric_key: System.get_env("FABRIC_API_KEY"),
   azure_tenant_id: System.get_env("AZURE_TENANT_ID"),
-  azure_client_id: System.get_env("AZURE_CLIENT_ID"),
+  azure_client_id: "3e888816-33ad-4839-9bc9-5b5f57a425ec",
   azure_client_secret: System.get_env("AZURE_CLIENT_SECRET")
 
 # Configures the endpoint
