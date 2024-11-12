@@ -90,8 +90,8 @@ defmodule Resolvinator.MixProject do
       {:mogrify, "~> 0.9.3"},
       {:guardian, "~> 2.3"},
       {:corsica, "~> 2.1"},
-      {:bcrypt_elixir, "~> 3.0"}
-
+      {:bcrypt_elixir, "~> 3.0"},
+      {:httpoison, "~> 2.0"},
     ]
   end
 

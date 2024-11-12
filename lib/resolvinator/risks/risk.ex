@@ -41,6 +41,13 @@ defmodule Resolvinator.Risks.Risk do
     field :detection_date, :date
     field :review_date, :date
 
+    # Topic relationships (through generic content_topic_relationships)
+    many_to_many :topics, Resolvinator.Topics.Topic,
+      join_through: "content_topic_relationships",
+      join_keys: [content_id: :id, topic_id: :id],
+      join_where: [content_type: "risk"],
+      on_replace: :delete
+
     timestamps(type: :utc_datetime)
   end
 

@@ -13,6 +13,9 @@ defmodule Resolvinator.Accounts.UserToken do
   @change_email_validity_in_days 7
   @session_validity_in_days 60
 
+  # Use the same ID type as the User schema
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id  # Add this line to match User's ID type
   schema "users_tokens" do
     field :token, :binary
     field :context, :string

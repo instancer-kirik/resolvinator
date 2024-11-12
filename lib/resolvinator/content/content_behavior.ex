@@ -28,6 +28,7 @@ defmodule Resolvinator.Content.ContentBehavior do
 
   defmacro __using__(opts) do
     additional_schema = Keyword.get(opts, :additional_schema, [])
+    type_name = opts[:type_name]
 
     quote do
       use Ecto.Schema
@@ -38,7 +39,7 @@ defmodule Resolvinator.Content.ContentBehavior do
       @primary_key {:id, :binary_id, autogenerate: true}
       @foreign_key_type :binary_id
       @timestamps_opts [type: :utc_datetime]
-      @derive {Jason.Encoder, only: [:id, :name, :desc, :status, :metadata]}
+      @derive {Jason.Encoder, except: [:__meta__, :__struct__]}
 
       @status_values ~w(initial pending approved rejected draft review published archived)
       @type_name unquote(opts[:type_name]) || raise "type_name is required"
@@ -48,9 +49,7 @@ defmodule Resolvinator.Content.ContentBehavior do
       schema unquote(opts[:table_name] || raise "table_name is required") do
         # Basic content fields
         field :name, :string
-        field :title, :string  # For backwards compatibility
         field :desc, :string
-        field :description, :string  # For backwards compatibility
         field :status, :string, default: "initial"
         field :visibility, :string, default: "public"
         field :metadata, :map, default: %{}
@@ -83,6 +82,9 @@ defmodule Resolvinator.Content.ContentBehavior do
         # Add additional schema fields if provided
         unquote_splicing(process_additional_schema(additional_schema))
 
+        # Add content type specific relationships based on type_name
+        unquote(content_type_relationships(type_name))
+
         timestamps(type: :utc_datetime)
       end
 
@@ -104,6 +106,33 @@ defmodule Resolvinator.Content.ContentBehavior do
         |> validate_number(:priority, greater_than_or_equal_to: 0)
         |> foreign_key_constraint(:creator_id)
         |> foreign_key_constraint(:project_id)
+        |> put_default_arrays()
+      end
+
+      # Add helper functions for array defaults
+      defp put_default_arrays(changeset) do
+        Enum.reduce(array_fields(), changeset, fn field, acc ->
+          put_change_if_nil(acc, field, [])
+        end)
+      end
+
+      defp put_change_if_nil(changeset, field, default) do
+        if get_field(changeset, field) == nil do
+          put_change(changeset, field, default)
+        else
+          changeset
+        end
+      end
+
+      # Get array fields from schema
+      defp array_fields do
+        __MODULE__.__schema__(:fields)
+        |> Enum.filter(fn field ->
+          case __MODULE__.__schema__(:type, field) do
+            {:array, _} -> true
+            _ -> false
+          end
+        end)
       end
 
       # Define the default changeset function that can be overridden
@@ -146,13 +175,14 @@ defmodule Resolvinator.Content.ContentBehavior do
   defp process_additional_schema(additional_schema) do
     Enum.flat_map(additional_schema, fn
       {:fields, fields} ->
-        Enum.map(fields, fn {name, type} ->
-          case type do
-            {type, opts} ->
-              quote do: field(unquote(name), unquote(type), unquote(opts))
-            type ->
-              quote do: field(unquote(name), unquote(type))
-          end
+        Enum.map(fields, fn
+          {name, {:array, type}} ->
+            # Handle array types specifically
+            quote do: field(unquote(name), {:array, unquote(type)})
+          {name, {type, opts}} ->
+            quote do: field(unquote(name), unquote(type), unquote(opts))
+          {name, type} ->
+            quote do: field(unquote(name), unquote(type))
         end)
       
       {:embeds_many, embeds} ->
@@ -193,4 +223,51 @@ defmodule Resolvinator.Content.ContentBehavior do
       _ -> []
     end)
   end
+
+  # Helper to define relationships based on content type
+  defp content_type_relationships(:lesson) do
+    quote do
+      has_many :problems, Resolvinator.Content.Problem
+      has_many :solutions, Resolvinator.Content.Solution
+      has_many :advantages, Resolvinator.Content.Advantage
+      many_to_many :related_lessons, Resolvinator.Content.Lesson,
+        join_through: "lesson_relationships",
+        join_keys: [lesson_id: :id, related_lesson_id: :id],
+        on_replace: :delete
+    end
+  end
+
+  defp content_type_relationships(:advantage) do
+    quote do
+      has_many :problems, Resolvinator.Content.Problem
+      has_many :solutions, Resolvinator.Content.Solution
+      has_many :lessons, Resolvinator.Content.Lesson
+      many_to_many :related_advantages, Resolvinator.Content.Advantage,
+        join_through: "advantage_relationships",
+        join_keys: [advantage_id: :id, related_advantage_id: :id],
+        on_replace: :delete
+    end
+  end
+
+  defp content_type_relationships(:problem) do
+    quote do
+      has_many :solutions, Resolvinator.Content.Solution
+      has_many :lessons, Resolvinator.Content.Lesson
+      has_many :advantages, Resolvinator.Content.Advantage
+    end
+  end
+
+  defp content_type_relationships(:solution) do
+    quote do
+      has_many :problems, Resolvinator.Content.Problem
+      has_many :lessons, Resolvinator.Content.Lesson
+      has_many :advantages, Resolvinator.Content.Advantage
+      many_to_many :related_solutions, Resolvinator.Content.Solution,
+        join_through: "solution_relationships",
+        join_keys: [solution_id: :id, related_solution_id: :id],
+        on_replace: :delete
+    end
+  end
+
+  defp content_type_relationships(_), do: []
 end

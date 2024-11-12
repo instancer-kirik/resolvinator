@@ -9,18 +9,17 @@
 
 <.table
   id="solutions"
-  rows={@streams.solutions}
+  rows={@solutions}
   row_click={fn {_id, solution} -> JS.navigate(~p"/solutions/#{solution}") end}
 >
-  <:col :let={{_id, solution}} label="Name"><%= solution.name %></:col>
-  <:col :let={{_id, solution}} label="Desc"><%= solution.desc %></:col>
-  <:col :let={{_id, solution}} label="Upvotes"><%= solution.upvotes %></:col>
-  <:col :let={{_id, solution}} label="Downvotes"><%= solution.downvotes %></:col>
-  <:action :let={{_id, solution}}>
-    <div class="sr-only">
-      <.link navigate={~p"/solutions/#{solution}"}>Show</.link>
-    </div>
-    <.link patch={~p"/solutions/#{solution}/edit"}>Edit</.link>
+  <:col :let={solution} label="Name"><%= solution.name %></:col>
+  <:col :let={solution} label="Description"><%= solution.desc %></:col>
+  <:col :let={solution} label="Status"><%= solution.status %></:col>
+  <:col :let={solution} label="Votes">
+    <%= solution.upvotes || 0 %> / <%= solution.downvotes || 0 %>
+  </:col>
+  <:action :let={solution}>
+    <.link navigate={~p"/solutions/#{solution}"}>View</.link>
   </:action>
   <:action :let={{id, solution}}>
     <.link

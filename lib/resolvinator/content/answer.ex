@@ -1,8 +1,5 @@
 defmodule Resolvinator.Content.Answer do
   use Flint.Schema
-  alias Flint.Schema
-  import Ecto.Changeset
-  import Ecto.Query
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :answer,
@@ -15,19 +12,15 @@ defmodule Resolvinator.Content.Answer do
       fields: [
         answer_type: :string,
         is_accepted: {:boolean, default: false},
-        references: {{:array, :string}, default: []},
-        code_snippets: {{:array, :map}, default: []}
+        references: {:array, :string},
+        code_snippets: {:array, :map}
       ],
       relationships: [
         belongs_to: [
-          question: [
-            module: Resolvinator.Content.Question
-          ]
+          question: [module: Resolvinator.Content.Question]
         ],
         has_many: [
-          revisions: [
-            module: Resolvinator.Content.AnswerRevision
-          ]
+          revisions: [module: Resolvinator.Content.AnswerRevision]
         ]
       ]
     ]

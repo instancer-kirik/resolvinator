@@ -52,7 +52,13 @@ defmodule Resolvinator.Accounts do
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
-    if User.valid_password?(user, password), do: user
+    IO.inspect(user, label: "Found user")
+    IO.inspect(password, label: "Attempting with password")
+    
+    has_valid_password = user && User.valid_password?(user, password)
+    IO.inspect(has_valid_password, label: "Password valid?")
+    
+    if has_valid_password, do: user, else: nil
   end
 
   def authenticate_user(email, password) do
@@ -96,6 +102,13 @@ defmodule Resolvinator.Accounts do
 
   """
   def register_user(attrs) do
+    IO.puts "Registration attrs before processing: #{inspect(attrs)}"
+
+    # Ensure consistent atom keys
+    attrs = for {key, val} <- attrs, into: %{} do
+      if is_binary(key), do: {String.to_existing_atom(key), val}, else: {key, val}
+    end
+
     %User{}
     |> User.registration_changeset(attrs)
     |> Repo.insert()

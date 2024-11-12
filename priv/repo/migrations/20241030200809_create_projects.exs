@@ -12,7 +12,7 @@ defmodule Resolvinator.Repo.Migrations.CreateProjects do
       add :target_date, :date
       add :completion_date, :date
       add :settings, :map, default: %{}
-      add :creator_id, references(:users, on_delete: :restrict), null: false
+      add :creator_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
 
       timestamps(type: :utc_datetime)
     end

@@ -27,3 +27,7 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+config :resolvinator,
+  fabric_endpoint: System.get_env("FABRIC_API_ENDPOINT"),
+  fabric_key: System.get_env("FABRIC_API_KEY")

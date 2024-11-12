@@ -48,8 +48,7 @@
       <.nav_menu 
         current_user={@current_user} 
         current_uri={@current_uri}
-        show_secondary_nav={@show_secondary_nav}
-        socket={@socket}
+        show_secondary_nav={assigns[:show_secondary_nav] || false}
       />
     </header>
 

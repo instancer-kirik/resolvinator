@@ -1,5 +1,33 @@
 # Risk Management Seeds
 
+# Add at the top of the file
+alias Resolvinator.{Repo, Accounts, Projects}
+
+# Create users
+{:ok, user1} = Accounts.register_user(%{
+  email: "admin@example.com",
+  password: "adminpass123!",
+  username: "admin",
+  is_admin: true
+})
+
+{:ok, user2} = Accounts.register_user(%{
+  email: "user@example.com",
+  password: "userpass123!",
+  username: "user"
+})
+
+# Create project
+{:ok, project1} = Projects.create_project(%{
+  name: "Demo Project",
+  description: "A demonstration project",
+  status: "active",
+  creator_id: user1.id
+})
+
+# Add current timestamp for relationships
+now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
 # Create Risk Categories with more detailed assessment criteria
 risk_categories = [
   %{

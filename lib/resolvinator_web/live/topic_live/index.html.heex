@@ -1,0 +1,103 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Topics</h1>
+    <%= live_patch "New Topic", to: Routes.topic_index_path(@socket, :new), 
+        class: "btn btn-primary" %>
+  </div>
+
+  <div class="mb-6">
+    <.simple_form for={:filter} phx-change="filter" class="flex gap-4">
+      <.input
+        type="select"
+        name="filter[category]"
+        options={[["All", nil]] ++ Enum.map(~w(core supplementary specialized), &[&1, &1])}
+        value={@filter.category}
+        class="select select-bordered"
+      />
+      <.input
+        type="select"
+        name="filter[level]"
+        options={[["All", nil]] ++ Enum.map(~w(beginner intermediate advanced expert), &[&1, &1])}
+        value={@filter.level}
+        class="select select-bordered"
+      />
+      <.input
+        type="select"
+        name="filter[status]"
+        options={[["All", nil]] ++ Enum.map(~w(draft published archived), &[&1, &1])}
+        value={@filter.status}
+        class="select select-bordered"
+      />
+      <label class="label cursor-pointer">
+        <input
+          type="checkbox"
+          name="filter[is_featured]"
+          value="true"
+          checked={@filter.is_featured}
+          class="checkbox"
+        />
+        <span class="label-text ml-2">Featured Only</span>
+      </label>
+    </.simple_form>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <%= for topic <- @topics do %>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex justify-between items-start">
+            <h2 class="card-title">
+              <%= topic.name %>
+              <%= if topic.is_featured do %>
+                <span class="badge badge-secondary">Featured</span>
+              <% end %>
+            </h2>
+            <div class="dropdown dropdown-end">
+              <label tabindex="0" class="btn btn-ghost btn-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </label>
+              <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                <%= live_patch "Edit", to: Routes.topic_index_path(@socket, :edit, topic), 
+                    class: "menu-item" %>
+                <%= live_patch "Delete", to: "#",
+                    phx_click: "delete",
+                    phx_value_id: topic.id,
+                    data: [confirm: "Are you sure?"],
+                    class: "menu-item text-error" %>
+              </ul>
+            </div>
+          </div>
+
+          <p class="text-sm opacity-70"><%= topic.desc %></p>
+          
+          <div class="flex flex-wrap gap-2 mt-2">
+            <span class="badge"><%= topic.category %></span>
+            <span class="badge"><%= topic.level %></span>
+            <span class="badge"><%= topic.status %></span>
+          </div>
+
+          <div class="card-actions justify-end mt-4">
+            <span class="text-sm opacity-70">
+              <%= topic.content_count %> items
+            </span>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%= if @live_action in [:new, :edit] do %>
+  <.modal return_to={Routes.topic_index_path(@socket, :index)}>
+    <.live_component
+      module={ResolvinatorWeb.TopicLive.FormComponent}
+      id={@topic.id || :new}
+      title={@page_title}
+      action={@live_action}
+      topic={@topic}
+      return_to={Routes.topic_index_path(@socket, :index)}
+    />
+  </.modal>
+<% end %> 

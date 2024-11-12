@@ -1,10 +1,5 @@
 defmodule Resolvinator.Content.Solution do
-  use Ecto.Schema
   use Flint.Schema
-  @derive {Jason.Encoder, only: [:id, :name, :desc, :status, :metadata]}
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :solution,

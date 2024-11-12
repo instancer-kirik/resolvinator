@@ -6,7 +6,8 @@ defmodule ResolvinatorWeb.SolutionLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :solutions, Content.list_solutions())}
+    solutions = Content.list_solutions()
+    {:ok, assign(socket, :solutions, solutions)}
   end
 
   @impl true

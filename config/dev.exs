@@ -91,3 +91,13 @@ config :assent,
     redirect_uri: "http://localhost:4000/auth/github/callback",
   ]
 #(Caution: in production you would pass these secret as env vars read in runtime.exs)
+
+config :resolvinator,
+  fabric_endpoint: "http://localhost:4000/api",
+  fabric_key: "your-development-key"
+
+# Development-specific configuration (if needed)
+config :resolvinator,
+  azure_tenant_id: "your-tenant-id",
+  azure_client_id: "your-client-id",
+  azure_client_secret: "your-client-secret"

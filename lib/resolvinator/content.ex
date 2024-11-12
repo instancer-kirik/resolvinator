@@ -7,7 +7,8 @@ defmodule Resolvinator.Content do
   alias Resolvinator.Repo
   alias Resolvinator.Content.{
     Problem, Solution, Advantage, Lesson, Description,
-    UserHiddenDescription, ProblemDescription, SolutionDescription, LessonDescription, AdvantageDescription
+    UserHiddenDescription, ProblemDescription, SolutionDescription, LessonDescription, AdvantageDescription,
+    Topic, ContentTopicRelationship, TopicRelationship
   }
 
   def get_associable(type, id) do
@@ -114,7 +115,11 @@ defmodule Resolvinator.Content do
     Repo.all(from(item in schema, where: item.status == "reported"))
   end
 
-  def list_problems, do: Repo.all(Problem)
+  def list_problems do
+    Problem
+    |> order_by(asc: :name)
+    |> Repo.all()
+  end
 
   def list_problems(user_id) do
     hidden_description_ids = get_hidden_description_ids(user_id)
@@ -224,8 +229,9 @@ defmodule Resolvinator.Content do
   end
 
   def get_problem!(id) do
-    Repo.get!(Problem, id)
-    |> Repo.preload([:descriptions, :solutions, :lessons, :advantages])
+    Problem
+    |> preload([:descriptions, :related_problems, :solutions, :lessons, :advantages])
+    |> Repo.get!(id)
   end
 
   def create_problem(attrs \\ %{}) do
@@ -607,5 +613,75 @@ defmodule Resolvinator.Content do
         end
       problem -> problem
     end
+  end
+
+  # Topic-related functions
+  def list_topics do
+    Topic
+    |> order_by([t], [t.position, t.name])
+    |> Repo.all()
+  end
+
+  def list_topics_by_project(project_id) do
+    Topic
+    |> where([t], t.project_id == ^project_id)
+    |> order_by([t], [t.position, t.name])
+    |> Repo.all()
+  end
+
+  def get_topic!(id) do
+    Topic
+    |> Repo.get!(id)
+    |> Repo.preload([:parent, :related_topics])
+  end
+
+  def create_topic(attrs \\ %{}) do
+    %Topic{}
+    |> Topic.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def update_topic(%Topic{} = topic, attrs) do
+    topic
+    |> Topic.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def delete_topic(%Topic{} = topic) do
+    Repo.delete(topic)
+  end
+
+  def change_topic(%Topic{} = topic, attrs \\ %{}) do
+    Topic.changeset(topic, attrs)
+  end
+
+  # Topic relationship functions
+  def relate_topic_to_content(topic_id, content_type, content_id, opts \\ []) do
+    relationship_type = Keyword.get(opts, :relationship_type, "primary")
+    metadata = Keyword.get(opts, :metadata, %{})
+
+    %ContentTopicRelationship{}
+    |> ContentTopicRelationship.changeset(%{
+      topic_id: topic_id,
+      content_type: content_type,
+      content_id: content_id,
+      relationship_type: relationship_type,
+      metadata: metadata
+    })
+    |> Repo.insert()
+  end
+
+  def relate_topics(topic_id, related_topic_id, opts \\ []) do
+    relationship_type = Keyword.get(opts, :relationship_type, "related")
+    metadata = Keyword.get(opts, :metadata, %{})
+
+    %TopicRelationship{}
+    |> TopicRelationship.changeset(%{
+      topic_id: topic_id,
+      related_topic_id: related_topic_id,
+      relationship_type: relationship_type,
+      metadata: metadata
+    })
+    |> Repo.insert()
   end
 end

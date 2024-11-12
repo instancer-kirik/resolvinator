@@ -3,6 +3,7 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
 
   alias Resolvinator.Content
   alias Resolvinator.Accounts
+  alias Resolvinator.Fabric.{RiskAnalysis, Lakehouse}
 
   on_mount {ResolvinatorWeb.UserAuth, :mount_current_user}
 
@@ -114,4 +115,24 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
 
   defp page_title(:show), do: "Show Problem"
   defp page_title(:edit), do: "Edit Problem"
+
+  @impl true
+  def handle_event("analyze_problem", _, socket) do
+    problem = socket.assigns.problem
+    
+    # Start loading state
+    socket = assign(socket, loading: true)
+    
+    # Check cache first
+    case Lakehouse.get_latest_analysis(problem.id) do
+      nil ->
+        # Run new analysis
+        suggestions = RiskAnalysis.analyze_similar_risks(problem)
+        Lakehouse.store_problem_analysis(problem.id, suggestions)
+        {:noreply, assign(socket, loading: false, suggestions: suggestions)}
+        
+      cached_analysis ->
+        {:noreply, assign(socket, loading: false, suggestions: cached_analysis)}
+    end
+  end
 end

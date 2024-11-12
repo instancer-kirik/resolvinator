@@ -12,6 +12,7 @@ defmodule ResolvinatorWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug ResolvinatorWeb.Plugs.SetCurrentUri
   end
 
   pipeline :api do
@@ -65,6 +66,7 @@ defmodule ResolvinatorWeb.Router do
     end
 
     post "/users/log_in", UserSessionController, :create
+    post "/users/register", UserRegistrationController, :create
   end
 
   scope "/", ResolvinatorWeb do

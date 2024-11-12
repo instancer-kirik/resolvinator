@@ -2,14 +2,16 @@ defmodule Resolvinator.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
   schema "users" do
     field :email, :string
     field :username, :string
+    field :password, :string, virtual: true
+    field :hashed_password, :string
     field :is_admin, :boolean, default: false
-    field :password, :string, virtual: true, redact: true
-    field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
-    field :preferences, :map
+    field :preferences, :map, default: %{}
     field :status, :string, default: "active"
     field :banned_at, :naive_datetime
 
@@ -74,11 +76,18 @@ defmodule Resolvinator.Accounts.User do
       Defaults to `true`.
   """
   def registration_changeset(user, attrs, opts \\ []) do
+    # Convert string keys to atoms if needed
+    attrs = for {key, val} <- attrs, into: %{} do
+      if is_binary(key), do: {String.to_existing_atom(key), val}, else: {key, val}
+    end
+
     user
-    |> cast(attrs, [:email, :password, :username])
-    |> validate_email(opts)
-    |> validate_password(opts)
+    |> cast(attrs, [:email, :username, :password, :is_admin])
+    |> validate_required([:email, :username, :password])
+    |> validate_email([])
     |> validate_username()
+    |> validate_password([])
+    |> maybe_hash_password([])
   end
 
   defp validate_email(changeset, opts) do
@@ -92,33 +101,29 @@ defmodule Resolvinator.Accounts.User do
   defp validate_password(changeset, opts) do
     changeset
     |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 72)
-    # Examples of additional password validation:
-    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
+    |> validate_length(:password, min: 6, max: 72)
     |> maybe_hash_password(opts)
   end
-  defp validate_username(changeset) do
-    changeset
-    |> validate_required([:username])
-    |> validate_length(:username, min: 3, max: 30)
-    |> validate_format(:username, ~r/^[a-zA-Z0-9_.-]+$/, message: "can only contain letters, numbers, and _.-")
-    |> unique_constraint(:username)
-  end
+
   defp maybe_hash_password(changeset, opts) do
     hash_password? = Keyword.get(opts, :hash_password, true)
     password = get_change(changeset, :password)
 
     if hash_password? && password && changeset.valid? do
       changeset
-      # Hashing could be done with `Ecto.Changeset.prepare_changes/2`, but that
-      # would keep the database transaction open longer and hurt performance.
-      |> put_change(:hashed_password, Pbkdf2.hash_pwd_salt(password))
+      |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
       |> delete_change(:password)
     else
       changeset
     end
+  end
+
+  defp validate_username(changeset) do
+    changeset
+    |> validate_required([:username])
+    |> validate_length(:username, min: 3, max: 30)
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_.-]+$/, message: "can only contain letters, numbers, and _.-")
+    |> unique_constraint(:username)
   end
 
   defp maybe_validate_unique_email(changeset, opts) do
@@ -177,15 +182,19 @@ defmodule Resolvinator.Accounts.User do
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call
-  `Pbkdf2.no_user_verify/0` to avoid timing attacks.
+  `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(%Resolvinator.Accounts.User{hashed_password: hashed_password}, password)
-      when is_binary(hashed_password) and byte_size(password) > 0 do
-    Pbkdf2.verify_pass(password, hashed_password)
+      when is_binary(hashed_password) and is_binary(password) do
+    IO.inspect(password, label: "Checking password")
+    IO.inspect(hashed_password, label: "Against hash")
+    result = Bcrypt.verify_pass(password, hashed_password)
+    IO.inspect(result, label: "Password verification result")
+    result
   end
 
   def valid_password?(_, _) do
-    Pbkdf2.no_user_verify()
+    Bcrypt.no_user_verify()
     false
   end
 

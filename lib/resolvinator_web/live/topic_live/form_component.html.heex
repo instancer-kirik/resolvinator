@@ -1,0 +1,130 @@
+<div class="max-w-2xl mx-auto">
+  <.form
+    let={f}
+    for={@changeset}
+    id="topic-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+    
+    <div class="space-y-6">
+      <%# Basic Info %>
+      <div class="space-y-4">
+        <div class="form-control">
+          <%= label f, :name, class: "label" %>
+          <%= text_input f, :name, class: "input input-bordered" %>
+          <%= error_tag f, :name %>
+        </div>
+
+        <div class="form-control">
+          <%= label f, :desc, class: "label" %>
+          <%= textarea f, :desc, class: "textarea textarea-bordered h-24" %>
+          <%= error_tag f, :desc %>
+        </div>
+
+        <div class="form-control">
+          <%= label f, :slug, class: "label" %>
+          <%= text_input f, :slug, class: "input input-bordered" %>
+          <%= error_tag f, :slug %>
+        </div>
+      </div>
+
+      <%# Categorization %>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="form-control">
+          <%= label f, :category, class: "label" %>
+          <%= select f, :category, ~w(core supplementary specialized),
+              class: "select select-bordered w-full" %>
+          <%= error_tag f, :category %>
+        </div>
+
+        <div class="form-control">
+          <%= label f, :level, class: "label" %>
+          <%= select f, :level, ~w(beginner intermediate advanced expert),
+              class: "select select-bordered w-full" %>
+          <%= error_tag f, :level %>
+        </div>
+      </div>
+
+      <%# Feature Flags %>
+      <div class="space-y-2">
+        <h3 class="font-medium">Settings</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <label class="label cursor-pointer">
+            <%= checkbox f, :is_featured, class: "checkbox" %>
+            <span class="label-text ml-2">Featured</span>
+          </label>
+          
+          <label class="label cursor-pointer">
+            <%= checkbox f, :is_hidden, class: "checkbox" %>
+            <span class="label-text ml-2">Hidden</span>
+          </label>
+          
+          <label class="label cursor-pointer">
+            <%= checkbox f, :is_private, class: "checkbox" %>
+            <span class="label-text ml-2">Private</span>
+          </label>
+          
+          <label class="label cursor-pointer">
+            <%= checkbox f, :is_age_restricted, class: "checkbox" %>
+            <span class="label-text ml-2">Age Restricted</span>
+          </label>
+        </div>
+      </div>
+
+      <%# Metadata Tabs %>
+      <div class="tabs tabs-boxed">
+        <%= for {view, label} <- [basic: "Basic", advanced: "Advanced", custom: "Custom"] do %>
+          <a class={"tab #{if @metadata_view == view, do: "tab-active"}"}
+             phx-click="toggle-metadata-view"
+             phx-value-view={view}
+             phx-target={@myself}>
+            <%= label %>
+          </a>
+        <% end %>
+      </div>
+
+      <%# Metadata Content %>
+      <div class="space-y-4">
+        <%= case @metadata_view do %>
+          <% :basic -> %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="form-control">
+                <%= label f, :position, class: "label" %>
+                <%= number_input f, :position, class: "input input-bordered" %>
+              </div>
+
+              <div class="form-control">
+                <%= label f, :difficulty, "Difficulty (1-5)", class: "label" %>
+                <%= number_input f, :difficulty, min: 1, max: 5, class: "input input-bordered" %>
+              </div>
+            </div>
+
+          <% :advanced -> %>
+            <div class="space-y-4">
+              <div class="form-control">
+                <%= label f, :prerequisites, class: "label" %>
+                <%= multiple_select f, :prerequisites, [], class: "select select-bordered" %>
+              </div>
+
+              <div class="form-control">
+                <%= label f, :learning_objectives, class: "label" %>
+                <%= multiple_select f, :learning_objectives, [], class: "select select-bordered" %>
+              </div>
+            </div>
+
+          <% :custom -> %>
+            <div class="form-control">
+              <%= label f, :custom_metadata, class: "label" %>
+              <%= textarea f, :custom_metadata, class: "textarea textarea-bordered font-mono",
+                  value: Jason.encode!(input_value(f, :custom_metadata), pretty: true) %>
+            </div>
+        <% end %>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <%= submit "Save", phx_disable_with: "Saving...", class: "btn btn-primary" %>
+      </div>
+    </div>
+  </.form>
+</div> 

@@ -2,6 +2,9 @@ defmodule Resolvinator.Projects.Project do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
+
   @status_values ~w(planning active on_hold completed archived)
   @risk_appetite_values ~w(averse minimal cautious flexible aggressive)
 
@@ -16,6 +19,42 @@ defmodule Resolvinator.Projects.Project do
     
     # Project-specific settings
     field :settings, :map, default: %{
+      # Project metadata
+      "metadata" => %{
+        "domain" => nil,
+        "target_audience" => nil,
+        "version" => "0.1.0",
+        "license" => nil,
+        "repository_url" => nil,
+        "documentation_url" => nil,
+        "issue_tracker_url" => nil,
+        "keywords" => [],
+        "categories" => [],
+        "visibility" => "private",
+        "language" => nil,
+        "framework" => nil,
+        "dependencies" => %{},
+        "dev_dependencies" => %{},
+        "contributors" => [],
+        "maintainers" => []
+      },
+
+      # Development environment
+      "development" => %{
+        "build_command" => nil,
+        "run_command" => nil,
+        "test_command" => nil,
+        "lint_command" => nil,
+        "registered_scripts" => [],
+        "file_extensions" => [".py", ".json", ".yml"],
+        "excluded_dirs" => ["__pycache__", ".git", "venv"],
+        "workspace_path" => nil,
+        "environment_variables" => %{},
+        "required_tools" => [],
+        "minimum_tool_versions" => %{}
+      },
+
+      # Risk configuration
       "risk_matrix_config" => %{
         "probability_weights" => %{
           "rare" => 1,
@@ -32,14 +71,43 @@ defmodule Resolvinator.Projects.Project do
           "severe" => 5
         }
       },
+      
+      # Notification and monitoring
       "notification_preferences" => %{
         "high_risk_threshold" => 12,
-        "review_period_days" => 30
+        "review_period_days" => 30,
+        "alert_channels" => [],
+        "monitoring_intervals" => %{
+          "risk_review" => "30d",
+          "dependency_check" => "7d",
+          "security_scan" => "14d"
+        }
+      },
+
+      # Integration settings
+      "integrations" => %{
+        "ci_cd" => %{
+          "provider" => nil,
+          "config_path" => nil,
+          "triggers" => []
+        },
+        "cloud_services" => %{},
+        "api_keys" => %{},
+        "webhooks" => []
+      },
+
+      # Quality metrics
+      "quality_metrics" => %{
+        "test_coverage_target" => 80,
+        "max_complexity" => 10,
+        "style_guide" => nil,
+        "performance_targets" => %{},
+        "security_requirements" => []
       }
     }
 
     # Relationships
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :creator, Resolvinator.Accounts.User, type: :binary_id
     has_many :risks, Resolvinator.Risks.Risk
     has_many :risk_categories, Resolvinator.Risks.Category
     

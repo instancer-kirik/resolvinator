@@ -1,12 +1,5 @@
 defmodule Resolvinator.Content.Question do
-  @derive {Jason.Encoder, only: [:id, :name, :desc, :status, :metadata]}
-  use Ecto.Schema
   use Flint.Schema
-  alias Flint.Schema
-  import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :question,
@@ -24,27 +17,20 @@ defmodule Resolvinator.Content.Question do
         is_answered: {:boolean, default: false},
         answer_count: {:integer, default: 0},
         subject_area: :string,
-        theorem_references: {{:array, :string}, default: []},
+        theorem_references: {:array, :string},
         difficulty_rating: :integer,
         requires_proof: {:boolean, default: false},
-        proof_technique_hints: {{:array, :string}, default: []}
+        proof_technique_hints: {:array, :string}
       ],
       embeds_one: [
-        math_content: [
-          module: Resolvinator.Content.MathContent
-        ]
+        math_content: [module: Resolvinator.Content.MathContent]
       ],
       relationships: [
         has_many: [
-          answers: [
-            module: Resolvinator.Content.Answer,
-            foreign_key: :question_id
-          ]
+          answers: [module: Resolvinator.Content.Answer]
         ],
         belongs_to: [
-          accepted_answer: [
-            module: Resolvinator.Content.Answer
-          ]
+          accepted_answer: [module: Resolvinator.Content.Answer]
         ],
         many_to_many: [
           topics: [

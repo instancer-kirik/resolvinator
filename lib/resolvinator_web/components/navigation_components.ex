@@ -5,7 +5,7 @@ defmodule ResolvinatorWeb.Components.NavigationComponents do
   alias Phoenix.LiveView.JS
 
   # Main navigation menu
-  attr :current_user, :map, required: true
+  attr :current_user, :any, required: true
   attr :current_uri, :string, required: true
   attr :show_secondary_nav, :boolean, default: true
 
