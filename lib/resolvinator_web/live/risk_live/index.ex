@@ -55,33 +55,11 @@ defmodule ResolvinatorWeb.RiskLive.Index do
   end
 
   @impl true
-  def handle_params(params, url, socket) do
-    Logger.debug("handle_params: #{inspect(params)}, URL: #{url}")
-    
-    live_action = case URI.parse(url).path do
-      "/risks/new" -> :new
-      "/risks/" <> id when byte_size(id) > 0 -> :edit
-      _ -> :index
-    end
-    
-    Logger.debug("Setting live_action to: #{inspect(live_action)}")
-    
-    socket = socket
-      |> assign(:live_action, live_action)
-      |> apply_action(live_action, params)
-      
-    Logger.debug("""
-    Socket assigns after handle_params:
-    - live_action: #{inspect(socket.assigns.live_action)}
-    - page_title: #{inspect(socket.assigns.page_title)}
-    - risk: #{inspect(socket.assigns.risk)}
-    """)
-      
-    {:noreply, socket}
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
   defp apply_action(socket, :new, _params) do
-    Logger.debug("Applying :new action")
     socket
     |> assign(:page_title, "New Risk")
     |> assign(:risk, %Risk{})
@@ -101,7 +79,10 @@ defmodule ResolvinatorWeb.RiskLive.Index do
 
   @impl true
   def handle_info({ResolvinatorWeb.RiskLive.FormComponent, {:saved, risk}}, socket) do
-    {:noreply, stream_insert(socket, :risks, risk)}
+    {:noreply,
+     socket
+     |> stream_insert(:risks, risk)
+     |> push_patch(to: ~p"/risks")}
   end
 
   @impl true
@@ -135,7 +116,7 @@ defmodule ResolvinatorWeb.RiskLive.Index do
       <.header>
         Listing Risks
         <:actions>
-          <.link navigate={~p"/risks/new"}>
+          <.link patch={~p"/risks/new"}>
             <.button>New Risk</.button>
           </.link>
         </:actions>

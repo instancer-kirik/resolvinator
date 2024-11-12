@@ -22,6 +22,7 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
+        onsubmit="return false;"
       >
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="textarea" label="Description" />
@@ -81,7 +82,9 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
         </div>
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Risk</.button>
+          <.button type="submit" phx-disable-with="Saving...">
+            Save Risk
+          </.button>
         </:actions>
       </.simple_form>
 
@@ -123,7 +126,7 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:form, to_form(changeset))
+     |> assign_form(changeset)
      |> assign(:show_actors_modal, false)
      |> assign(:show_mitigations_modal, false)
      |> assign(:probability_options, probability_options())
@@ -146,10 +149,15 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
 
   @impl true
   def handle_event("validate", %{"risk" => risk_params}, socket) do
-    changeset = Risks.change_risk(socket.assigns.risk, risk_params)
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+    changeset =
+      socket.assigns.risk
+      |> Risks.change_risk(risk_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign_form(socket, changeset)}
   end
 
+  @impl true
   def handle_event("save", %{"risk" => risk_params}, socket) do
     save_risk(socket, socket.assigns.action, risk_params)
   end
@@ -158,29 +166,29 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
     case Risks.update_risk(socket.assigns.risk, risk_params) do
       {:ok, risk} ->
         notify_parent({:saved, risk})
-
         {:noreply,
          socket
          |> put_flash(:info, "Risk updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign_form(socket, changeset)}
     end
   end
 
   defp save_risk(socket, :new, risk_params) do
+    risk_params = Map.put(risk_params, "creator_id", socket.assigns.current_user.id)
+    
     case Risks.create_risk(risk_params) do
       {:ok, risk} ->
         notify_parent({:saved, risk})
-
         {:noreply,
          socket
          |> put_flash(:info, "Risk created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign_form(socket, changeset)}
     end
   end
 
@@ -236,5 +244,9 @@ defmodule ResolvinatorWeb.RiskLive.FormComponent do
     |> Enum.map(fn status -> 
       {status |> to_string() |> Naming.humanize(), status}
     end)
+  end
+
+  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
+    assign(socket, :form, to_form(changeset))
   end
 end

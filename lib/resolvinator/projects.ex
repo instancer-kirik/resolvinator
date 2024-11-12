@@ -101,4 +101,20 @@ defmodule Resolvinator.Projects do
   def change_project(%Project{} = project, attrs \\ %{}) do
     Project.changeset(project, attrs)
   end
+
+  @doc """
+  Gets a project by name.
+
+  ## Examples
+
+      iex> get_project_by_name("Mathematics Learning Platform")
+      %Project{}
+
+      iex> get_project_by_name("Non-existent Project")
+      nil
+
+  """
+  def get_project_by_name(name) do
+    Repo.get_by(Project, name: name)
+  end
 end
