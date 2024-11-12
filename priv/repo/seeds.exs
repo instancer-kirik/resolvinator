@@ -262,54 +262,45 @@ if admin do
       })
 
       # Create answer
-      {:ok, answer} = Seeds.Helper.safe_run "answer", fn ->
-        answer_attrs = %{
-          name: "Geometric Proof of Pythagorean Theorem",
-          desc: "A proof using area comparison of squares",
-          answer_type: "proof",
-          references: ["Euclid's Elements"],
-          question_id: question.id,
-          creator_id: admin.id,
-          project_id: project.id,
-          status: "published"
-        }
-        
-        # Create the answer without revisions first
-        Repo.insert(%Answer{
-          name: answer_attrs.name,
-          desc: answer_attrs.desc,
-          answer_type: answer_attrs.answer_type,
-          references: answer_attrs.references,
-          question_id: answer_attrs.question_id,
-          creator_id: answer_attrs.creator_id,
-          project_id: answer_attrs.project_id,
-          status: answer_attrs.status
-        })
-      end
-
-      # Create problem and solution
-      {:ok, problem} = Repo.insert(%Problem{
-        name: "Triangle Side Length Calculation",
-        desc: "Calculate the length of a right triangle's hypotenuse",
-        creator_id: admin.id(),
-        project_id: project.id,
-        status: "published",
-        impacts: [
-          %{
-            severity: "medium",
-            likelihood: "high",
-            description: "Common calculation error in engineering"
-          }
-        ]
-      })
-
-      {:ok, solution} = Repo.insert(%Solution{
-        name: "Using the Pythagorean Formula",
-        desc: "Apply a² + b² = c² to find the missing side",
+      {:ok, answer} = Repo.insert(%Answer{
+        name: "Geometric Proof of Pythagorean Theorem",
+        desc: "A proof using area comparison of squares",
+        answer_type: "proof",
+        references: ["Euclid's Elements"],
+        question_id: question.id,
         creator_id: admin.id(),
         project_id: project.id,
         status: "published"
       })
+
+      # Create problem and solution
+      {:ok, problem} = Seeds.Helper.safe_run "problem", fn ->
+        # Create problem with all attributes at once
+        Repo.insert(%Problem{
+          name: "Triangle Side Length Calculation",
+          desc: "Calculate the length of a right triangle's hypotenuse",
+          creator_id: admin.id,
+          project_id: project.id,
+          status: "published",
+          impacts: [
+            %{
+              severity: "medium",
+              likelihood: "high",
+              description: "Common calculation error in engineering"
+            }
+          ]
+        })
+      end
+
+      {:ok, solution} = Seeds.Helper.safe_run "solution", fn ->
+        Repo.insert(%Solution{
+          name: "Using the Pythagorean Formula",
+          desc: "Apply a² + b² = c² to find the missing side",
+          creator_id: admin.id(),
+          project_id: project.id,
+          status: "published"
+        })
+      end
 
       # Create advantage and lesson
       {:ok, advantage} = Repo.insert(%Advantage{
@@ -329,49 +320,58 @@ if admin do
       })
 
       # Update relationships
-      Seeds.Helper.safe_run "content relationships", fn ->
-        # Link theorem to question
-        Repo.preload(question, [:theorems])
-        |> Ecto.Changeset.change()
-        |> Ecto.Changeset.put_assoc(:theorems, [pythagoras])
-        |> Repo.update!()
+      # Link theorem to question
+      Repo.preload(question, [:theorems])
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:theorems, [pythagoras])
+      |> Repo.update!()
 
-        # Link problem to solution
-        Repo.preload(problem, [:solutions])
-        |> Ecto.Changeset.change()
-        |> Ecto.Changeset.put_assoc(:solutions, [solution])
-        |> Repo.update!()
+      # Link problem to solution
+      Repo.preload(problem, [:solutions])
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:solutions, [solution])
+      |> Repo.update!()
 
-        # Link lesson to problem and solution
-        Repo.preload(lesson, [:problems, :solutions])
-        |> Ecto.Changeset.change()
-        |> Ecto.Changeset.put_assoc(:problems, [problem])
-        |> Ecto.Changeset.put_assoc(:solutions, [solution])
-        |> Repo.update!()
+      # Link lesson to problem and solution
+      Repo.preload(lesson, [:problems, :solutions])
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:problems, [problem])
+      |> Ecto.Changeset.put_assoc(:solutions, [solution])
+      |> Repo.update!()
 
-        # Update answer acceptance
-        Repo.preload(question, [:accepted_answer])
-        |> Ecto.Changeset.change()
-        |> Ecto.Changeset.put_assoc(:accepted_answer, answer)
-        |> Repo.update!()
+      # Update answer acceptance
+      Repo.preload(question, [:accepted_answer])
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:accepted_answer, answer)
+      |> Repo.update!()
 
-        # Add voting and moderation data
-        for content <- [pythagoras, question, answer, problem, solution, advantage, lesson] do
-          content
-          |> Ecto.Changeset.change(%{
-            voting: %{
-              upvotes: Enum.random(1..100),
-              downvotes: Enum.random(1..20)
-            },
-            moderation: %{
-              status: "approved",
-              reviewed_at: DateTime.utc_now(),
-              reviewed_by: admin.id()
-            }
-          })
-          |> Repo.update!()
-        end
+      # Add voting and moderation data
+      for content <- [pythagoras, question, answer, problem, solution, advantage, lesson] do
+        content
+        |> Ecto.Changeset.change(%{
+          voting: %{
+            upvotes: Enum.random(1..100),
+            downvotes: Enum.random(1..20)
+          },
+          moderation: %{
+            status: "approved",
+            reviewed_at: DateTime.utc_now(),
+            reviewed_by: admin.id()
+          }
+        })
+        |> Repo.update!()
       end
+
+      # Return all created content for potential future use
+      %{
+        theorem: pythagoras,
+        question: question,
+        answer: answer,
+        problem: problem,
+        solution: solution,
+        advantage: advantage,
+        lesson: lesson
+      }
     end
   end # end if project
 end # end if admin

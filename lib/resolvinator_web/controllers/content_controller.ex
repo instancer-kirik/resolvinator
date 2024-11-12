@@ -2,76 +2,115 @@ defmodule ResolvinatorWeb.ContentController do
   use ResolvinatorWeb, :controller
   alias Resolvinator.Content
   
-  # Import authentication functions
   import ResolvinatorWeb.AuthHelpers, only: [is_authenticated?: 1]
 
-  # Add this plug to ensure current_user is assigned
-  plug :fetch_current_user when action in [:show]
+  # Add more actions that need user data
+  plug :fetch_current_user when action in [:show, :edit, :update]
 
   def show(conn, %{"id" => id}) do
     content = Content.get_content!(id)
 
-    # Different delivery methods based on user/session
     cond do
       is_bot?(conn) ->
-        render(conn, :show, content: redacted_content(content))
+        conn
+        |> put_resp_header("x-robots-tag", "noindex, nofollow")
+        |> render(:show, content: redacted_content(content))
 
       is_authenticated?(conn) ->
-        render(conn, :show, content: content)
+        current_user = conn.assigns.current_user
+        if can_access_content?(current_user, content) do
+          render(conn, :show, content: content)
+        else
+          conn
+          |> put_status(:forbidden)
+          |> render(:forbidden, content: protected_content(content))
+        end
 
       true ->
-        render(conn, :show, content: protected_content(content))
+        conn
+        |> put_flash(:info, "Sign in to view full content")
+        |> render(:show, content: protected_content(content))
     end
   end
 
   defp is_bot?(conn) do
-    user_agent = get_req_header(conn, "user-agent") |> List.first()
-    # Check against known bot patterns
-    Regex.match?(~r/bot|crawler|spider|crawling/i, user_agent)
+    user_agent = get_req_header(conn, "user-agent") |> List.first() || ""
+    # Extended bot detection
+    bot_patterns = [
+      ~r/bot|crawler|spider|crawling/i,
+      ~r/googlebot|bingbot|yandex|baiduspider/i,
+      ~r/slurp|duckduckbot|facebookexternalhit/i
+    ]
+    
+    Enum.any?(bot_patterns, &Regex.match?(&1, user_agent))
   end
 
   defp redacted_content(content) do
-    # Remove sensitive information for bots
+    # More comprehensive redaction
     %{content |
       metadata: %{},
       sensitive_data: nil,
-      text: redact_sensitive_text(content.text)
+      text: redact_sensitive_text(content.text),
+      tags: content.tags,  # Keep tags for SEO
+      title: content.title,  # Keep title for SEO
+      created_at: content.created_at  # Keep timestamp for SEO
     }
   end
 
   defp protected_content(content) do
-    # Apply protection methods based on content type
+    # More sophisticated protection
     %{content |
       text: generate_protected_text(content.text),
       sensitive_data: nil,
-      metadata: filter_metadata(content.metadata)
+      metadata: filter_metadata(content.metadata),
+      preview_available: content_has_preview?(content),
+      auth_required: true
     }
   end
 
   defp generate_protected_text(text) when is_binary(text) do
-    # Example: Show first paragraph and blur/hide the rest
-    case String.split(text, "\n\n", parts: 2) do
-      [first | _rest] -> "#{first}\n\n[Protected Content - Please Sign In to View]"
-      [] -> "[Protected Content - Please Sign In to View]"
-    end
+    # Enhanced preview generation
+    word_limit = 50
+    
+    text
+    |> String.split(~r/\s+/)
+    |> Enum.take(word_limit)
+    |> Enum.join(" ")
+    |> then(&(&1 <> "\n\n[Protected Content - Please Sign In to View Full Content]"))
   end
   defp generate_protected_text(_), do: "[Protected Content - Please Sign In to View]"
 
   defp redact_sensitive_text(text) when is_binary(text) do
-    # Example: Replace potentially sensitive information with [REDACTED]
     text
     |> String.replace(~r/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, "[EMAIL REDACTED]")
     |> String.replace(~r/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/, "[PHONE REDACTED]")
     |> String.replace(~r/\b\d{16}\b/, "[CARD NUMBER REDACTED]")
+    |> String.replace(~r/\b(password|secret|key|token)[:=]\s*\S+/i, "[CREDENTIALS REDACTED]")
+    |> String.replace(~r/\b(ssh-rsa|ssh-dss|BEGIN\s+[A-Z\s]+PRIVATE)\s+\S+/i, "[KEY REDACTED]")
   end
   defp redact_sensitive_text(_), do: "[REDACTED]"
 
   defp filter_metadata(metadata) when is_map(metadata) do
-    # Only keep safe, public metadata fields
-    allowed_keys = ~w(created_at updated_at category tags)
+    allowed_keys = ~w(created_at updated_at category tags public_stats view_count)
     Map.take(metadata, allowed_keys)
   end
   defp filter_metadata(_), do: %{}
+
+  defp can_access_content?(user, content) do
+    # Add your content access logic here
+    cond do
+      user.is_admin -> true
+      content.visibility == "public" -> true
+      content.creator_id == user.id -> true
+      content.project_id in user.project_ids -> true
+      true -> false
+    end
+  end
+
+  defp content_has_preview?(content) do
+    # Define which content types can have previews
+    content.type in ~w(article blog_post documentation)
+  end
 
   defp fetch_current_user(conn, _opts) do
     ResolvinatorWeb.UserAuth.fetch_current_user(conn, [])
