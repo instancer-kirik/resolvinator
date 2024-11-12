@@ -5,6 +5,7 @@ defmodule Resolvinator.AI.FabricAnalysis do
   
   require Logger
   alias Resolvinator.AI.FabricClient
+  alias Resolvinator.Content
 
   def analyze_risk(risk) do
     # First, ensure we have access to Power BI
@@ -89,6 +90,36 @@ defmodule Resolvinator.AI.FabricAnalysis do
     case Earmark.as_html(text) do
       {:ok, html, _} -> html
       {:error, _} -> text
+    end
+  end
+
+  def analyze_query(query) do
+    # Get relevant context from your data
+    problems = Content.list_problems()
+    solutions = Content.list_solutions()
+    risks = Content.list_risks()
+    
+    context = """
+    Available data:
+    Problems: #{Enum.map(problems, & &1.name) |> Enum.join(", ")}
+    Solutions: #{Enum.map(solutions, & &1.name) |> Enum.join(", ")}
+    Risks: #{Enum.map(risks, & &1.name) |> Enum.join(", ")}
+    """
+
+    prompt = """
+    You are an AI assistant for the Resolvinator application. You help users understand and work with their data.
+    
+    Context about available data:
+    #{context}
+
+    User query: #{query}
+
+    Please provide a helpful response based on the available data and context.
+    """
+
+    case FabricClient.chat(prompt) do
+      {:ok, response} -> response
+      {:error, _} -> "I apologize, but I'm having trouble processing your request right now. Please try again later."
     end
   end
 end

@@ -98,7 +98,7 @@ defmodule Resolvinator.Content.Topic do
     topic
     |> cast(attrs, [
       # Content fields from ContentFields
-      :name, :desc, :status, :visibility, :metadata, 
+      :name, :description, :status, :visibility, :metadata, 
       :tags, :priority, :creator_id, :project_id,
       # Topic-specific fields
       :slug, :position, :sort_order, :difficulty, :estimated_time,
@@ -115,7 +115,7 @@ defmodule Resolvinator.Content.Topic do
       :parent_id
     ])
     |> validate_required([
-      :name, :desc, :slug, :category, :level,
+      :name, :description, :slug, :category, :level,
       :creator_id, :project_id
     ])
     |> validate_inclusion(:level, ~w(beginner intermediate advanced expert))

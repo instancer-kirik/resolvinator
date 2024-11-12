@@ -51,7 +51,7 @@ defmodule Resolvinator.Suppliers do
   def list_supplier_contacts(supplier_id) do
     Contact
     |> where(supplier_id: ^supplier_id)
-    |> order_by([c], [{:desc, c.primary}, {:asc, c.name}])
+    |> order_by([c], [asc: c.name])
     |> Repo.all()
   end
 
@@ -80,7 +80,7 @@ defmodule Resolvinator.Suppliers do
     |> where([c], c.status == "active")
     |> where([c], c.effective_date <= ^Date.utc_today())
     |> where([c], is_nil(c.expiry_date) or c.expiry_date >= ^Date.utc_today())
-    |> order_by([c], [desc: c.effective_date])
+    |> order_by([c], [asc: c.name])
     |> Repo.all()
   end
 
@@ -111,7 +111,7 @@ defmodule Resolvinator.Suppliers do
     |> where([c], c.status == "active")
     |> where([c], c.effective_date <= ^today)
     |> where([c], is_nil(c.expiry_date) or c.expiry_date >= ^today)
-    |> order_by([c], [desc: c.effective_date])
+    |> order_by([c], [asc: c.name])
     |> limit(1)
     |> Repo.one()
   end

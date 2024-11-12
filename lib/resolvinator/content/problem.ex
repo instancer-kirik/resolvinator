@@ -9,11 +9,6 @@ defmodule Resolvinator.Content.Problem do
     relationship_keys: [problem_id: :id, related_problem_id: :id],
     description_keys: [problem_id: :id, description_id: :id],
     additional_schema: [
-      embeds_many: [
-        impacts: [
-          module: Resolvinator.Content.Impact
-        ]
-      ],
       relationships: [
         many_to_many: [
           users_with_problem: [
@@ -34,7 +29,6 @@ defmodule Resolvinator.Content.Problem do
   def changeset(problem, attrs) do
     problem
     |> base_changeset(attrs)
-    |> cast_embed(:impacts)
     |> cast_assoc(:users_with_problem)
     |> cast_assoc(:mitigations)
   end

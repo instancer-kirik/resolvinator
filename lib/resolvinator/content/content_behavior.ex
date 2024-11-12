@@ -49,7 +49,7 @@ defmodule Resolvinator.Content.ContentBehavior do
       schema unquote(opts[:table_name] || raise "table_name is required") do
         # Basic content fields
         field :name, :string
-        field :desc, :string
+        field :description, :string
         field :status, :string, default: "initial"
         field :visibility, :string, default: "public"
         field :metadata, :map, default: %{}
@@ -59,6 +59,7 @@ defmodule Resolvinator.Content.ContentBehavior do
         # Embedded schemas
         embeds_one :voting, Voting, on_replace: :delete
         embeds_one :moderation, Moderation, on_replace: :delete
+        embeds_many :impacts, Resolvinator.Content.Impact, on_replace: :delete
 
         # Common relationships
         belongs_to :creator, Resolvinator.Accounts.User
@@ -94,12 +95,13 @@ defmodule Resolvinator.Content.ContentBehavior do
       def base_changeset(struct, attrs) do
         struct
         |> cast(attrs, [
-          :name, :desc, :status, :visibility, :metadata, :tags,
+          :name, :description, :status, :visibility, :metadata, :tags,
           :priority, :creator_id, :project_id
         ])
         |> cast_embed(:voting)
         |> cast_embed(:moderation)
-        |> validate_required([:name, :desc, :creator_id])
+        |> cast_embed(:impacts)
+        |> validate_required([:name, :description, :creator_id])
         |> validate_inclusion(:status, @status_values)
         |> validate_inclusion(:visibility, ~w(public private))
         |> validate_number(:priority, greater_than_or_equal_to: 0)
@@ -136,7 +138,9 @@ defmodule Resolvinator.Content.ContentBehavior do
 
       # Define the default changeset function that can be overridden
       def changeset(struct, attrs) do
-        base_changeset(struct, attrs)
+        struct
+        |> base_changeset(attrs)
+        |> cast_assoc(:impacts)
       end
 
       # Common content functions

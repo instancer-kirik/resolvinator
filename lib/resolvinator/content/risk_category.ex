@@ -4,7 +4,7 @@ defmodule Resolvinator.Content.RiskCategory do
 
   schema "risk_categories" do
     field :name, :string
-    field :desc, :string
+    field :description, :string
     belongs_to :creator, Resolvinator.Accounts.User
     belongs_to :project, Resolvinator.Projects.Project
 
@@ -13,7 +13,7 @@ defmodule Resolvinator.Content.RiskCategory do
 
   def changeset(risk_category, attrs) do
     risk_category
-    |> cast(attrs, [:name, :desc, :creator_id, :project_id])
-    |> validate_required([:name, :desc, :creator_id, :project_id])
+    |> cast(attrs, [:name, :description, :creator_id, :project_id])
+    |> validate_required([:name, :description, :creator_id, :project_id])
   end
 end 

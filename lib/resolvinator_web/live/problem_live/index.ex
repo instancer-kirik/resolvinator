@@ -1,5 +1,6 @@
 defmodule ResolvinatorWeb.ProblemLive.Index do
   use ResolvinatorWeb, :live_view
+  require Logger
 
   alias Resolvinator.Content
   alias Resolvinator.Content.Problem
@@ -8,6 +9,7 @@ defmodule ResolvinatorWeb.ProblemLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    Logger.debug("Mounting ProblemLive.Index")
     if socket.assigns.current_user do
       {:ok, stream(socket, :problems, Content.list_problems())}
     else

@@ -5,7 +5,7 @@ defmodule Resolvinator.Repo.Migrations.CreateAdvantages do
     create table(:advantages, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :name, :string, null: false
-      add :desc, :string, null: false
+      add :description, :string, null: false
       add :upvotes, :integer, default: 0
       add :downvotes, :integer, default: 0
       add :status, :string, default: "initial"

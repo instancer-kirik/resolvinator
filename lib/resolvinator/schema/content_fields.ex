@@ -8,7 +8,7 @@ defmodule Resolvinator.Schema.ContentFields do
   defmacro content_fields do
     quote do
       field :name, :string
-      field :desc, :string
+      field :description, :string
       field :status, :string, default: "initial"
       field :visibility, :string, default: "public"
       field :metadata, :map, default: %{}
@@ -26,7 +26,7 @@ defmodule Resolvinator.Schema.ContentFields do
     quote do
       add :id, :binary_id, primary_key: true
       add :name, :string, null: false
-      add :desc, :string, null: false
+      add :description, :string, null: false
       add :status, :string, default: "initial"
       add :visibility, :string, default: "public"
       add :metadata, :map, default: %{}

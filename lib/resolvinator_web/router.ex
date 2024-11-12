@@ -223,6 +223,8 @@ defmodule ResolvinatorWeb.Router do
       live "/projects/:id/edit", ProjectLive.Index, :edit
       live "/projects/:id", ProjectLive.Show, :show
       live "/projects/:id/show/edit", ProjectLive.Show, :edit
+
+      live "/assistant", AssistantLive.Show, :show
     end
   end
 
