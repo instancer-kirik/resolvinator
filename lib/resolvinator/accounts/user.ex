@@ -111,7 +111,7 @@ defmodule Resolvinator.Accounts.User do
 
     if hash_password? && password && changeset.valid? do
       changeset
-      |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
+      |> put_change(:hashed_password, Pbkdf2.hash_pwd_salt(password))
       |> delete_change(:password)
     else
       changeset
@@ -182,19 +182,19 @@ defmodule Resolvinator.Accounts.User do
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call
-  `Bcrypt.no_user_verify/0` to avoid timing attacks.
+  `Pbkdf2.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(%Resolvinator.Accounts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and is_binary(password) do
     IO.inspect(password, label: "Checking password")
     IO.inspect(hashed_password, label: "Against hash")
-    result = Bcrypt.verify_pass(password, hashed_password)
+    result = Pbkdf2.verify_pass(password, hashed_password)
     IO.inspect(result, label: "Password verification result")
     result
   end
 
   def valid_password?(_, _) do
-    Bcrypt.no_user_verify()
+    Pbkdf2.no_user_verify()
     false
   end
 
