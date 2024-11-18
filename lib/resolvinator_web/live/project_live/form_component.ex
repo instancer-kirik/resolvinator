@@ -2,6 +2,7 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
   use ResolvinatorWeb, :live_component
 
   alias Resolvinator.Projects
+  alias Resolvinator.Accounts
 
   @impl true
   def render(assigns) do
@@ -21,11 +22,22 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
       >
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="text" label="Description" />
-        <.input field={@form[:status]} type="text" label="Status" />
-        <.input field={@form[:risk_appetite]} type="text" label="Risk appetite" />
+        <.input field={@form[:status]} type="select" label="Status" 
+                options={[{"Planning", "planning"}, {"Active", "active"}, 
+                         {"On Hold", "on_hold"}, {"Completed", "completed"}, 
+                         {"Archived", "archived"}]} />
+        <.input field={@form[:risk_appetite]} type="select" label="Risk appetite" 
+                options={[{"Averse", "averse"}, {"Minimal", "minimal"}, 
+                         {"Cautious", "cautious"}, {"Flexible", "flexible"}, 
+                         {"Aggressive", "aggressive"}]} />
         <.input field={@form[:start_date]} type="date" label="Start date" />
         <.input field={@form[:target_date]} type="date" label="Target date" />
         <.input field={@form[:completion_date]} type="date" label="Completion date" />
+        
+        <%= if @action == :new do %>
+          <.input field={@form[:creator_id]} type="hidden" value={@current_user_id} />
+        <% end %>
+
         <:actions>
           <.button phx-disable-with="Saving...">Save Project</.button>
         </:actions>
@@ -36,18 +48,23 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
 
   @impl true
   def update(%{project: project} = assigns, socket) do
+    changeset = Projects.change_project(project)
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_new(:form, fn ->
-       to_form(Projects.change_project(project))
-     end)}
+     |> assign_new(:current_user_id, fn -> assigns[:current_user_id] end)
+     |> assign_form(changeset)}
   end
 
   @impl true
   def handle_event("validate", %{"project" => project_params}, socket) do
-    changeset = Projects.change_project(socket.assigns.project, project_params)
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+    changeset =
+      socket.assigns.project
+      |> Projects.change_project(project_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign_form(socket, changeset)}
   end
 
   def handle_event("save", %{"project" => project_params}, socket) do
@@ -65,7 +82,7 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign_form(socket, changeset)}
     end
   end
 
@@ -80,8 +97,12 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign_form(socket, changeset)}
     end
+  end
+
+  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
+    assign(socket, :form, to_form(changeset))
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

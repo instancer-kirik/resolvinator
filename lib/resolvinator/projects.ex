@@ -6,7 +6,7 @@ defmodule Resolvinator.Projects do
   import Ecto.Query, warn: false
   alias Resolvinator.Repo
 
-  alias Resolvinator.Projects.Project
+  alias Resolvinator.Projects.{Project, OwnershipToken}
 
   @doc """
   Returns the list of projects.
@@ -116,5 +116,56 @@ defmodule Resolvinator.Projects do
   """
   def get_project_by_name(name) do
     Repo.get_by(Project, name: name)
+  end
+
+  @doc """
+  Claims ownership of a project for a user.
+
+  ## Examples
+
+      iex> claim_project(project, user)
+      {:ok, %Project{}}
+
+      iex> claim_project(project, user)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def claim_project(%Project{} = project, user_id) when is_binary(user_id) do
+    if is_nil(project.creator_id) do
+      project
+      |> Project.changeset(%{creator_id: user_id})
+      |> Repo.update()
+    else
+      {:error, :already_claimed}
+    end
+  end
+
+  @doc """
+  Claims ownership of a project using a token.
+  Returns {:ok, project} if successful, {:error, reason} otherwise.
+  """
+  def claim_project_with_token(%Project{} = project, token, user_id) when is_binary(user_id) do
+    with :ok <- OwnershipToken.verify_token_hash(token, project.ownership_token_hash, project),
+         {:ok, project} <- claim_project(project, user_id) do
+      # Clear the token after successful claim
+      project
+      |> Project.ownership_token_changeset(nil)
+      |> Repo.update()
+    end
+  end
+
+  @doc """
+  Generates a new ownership token for a project.
+  Returns {token, project} where token is the string to be shared.
+  """
+  def generate_ownership_token(%Project{} = project) do
+    {token, hash} = OwnershipToken.generate_token_pair(project)
+    
+    {:ok, project} =
+      project
+      |> Project.ownership_token_changeset(hash)
+      |> Repo.update()
+
+    {token, project}
   end
 end

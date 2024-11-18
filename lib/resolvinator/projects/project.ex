@@ -107,6 +107,10 @@ defmodule Resolvinator.Projects.Project do
       }
     }
 
+    # Ownership token
+    field :ownership_token_hash, :string
+    field :ownership_token_generated_at, :utc_datetime
+
     # Relationships
     belongs_to :creator, Resolvinator.Accounts.User, type: :binary_id
     has_many :risks, Resolvinator.Risks.Risk
@@ -136,13 +140,21 @@ defmodule Resolvinator.Projects.Project do
     project
     |> cast(attrs, [:name, :description, :status, :risk_appetite, 
                     :start_date, :target_date, :completion_date, 
-                    :settings, :creator_id, :project_type])
+                    :settings, :creator_id, :project_type, 
+                    :ownership_token_hash, :ownership_token_generated_at])
     |> validate_required([:name, :risk_appetite, :creator_id])
     |> validate_inclusion(:status, @status_values)
     |> validate_inclusion(:risk_appetite, @risk_appetite_values)
     |> validate_settings()
     |> validate_type_specific_settings()
     |> foreign_key_constraint(:creator_id)
+  end
+
+  def ownership_token_changeset(project, token_hash) do
+    project
+    |> change()
+    |> put_change(:ownership_token_hash, token_hash)
+    |> put_change(:ownership_token_generated_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 
   defp validate_settings(changeset) do

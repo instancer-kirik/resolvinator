@@ -3,6 +3,13 @@ defmodule Resolvinator.Projects.ProjectType do
 	Defines the behaviour and implementation for different project types.
 	Project types can implement additional behaviors like Calendar functionality
 	through the Resolvinator.Projects.Behaviors.* modules.
+
+	Supports natural language processing for:
+	- Project type classification
+	- Cause analysis
+	- Requirements extraction
+	- Risk assessment
+	- Resource allocation suggestions
 	"""
 
 	@doc """
@@ -10,96 +17,26 @@ defmodule Resolvinator.Projects.ProjectType do
 	Must return :ok or {:error, message}
 	"""
 	@callback validate_settings(settings :: map()) :: :ok | {:error, String.t()}
-1. Software Development Projects
-Causes:
-Technological Advancements: Development of new frameworks or technologies.
-Customer Demand: Need for new applications or features.
-Business Expansion: Company growth requiring new internal tools or platforms.
-Process Automation: Reducing manual work to increase efficiency.
-2. Construction Projects
-Causes:
-Urban Development: Population growth requiring housing and infrastructure.
-Business Expansion: Building new offices or industrial facilities.
-Public Infrastructure: Government projects like roads, bridges, and airports.
-Renovation and Repairs: Upgrading existing structures for safety or aesthetics.
-3. Research and Development (R&D) Projects
-Causes:
-Innovation Goals: Creating new products or improving existing ones.
-Competitive Advantage: Staying ahead of competitors.
-Regulatory Compliance: Meeting new legal standards.
-Scientific Inquiry: Advancing knowledge in specific fields.
-4. Marketing and Branding Projects
-Causes:
-Market Penetration: Expanding brand visibility.
-Product Launches: Promoting new products or services.
-Rebranding Efforts: Updating company image or message.
-Seasonal Campaigns: Targeting holidays or special events.
-5. IT Infrastructure Projects
-Causes:
-System Upgrades: Replacing outdated hardware or software.
-Cybersecurity Needs: Protecting against evolving threats.
-Scalability Requirements: Supporting business growth.
-Disaster Recovery Planning: Preparing for potential data loss.
-6. Educational and Training Projects
-Causes:
-Skill Development: Training employees or students in new skills.
-Curriculum Updates: Adapting to new educational standards.
-Onboarding Programs: Integrating new employees or students.
-Public Outreach: Spreading awareness about important topics.
-7. Environmental Projects
-Causes:
-Sustainability Goals: Reducing carbon footprint and environmental impact.
-Conservation Efforts: Protecting natural habitats and wildlife.
-Waste Management: Improving recycling and waste reduction.
-Regulatory Compliance: Meeting environmental laws.
-8. Healthcare Projects
-Causes:
-Public Health Initiatives: Responding to health crises (e.g., pandemics).
-Facility Upgrades: Building or updating hospitals and clinics.
-Medical Research: Developing new treatments or vaccines.
-Patient Care Improvements: Enhancing healthcare services and systems.
-9. Nonprofit and Community Projects
-Causes:
-Social Welfare: Addressing homelessness, hunger, or other community needs.
-Educational Outreach: Providing resources and support for underprivileged groups.
-Cultural Preservation: Protecting historical sites and traditions.
-Disaster Relief: Responding to natural disasters or emergencies.
-10. Financial and Economic Projects
-Causes:
-Economic Stimulus: Boosting the economy through targeted investments.
-New Business Ventures: Launching startups or financial services.
-Cost Reduction: Implementing strategies to reduce company expenses.
-Compliance Projects: Meeting new financial regulations.
-11. Creative and Artistic Projects
-Causes:
-Cultural Expression: Supporting artists, music, theater, and film.
-Innovation in Design: Exploring new trends in art and design.
-Public Art Initiatives: Beautifying communities and public spaces.
-Event Planning: Organizing concerts, exhibitions, and festivals.
-12. Logistics and Supply Chain Projects
-Causes:
-Efficiency Optimization: Streamlining supply chain processes.
-Distribution Expansion: Reaching new markets and areas.
-Technological Integration: Implementing new logistics software.
-Risk Management: Addressing vulnerabilities in supply routes.
-13. Energy Projects
-Causes:
-Renewable Energy Goals: Installing solar, wind, or hydroelectric systems.
-Energy Efficiency: Upgrading to more efficient power sources.
-Infrastructure Development: Building power plants and grids.
-Sustainability Commitments: Reducing reliance on fossil fuels.
-14. Policy and Governance Projects
-Causes:
-Legislative Changes: Enforcing new laws or regulations.
-Public Administration: Implementing better governance systems.
-Public Safety: Enhancing law enforcement and emergency response.
-International Relations: Diplomatic projects and peacekeeping missions.
-15. Product Management and Enhancement Projects
-Causes:
-Feature Requests: Adding new capabilities to existing products.
-Quality Improvements: Refining product features or user experience.
-User Feedback: Addressing customer concerns or suggestions.
-Market Adaptation: Adjusting to competitor offerings.
+
+	@doc """
+	Analyzes project description using NLP to suggest project type and settings.
+	"""
+	@callback analyze_description(description :: String.t()) :: 
+		{:ok, %{type: String.t(), confidence: float(), settings: map()}} | 
+		{:error, String.t()}
+
+	@doc """
+	Extracts key requirements and goals from natural language description.
+	"""
+	@callback extract_requirements(description :: String.t()) ::
+		{:ok, list(String.t())} | {:error, String.t()}
+
+	@doc """
+	Performs risk analysis based on project description and type.
+	"""
+	@callback analyze_risks(description :: String.t(), settings :: map()) ::
+		{:ok, list(%{risk: String.t(), probability: float(), impact: float()})} |
+		{:error, String.t()}
 
 	@doc """
 	Returns the default settings for a specific project type.
@@ -111,6 +48,7 @@ Market Adaptation: Adjusting to competitor offerings.
 	"""
 	@callback required_fields() :: list(atom())
 
+	# Project Types with their implementations
 	@project_types %{
 		"software" => Resolvinator.Projects.Types.Software,
 		"research" => Resolvinator.Projects.Types.Research,
@@ -126,9 +64,15 @@ Market Adaptation: Adjusting to competitor offerings.
 		"energy" => Resolvinator.Projects.Types.Energy,
 		"policy" => Resolvinator.Projects.Types.Policy,
 		"financial" => Resolvinator.Projects.Types.Financial,
-		"product" => Resolvinator.Projects.Types.Product
-
+		"product" => Resolvinator.Projects.Types.Product,
+		"multimedia" => Resolvinator.Projects.Types.Multimedia,
+		"analytics" => Resolvinator.Projects.Types.Analytics,
+		"sports" => Resolvinator.Projects.Types.Sports
 	}
+
+	# NLP-based classification thresholds
+	@confidence_threshold 0.75
+	@similarity_threshold 0.85
 
 	@doc """
 	Gets the implementation module for a given project type.
@@ -154,11 +98,85 @@ Market Adaptation: Adjusting to competitor offerings.
 			"development" => ["software", "product"],
 			"infrastructure" => ["infrastructure", "construction", "energy"],
 			"research_and_innovation" => ["research", "healthcare"],
-			"business" => ["marketing", "financial", "logistics"],
+			"business" => ["marketing", "financial", "logistics", "analytics"],
 			"social" => ["education", "nonprofit", "policy"],
-			"creative" => ["creative"],
-			"sustainability" => ["environmental"]
-
+			"creative" => ["creative", "multimedia"],
+			"sustainability" => ["environmental"],
+			"sports_and_entertainment" => ["sports"]
 		}
+	end
+
+	@doc """
+	Analyzes a project description and suggests the most appropriate project type
+	along with confidence score and initial settings.
+	"""
+	def analyze_project_description(description) when is_binary(description) do
+		with {:ok, embeddings} <- Resolvinator.NLP.get_embeddings(description),
+				{type, confidence} <- classify_project_type(embeddings),
+				{:ok, settings} <- extract_default_settings(type, description) do
+			{:ok, %{
+				type: type,
+				confidence: confidence,
+				settings: settings,
+				suggested_requirements: extract_suggested_requirements(description, type),
+				potential_risks: analyze_potential_risks(description, type)
+			}}
+		end
+	end
+	def analyze_project_description(_), do: {:error, "Invalid project description"}
+
+	@doc """
+	Extracts key phrases and requirements from a project description using NLP.
+	"""
+	def extract_key_phrases(description) when is_binary(description) do
+		Resolvinator.NLP.extract_key_phrases(description)
+	end
+
+	@doc """
+	Performs semantic similarity comparison between project descriptions.
+	"""
+	def compare_projects(description1, description2) when is_binary(description1) and is_binary(description2) do
+		with {:ok, emb1} <- Resolvinator.NLP.get_embeddings(description1),
+				{:ok, emb2} <- Resolvinator.NLP.get_embeddings(description2) do
+			similarity = Resolvinator.NLP.compute_similarity(emb1, emb2)
+			{:ok, similarity}
+		end
+	end
+
+	# Private functions
+
+	defp classify_project_type(embeddings) do
+		# Implement classification logic using embeddings and project type characteristics
+		# Returns {project_type, confidence_score}
+		# This is a placeholder - actual implementation would use proper ML model
+		{"software", 0.95}
+	end
+
+	defp extract_default_settings(type, description) do
+		case get_implementation(type) do
+			nil -> {:error, "Unsupported project type"}
+			module -> 
+				settings = module.default_settings()
+				{:ok, enhance_settings_with_nlp(settings, description)}
+		end
+	end
+
+	defp enhance_settings_with_nlp(settings, description) do
+		# Enhance default settings using NLP insights
+		# This is a placeholder - actual implementation would analyze the description
+		# and adjust settings accordingly
+		settings
+	end
+
+	defp extract_suggested_requirements(description, type) do
+		# Extract requirements using NLP
+		# This is a placeholder - actual implementation would use proper NLP analysis
+		[]
+	end
+
+	defp analyze_potential_risks(description, type) do
+		# Analyze risks using NLP
+		# This is a placeholder - actual implementation would use proper risk analysis
+		[]
 	end
 end

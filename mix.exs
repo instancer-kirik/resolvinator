@@ -31,13 +31,13 @@ defmodule Resolvinator.MixProject do
     [
       # Core Phoenix
       {:phoenix, "~> 1.7.12"},
-      {:phoenix_ecto, "~> 4.4"},
+      {:phoenix_ecto, "~> 4.6.3"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_live_view, "~> 1.0.0-rc.6"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:bandit, "~> 1.2"},
+      {:bandit, "~> 1.6.0"},
 
       # Development
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -51,24 +51,25 @@ defmodule Resolvinator.MixProject do
 
       # API
       {:open_api_spex, "~> 3.16"},
-      {:jason, "~> 1.2"},
+      {:jason, "~> 1.4"},
 
-      # Caching
+      # Caching & Performance
       {:cachex, "~> 3.6"},
       {:hammer, "~> 6.1"},
 
       # Email
-      {:swoosh, "~> 1.5"},
-      {:finch, "~> 0.13"},
+      {:swoosh, "~> 1.17.3"},
+      {:finch, "~> 0.16"},
 
       # Monitoring
-      {:telemetry_metrics, "~> 1.0.0"},
-      {:telemetry_poller, "~> 1.1.0"},
+      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_poller, "~> 1.1"},
 
       # Utilities
-      {:gettext, "~> 0.20"},
+      {:gettext, "~> 0.26.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:flint, "~> 0.4"},
+      {:flint, "~> 0.5.1"},
+      {:castore, "~> 1.0.10"},
 
       # Assets
       {:heroicons,
@@ -79,18 +80,23 @@ defmodule Resolvinator.MixProject do
        compile: false,
        depth: 1},
 
-      # Testing
+      # ML & NLP Stack
+      {:langchain, "~> 0.1.0"},
+      {:req, "~> 0.5.7"},
+      {:openai, "~> 0.5.2"},
+      {:ollama, "~> 0.1"},
+
+      # Testing & Analysis
       {:floki, ">= 0.30.0", only: :test},
-      # Analysis (dev/test only)
       {:kino, "~> 0.13.0", only: [:dev, :test], runtime: false},
-      {:vega_lite, "~> 0.1.8", only: [:dev, :test], runtime: false},
+      {:vega_lite, "~> 0.1.11", only: [:dev, :test], runtime: false},
       {:explorer, "~> 0.8.0", only: [:dev, :test], runtime: false},
       {:nx, "~> 0.7.0", only: [:dev, :test], runtime: false},
       {:flame, "~> 0.3.0", only: [:dev, :test], runtime: false},
       {:mogrify, "~> 0.9.3"},
       {:guardian, "~> 2.3"},
       {:corsica, "~> 2.1"},
-      {:httpoison, "~> 2.0"},
+      {:httpoison, "~> 2.0"}
     ]
   end
 
