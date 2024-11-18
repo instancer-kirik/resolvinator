@@ -18,7 +18,6 @@ defmodule Resolvinator.Risks do
   alias Resolvinator.Repo
 
   alias Resolvinator.Risks.Category
-  alias Resolvinator.Content.RiskCategory
 
   @doc """
   Returns the list of risk_categories.
@@ -730,6 +729,6 @@ defmodule Resolvinator.Risks do
   # Similar functions for mitigations
 
   def get_category_by_name(name) do
-    Repo.one(from c in RiskCategory, where: c.name == ^name)
+    Repo.one(from c in Category, where: c.name == ^name)
   end
 end

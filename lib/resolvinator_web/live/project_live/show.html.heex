@@ -1,10 +1,17 @@
 <.header>
-  Project <%= @project.id %>
-  <:subtitle>This is a project record from your database.</:subtitle>
+  <%= @project.name %>
+  <:subtitle><%= @project.description %></:subtitle>
   <:actions>
-    <.link patch={~p"/projects/#{@project}/show/edit"} phx-click={JS.push_focus()}>
+    <.link patch={~p"/projects/#{@project}/show/edit"}>
       <.button>Edit project</.button>
     </.link>
+    <%= if @project.ship do %>
+      <.link navigate={~p"/wonderdome/#{@project.ship.id}"}>
+        <.button>View in Wonderdome</.button>
+      </.link>
+    <% else %>
+      <.button phx-click="create_ship">Launch Ship</.button>
+    <% end %>
   </:actions>
 </.header>
 

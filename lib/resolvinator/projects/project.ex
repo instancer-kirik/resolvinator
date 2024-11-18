@@ -12,6 +12,7 @@ defmodule Resolvinator.Projects.Project do
     field :name, :string
     field :description, :string
     field :status, :string, default: "planning"
+    field :project_type, :string
     field :risk_appetite, :string
     field :start_date, :date
     field :target_date, :date
@@ -125,6 +126,9 @@ defmodule Resolvinator.Projects.Project do
     has_many :resources, Resolvinator.Resources.Resource
     has_many :rewards, Resolvinator.Rewards.Reward
 
+    # Add ship relationship
+    has_many :ships, Resolvinator.Ships.Ship
+
     timestamps(type: :utc_datetime)
   end
 
@@ -132,11 +136,12 @@ defmodule Resolvinator.Projects.Project do
     project
     |> cast(attrs, [:name, :description, :status, :risk_appetite, 
                     :start_date, :target_date, :completion_date, 
-                    :settings, :creator_id])
+                    :settings, :creator_id, :project_type])
     |> validate_required([:name, :risk_appetite, :creator_id])
     |> validate_inclusion(:status, @status_values)
     |> validate_inclusion(:risk_appetite, @risk_appetite_values)
     |> validate_settings()
+    |> validate_type_specific_settings()
     |> foreign_key_constraint(:creator_id)
   end
 
@@ -175,5 +180,34 @@ defmodule Resolvinator.Projects.Project do
     last_review = risk.review_date || risk.detection_date
     
     Date.diff(Date.utc_today(), last_review) >= review_period
+  end
+
+  defp validate_type_specific_settings(changeset) do
+    with project_type when not is_nil(project_type) <- get_field(changeset, :project_type),
+         settings when not is_nil(settings) <- get_field(changeset, :settings) do
+      case ProjectType.get_implementation(project_type) do
+        nil -> 
+          add_error(changeset, :project_type, "invalid project type")
+        implementation ->
+          case implementation.validate_settings(settings) do
+            :ok -> changeset
+            {:error, message} -> add_error(changeset, :settings, message)
+          end
+      end
+    else
+      _ -> changeset
+    end
+  end
+
+  def new_project(project_type, attrs \\ %{}) do
+    case ProjectType.get_implementation(project_type) do
+      nil -> 
+        {:error, "Invalid project type"}
+      implementation ->
+        default_settings = implementation.default_settings()
+        %__MODULE__{}
+        |> cast(Map.put(attrs, "settings", default_settings), [:name, :project_type, :settings])
+        |> validate_required(implementation.required_fields())
+    end
   end
 end 
