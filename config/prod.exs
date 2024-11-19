@@ -31,16 +31,19 @@ config :logger, level: :info
 config :resolvinator,
   fabric_endpoint: System.get_env("FABRIC_API_ENDPOINT"),
   fabric_key: System.get_env("FABRIC_API_KEY")
-# config/prod.exs
+
+# Crypto reward mainnet configuration
 config :resolvinator, Resolvinator.Rewards.CryptoReward,
   use_testnet: false,
   mainnet_fallback_nodes: [
     ethereum: [
-      "https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY",
-      "https://mainnet.infura.io/v3/YOUR-PROJECT-ID"
+      System.get_env("ETHEREUM_MAINNET_RPC_1", "https://eth-mainnet.g.alchemy.com/v2/#{System.get_env("ALCHEMY_API_KEY")}"),
+      System.get_env("ETHEREUM_MAINNET_RPC_2", "https://mainnet.infura.io/v3/#{System.get_env("INFURA_PROJECT_ID")}")
     ],
     polygon: [
-      "https://polygon-rpc.com",
-      "https://rpc-mainnet.matic.network"
+      System.get_env("POLYGON_MAINNET_RPC_1", "https://polygon-rpc.com"),
+      System.get_env("POLYGON_MAINNET_RPC_2", "https://rpc-mainnet.matic.network")
     ]
   ]
+
+# config/prod.exs

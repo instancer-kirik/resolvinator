@@ -35,7 +35,7 @@ defmodule Resolvinator.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_view, "~> 1.0.0-rc.6"},
+      {:phoenix_live_view, "~> 0.20.17"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:bandit, "~> 1.6.0"},
 
@@ -101,7 +101,7 @@ defmodule Resolvinator.MixProject do
       {:kino, "~> 0.13.0", only: [:dev, :test], runtime: false},
       {:vega_lite, "~> 0.1.11", only: [:dev, :test], runtime: false},
       {:explorer, "~> 0.8.0", only: [:dev, :test], runtime: false},
-      {:nx, "~> 0.7.0", only: [:dev, :test], runtime: false},
+      {:nx, "~> 0.9", only: [:dev, :test], runtime: false},
       {:flame, "~> 0.3.0", only: [:dev, :test], runtime: false},
       {:mogrify, "~> 0.9.3"},
       {:guardian, "~> 2.3"},

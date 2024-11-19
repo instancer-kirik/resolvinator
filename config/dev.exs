@@ -103,8 +103,8 @@ config :resolvinator,
 config :resolvinator, Resolvinator.Rewards.CryptoReward,
   use_testnet: true,
   testnet_config: %{
-    ethereum: "https://sepolia.infura.io/v3/YOUR-PROJECT-ID",
-    polygon: "https://rpc-mumbai.maticvigil.com",
-    solana: "https://api.devnet.solana.com",
-    bitcoin: "https://testnet-api.smartbit.com.au/v1/blockchain"
+    ethereum: System.get_env("ETHEREUM_TESTNET_RPC", "https://sepolia.infura.io/v3/#{System.get_env("INFURA_PROJECT_ID")}"),
+    polygon: System.get_env("POLYGON_TESTNET_RPC", "https://rpc-mumbai.maticvigil.com"),
+    solana: System.get_env("SOLANA_TESTNET_RPC", "https://api.devnet.solana.com"),
+    bitcoin: System.get_env("BITCOIN_TESTNET_RPC", "https://testnet-api.smartbit.com.au/v1/blockchain")
   }

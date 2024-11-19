@@ -1,0 +1,257 @@
+# Untitled notebook
+
+## Overview
+
+This Livebook provides a comprehensive overview of the serializable datatypes in the Resolvinator system. We'll explore the schema definitions, relationships, and common patterns used throughout the codebase.
+
+## Setup
+
+First, let's set up our dependencies:
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.9"},
+  {:vega_lite, "~> 0.1.6"},
+  {:kino_vega_lite, "~> 0.1.7"}
+])
+```
+
+## Core Content Types
+
+Let's visualize our core content types using Mermaid diagrams:
+
+```mermaid
+classDiagram
+    class Document {
+        +String title
+        +String content
+        +List[Attachment] attachments
+        +DateTime inserted_at
+        +DateTime updated_at
+    }
+    
+    class Ship {
+        +String name
+        +String description
+        +List[Event] events
+        +Map metadata
+    }
+    
+    class Event {
+        +String title
+        +String description
+        +String type
+        +Map metadata
+        +DateTime occurred_at
+    }
+    
+    class Message {
+        +String content
+        +User sender
+        +List[Attachment] attachments
+        +DateTime sent_at
+    }
+
+    Document --> Attachment
+    Ship --> Event
+    Message --> Attachment
+```
+
+## Attachment System
+
+The attachment system is designed to be flexible and extensible:
+
+```elixir
+# Example of how attachments are structured
+attachment_example = %{
+  base_attachment: %{
+    filename: "example.png",
+    content_type: "image/png",
+    data: <<binary_data::binary>>,
+    metadata: %{
+      size: 1024,
+      dimensions: {800, 600}
+    }
+  },
+  
+  math_image: %{
+    latex: "\\frac{1}{2}",
+    svg: "<svg>...</svg>",
+    png: <<binary_data::binary>>,
+    metadata: %{
+      rendered_at: ~U[2023-01-01 00:00:00Z]
+    }
+  }
+}
+```
+
+## Content Types Visualization
+
+Let's create a Vega-Lite visualization showing the relationships between content types:
+
+```elixir
+alias VegaLite, as: Vl
+
+content_types = [
+  %{type: "Problem", children: 3, depth: 1},
+  %{type: "Solution", children: 2, depth: 2},
+  %{type: "Impact", children: 0, depth: 2},
+  %{type: "Advantage", children: 0, depth: 3}
+]
+
+Vl.new(width: 400, height: 200)
+|> Vl.data_from_values(content_types)
+|> Vl.mark(:bar)
+|> Vl.encode_field(:x, "type", type: :nominal)
+|> Vl.encode_field(:y, "children", type: :quantitative)
+|> Vl.encode_field(:color, "depth", type: :ordinal)
+```
+
+## Wonderdome Battle System
+
+The Wonderdome battle system uses a complex set of related schemas:
+
+```mermaid
+classDiagram
+    class Battle {
+        +String title
+        +String description
+        +List[BattleShip] ships
+        +List[Vote] votes
+        +List[Volley] volleys
+    }
+    
+    class BattleShip {
+        +ID ship_id
+        +Map position
+        +Map stats
+    }
+    
+    class Vote {
+        +ID user_id
+        +Integer value
+        +DateTime cast_at
+    }
+    
+    class Volley {
+        +ID source_ship
+        +ID target_ship
+        +Map damage
+        +DateTime fired_at
+    }
+
+    Battle --> BattleShip
+    Battle --> Vote
+    Battle --> Volley
+```
+
+## Supplier Management
+
+The supplier management system uses a hierarchical structure:
+
+```elixir
+# Example of supplier data structure
+supplier_example = %{
+  supplier: %{
+    name: "TechCorp",
+    contacts: [
+      %{
+        name: "John Doe",
+        email: "john@techcorp.com",
+        phone: "+1-555-0123"
+      }
+    ],
+    catalogs: [
+      %{
+        name: "2023 Components",
+        items: [
+          %{name: "Widget A", price: 99.99},
+          %{name: "Widget B", price: 149.99}
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Common Patterns and Best Practices
+
+### Content Behavior
+
+All content types typically implement the following behaviors:
+
+```elixir
+# Example of Content behavior implementation
+content_behavior = %{
+  versioning: [
+    version: 1,
+    created_at: ~U[2023-01-01 00:00:00Z],
+    updated_at: ~U[2023-01-01 00:00:00Z]
+  ],
+  
+  soft_deletion: [
+    deleted_at: nil,
+    deleted_by: nil
+  ],
+  
+  user_association: [
+    created_by_id: "user_123",
+    updated_by_id: "user_456"
+  ],
+  
+  metadata: %{
+    tags: ["important", "reviewed"],
+    category: "technical",
+    priority: 1
+  }
+}
+```
+
+### Serialization Support
+
+All types support multiple serialization formats:
+
+```elixir
+# Example of serialization options
+serialization_example = %{
+  json: "Standard JSON serialization for API responses",
+  live_view: "Phoenix.LiveView-specific serialization",
+  binary: "Efficient binary format for attachments",
+  embedded: "Support for embedded schemas"
+}
+```
+
+## Interactive Schema Explorer
+
+```elixir
+schemas = [
+  "Document",
+  "Ship",
+  "Event",
+  "Message",
+  "Attachment",
+  "MathImage",
+  "Problem",
+  "Solution",
+  "Impact",
+  "Battle",
+  "BattleShip",
+  "Vote",
+  "Supplier",
+  "Contact",
+  "Catalog"
+]
+
+Kino.Input.select("Select a schema to explore:", schemas)
+```
+
+## Conclusion
+
+The Resolvinator system uses a rich set of serializable datatypes that are designed to be:
+
+* Flexible and extensible
+* Well-documented and type-safe
+* Efficiently serializable
+* Easy to version and maintain
+
+For more details about specific schemas, refer to the corresponding schema files in the codebase.
