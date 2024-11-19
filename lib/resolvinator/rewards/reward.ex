@@ -8,13 +8,22 @@ defmodule Resolvinator.Rewards.Reward do
   schema "rewards" do
     field :name, :string
     field :description, :string
-    field :value, :integer
+    field :value, :decimal
+    field :currency, :string, default: "ETH"  # Can be USD, BTC, ETH, etc.
     field :status, Ecto.Enum, values: [:pending, :achieved, :expired, :revoked]
     field :achievement_date, :utc_datetime
     field :expiry_date, :utc_datetime
     field :criteria, :map
-    field :reward_type, Ecto.Enum, values: [:badge, :achievement, :milestone, :recognition, :risk]
+    field :reward_type, Ecto.Enum, values: [:badge, :achievement, :milestone, :recognition, :risk, :crypto]
     field :tier, Ecto.Enum, values: [:bronze, :silver, :gold, :platinum]
+
+    # Crypto reward specific fields
+    field :wallet_address, :string
+    field :transaction_hash, :string
+    field :blockchain, Ecto.Enum, values: [:ethereum, :bitcoin, :solana, :polygon]
+    field :token_contract, :string
+    field :token_id, :string  # For NFTs
+    field :token_standard, Ecto.Enum, values: [:erc20, :erc721, :erc1155, :native]
 
     # Risk reward specific fields
     field :probability, Ecto.Enum, values: [:rare, :unlikely, :possible, :likely, :certain]
@@ -38,14 +47,17 @@ defmodule Resolvinator.Rewards.Reward do
   def changeset(reward, attrs) do
     reward
     |> cast(attrs, [
-      :name, :description, :value, :status, :achievement_date,
+      :name, :description, :value, :currency, :status, :achievement_date,
       :expiry_date, :criteria, :reward_type, :tier,
+      :wallet_address, :transaction_hash, :blockchain, :token_contract,
+      :token_id, :token_standard,
       :probability, :timeline, :dependencies, :metadata,
       :project_id, :achiever_id, :creator_id, :risk_id, :mitigation_id,
       :resource_id
     ])
-    |> validate_required([:name, :value, :status, :reward_type])
+    |> validate_required([:name, :value, :currency, :status, :reward_type])
     |> validate_risk_reward_fields()
+    |> validate_crypto_reward_fields()
     |> validate_criteria()
     |> foreign_key_constraint(:project_id)
     |> foreign_key_constraint(:achiever_id)
@@ -65,7 +77,20 @@ defmodule Resolvinator.Rewards.Reward do
     if get_field(changeset, :reward_type) == :risk do
       changeset
       |> validate_required([:probability, :timeline])
-      |> validate_risk_dependencies()
+      |> validate_change(:dependencies, fn :dependencies, dependencies ->
+        if Enum.empty?(dependencies), do: [dependencies: "Risk rewards must have dependencies"], else: []
+      end)
+    else
+      changeset
+    end
+  end
+
+  defp validate_crypto_reward_fields(changeset) do
+    if get_field(changeset, :reward_type) == :crypto do
+      changeset
+      |> validate_required([:blockchain, :token_standard])
+      |> validate_wallet_address()
+      |> validate_token_fields()
     else
       changeset
     end
@@ -87,32 +112,4 @@ defmodule Resolvinator.Rewards.Reward do
     end
   end
 
-  defimpl Resolvinator.Rewards.RewardProtocol, for: Resolvinator.Rewards.Reward do
-    def to_map(reward) do
-      %{
-        "id" => reward.id,
-        "description" => reward.description,
-        "value" => reward.value,
-        "status" => Atom.to_string(reward.status),
-        "reward_type" => Atom.to_string(reward.reward_type),
-        "tier" => reward.tier && Atom.to_string(reward.tier),
-        "probability" => reward.probability && Atom.to_string(reward.probability),
-        "timeline" => reward.timeline && Atom.to_string(reward.timeline),
-        "dependencies" => reward.dependencies,
-        "metadata" => reward.metadata,
-        "achievement_date" => reward.achievement_date,
-        "expiry_date" => reward.expiry_date,
-        "criteria" => reward.criteria
-      }
-    end
-
-    def get_attributes(reward) do
-      %{
-        id: reward.id,
-        description: reward.description,
-        value: reward.value,
-        status: reward.status
-      }
-    end
-  end
 end

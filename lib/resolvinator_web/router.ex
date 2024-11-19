@@ -29,6 +29,8 @@ defmodule ResolvinatorWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/github", GitHubLive
+    live "/calendar", CalendarLive
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

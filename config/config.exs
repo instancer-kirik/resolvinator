@@ -42,18 +42,18 @@ config :esbuild,
   version: "0.17.11",
   resolvinator: [
     args: ~w(
-      js/app.js 
-      --bundle 
-      --target=es2017 
-      --outdir=../priv/static/assets 
-      --external:/fonts/* 
-      --external:/images/* 
-      --external:react 
-      --external:react-dom 
-      --external:react-router 
-      --external:@react-three/fiber 
-      --external:three 
-      --loader:.js=jsx 
+      js/app.js
+      --bundle
+      --target=es2017
+      --outdir=../priv/static/assets
+      --external:/fonts/*
+      --external:/images/*
+      --external:react
+      --external:react-dom
+      --external:react-router
+      --external:@react-three/fiber
+      --external:three
+      --loader:.js=jsx
       --loader:.jsx=jsx
       --loader:.ttf=file
       --loader:.woff=file
@@ -98,12 +98,6 @@ config :assent,
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
 
-# Add to your existing config:
-
-config :hammer,
-  backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 4,
-                                cleanup_interval_ms: 60_000 * 10]}
-
 # Optional: Configure different rate limits for different environments
 config :resolvinator, Resolvinator.Auth.RateLimiter,
   socket_connect_limit: 100,
@@ -140,3 +134,63 @@ config :resolvinator, Resolvinator.Guardian,
 config :resolvinator, Resolvinator.Repo,
   migration_primary_key: [type: :binary_id],
   migration_foreign_key: [type: :binary_id]
+# config/config.exs
+config :ex_money,
+  exchange_rates_retrieve_every: :timer.minutes(5),  # Cache exchange rates for 5 minutes
+  api_module: Money.ExchangeRates.OpenExchangeRates,
+  api_key: System.get_env("OPEN_EXCHANGE_RATES_API_KEY"),
+  default_currency: "USD"# config/config.exs
+config :resolvinator, Resolvinator.Rewards.CryptoReward,
+    ethereum_rpc_url: System.get_env("ETHEREUM_RPC_URL", "https://mainnet.infura.io/v3/YOUR-PROJECT-ID"),
+    polygon_rpc_url: System.get_env("POLYGON_RPC_URL", "https://polygon-rpc.com"),
+    solana_rpc_url: System.get_env("SOLANA_RPC_URL", "https://api.mainnet-beta.solana.com"),
+    bitcoin_rpc_url: System.get_env("BITCOIN_RPC_URL"),
+    # Default gas prices and limits
+    default_gas_price: 20, # in GWEI
+    default_gas_limit: 21000,
+    # Rate limiting for blockchain operations
+    blockchain_rate_limit: [
+      window_ms: :timer.minutes(1),
+      max_requests: 100
+    ]
+# config/config.exs
+config :hammer,
+  backend: {Hammer.Backend.ETS, [
+    expiry_ms: 60_000 * 60 * 4,
+    cleanup_interval_ms: 60_000 * 10
+  ]}
+
+config :resolvinator, Resolvinator.Rewards.RateLimiter,
+  crypto_transfer_limit: 50,  # Max transfers per window
+  crypto_transfer_window_ms: 60_000,  # 1 minute window
+  token_mint_limit: 20,  # Max NFT mints per window
+  token_mint_window_ms: 300_000  # 5 minute window
+# config/config.exs
+config :resolvinator, Resolvinator.Rewards.CryptoSecurity,
+  # Encryption for wallet keys
+  encryption_key: System.get_env("CRYPTO_ENCRYPTION_KEY"),
+  # Multi-sig requirements
+  required_signatures: 2,
+  authorized_signers: System.get_env("AUTHORIZED_SIGNERS", "") |> String.split(","),
+  # Transaction limits
+  max_transaction_value_usd: System.get_env("MAX_TRANSACTION_VALUE_USD", "10000") |> String.to_integer(),
+  require_approval_above_usd: System.get_env("REQUIRE_APPROVAL_ABOVE_USD", "1000") |> String.to_integer()# config/config.exs
+config :resolvinator, Resolvinator.Monitoring,
+    # Crypto-specific metrics
+    crypto_metrics: [
+      transaction_count: [
+        event_name: [:crypto, :transaction, :complete],
+        measurement: :count,
+        tags: [:blockchain, :token_type]
+      ],
+      transaction_value: [
+        event_name: [:crypto, :transaction, :value],
+        measurement: :sum,
+        tags: [:currency]
+      ],
+      gas_costs: [
+        event_name: [:crypto, :gas, :used],
+        measurement: :sum,
+        tags: [:blockchain]
+      ]
+    ]

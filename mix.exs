@@ -49,6 +49,11 @@ defmodule Resolvinator.MixProject do
       {:assent, "~> 0.2.9"},
       {:cors_plug, "~> 3.0"},
 
+      # Crypto & Money
+      {:ex_money, "~> 5.15"},
+      {:decimal, "~> 2.1"},
+      {:httpoison, "~> 2.0"},
+
       # API
       {:open_api_spex, "~> 3.16"},
       {:jason, "~> 1.4"},
@@ -70,6 +75,11 @@ defmodule Resolvinator.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:flint, "~> 0.5.1"},
       {:castore, "~> 1.0.10"},
+      {:plug_cowboy, "~> 2.5"},
+      {:tentacat, "~> 2.2"},
+      {:git_cli, "~> 0.3"},
+
+      {:deepscape, in_umbrella: true},
 
       # Assets
       {:heroicons,
@@ -95,8 +105,7 @@ defmodule Resolvinator.MixProject do
       {:flame, "~> 0.3.0", only: [:dev, :test], runtime: false},
       {:mogrify, "~> 0.9.3"},
       {:guardian, "~> 2.3"},
-      {:corsica, "~> 2.1"},
-      {:httpoison, "~> 2.0"}
+      {:corsica, "~> 2.1"}
     ]
   end
 

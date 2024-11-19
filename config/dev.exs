@@ -99,3 +99,12 @@ config :resolvinator,
   azure_client_id: System.get_env("AZURE_CLIENT_ID"),
   azure_client_secret: System.get_env("AZURE_CLIENT_SECRET"),
   enable_ai_validations: false  # Enable this only when you have proper Azure credentials
+# config/dev.exs
+config :resolvinator, Resolvinator.Rewards.CryptoReward,
+  use_testnet: true,
+  testnet_config: %{
+    ethereum: "https://sepolia.infura.io/v3/YOUR-PROJECT-ID",
+    polygon: "https://rpc-mumbai.maticvigil.com",
+    solana: "https://api.devnet.solana.com",
+    bitcoin: "https://testnet-api.smartbit.com.au/v1/blockchain"
+  }
