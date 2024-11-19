@@ -50,7 +50,6 @@ defmodule Resolvinator.Ships.Ship do
     field :battles_participated, :integer, default: 0
     field :total_feedback_received, :integer, default: 0
     
-    belongs_to :project, Resolvinator.Projects.Project
     has_many :battle_appearances, Resolvinator.Wonderdome.BattleShip
     
     timestamps(type: :utc_datetime)

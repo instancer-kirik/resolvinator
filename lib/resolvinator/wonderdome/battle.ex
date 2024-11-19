@@ -25,10 +25,18 @@ defmodule Resolvinator.Wonderdome.Battle do
     
     timestamps(type: :utc_datetime)
   end
+
+  def changeset(battle, attrs) do
+    battle
+    |> cast(attrs, [:status, :title, :description, :scheduled_start, :scheduled_end, :winner_id, :vote_counts, :ship_one_id, :ship_two_id])
+    |> validate_required([:title, :scheduled_start, :scheduled_end])
+    |> validate_inclusion(:status, ["preparing", "active", "completed"])
+  end
 end
 
 defmodule Resolvinator.Wonderdome.Vote do
   use Ecto.Schema
+  import Ecto.Changeset
   
   schema "wonderdome_votes" do
     belongs_to :battle, Resolvinator.Wonderdome.Battle
@@ -44,10 +52,17 @@ defmodule Resolvinator.Wonderdome.Vote do
     
     timestamps(type: :utc_datetime)
   end
+
+  def changeset(vote, attrs) do
+    vote
+    |> cast(attrs, [:categories, :battle_id, :user_id, :ship_id])
+    |> validate_required([:categories, :battle_id, :user_id, :ship_id])
+  end
 end
 
 defmodule Resolvinator.Wonderdome.Feedback do
   use Ecto.Schema
+  import Ecto.Changeset
   
   schema "wonderdome_feedback" do
     belongs_to :battle, Resolvinator.Wonderdome.Battle
@@ -60,6 +75,14 @@ defmodule Resolvinator.Wonderdome.Feedback do
     field :anonymous, :boolean, default: false
     
     timestamps(type: :utc_datetime)
+  end
+
+  def changeset(feedback, attrs) do
+    feedback
+    |> cast(attrs, [:type, :content, :category, :anonymous, :battle_id, :user_id, :ship_id])
+    |> validate_required([:type, :content, :category, :battle_id, :ship_id])
+    |> validate_inclusion(:type, ["praise", "suggestion", "question"])
+    |> validate_inclusion(:category, ["code", "design", "concept"])
   end
 end
 
@@ -85,6 +108,12 @@ defmodule Resolvinator.Wonderdome.BattleShip do
 
     timestamps(type: :utc_datetime)
   end
+
+  def changeset(battle_ship, attrs) do
+    battle_ship
+    |> cast(attrs, [:position, :ready_status, :score, :battle_id, :ship_id])
+    |> validate_required([:battle_id, :ship_id])
+  end
 end
 
 defmodule Resolvinator.Wonderdome.Volley do
@@ -109,4 +138,14 @@ defmodule Resolvinator.Wonderdome.Volley do
     field :context, :map
 
     timestamps(type: :utc_datetime)
-  end 
+  end
+
+  def changeset(volley, attrs) do
+    volley
+    |> cast(attrs, [:feedback_type, :content, :category, :impact_score, :context, :battle_id, :from_ship_id, :to_ship_id, :user_id])
+    |> validate_required([:feedback_type, :content, :category, :battle_id, :from_ship_id, :to_ship_id])
+    |> validate_inclusion(:feedback_type, ["praise", "criticism", "question", "suggestion"])
+    |> validate_inclusion(:category, ["code", "design", "presentation"])
+    |> validate_number(:impact_score, greater_than_or_equal_to: 1, less_than_or_equal_to: 5)
+  end
+end

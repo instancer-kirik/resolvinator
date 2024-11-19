@@ -12,15 +12,19 @@ defmodule Resolvinator.Blockchain.PriceOracle do
   alias Resolvinator.Repo
   alias Resolvinator.Projects.Project
   alias Resolvinator.Blockchain.{ProjectToken, ContributorRewards}
+  import Ecto.Schema
+
+  # Import Ecto.Schema types
+  @type binary_id :: Ecto.UUID.t()
 
   # Update prices every 5 minutes
   @price_update_interval 5 * 60 * 1000
 
   # State structure
   @type t :: %{
-    prices: %{binary_id => Decimal.t()},  # project_id => price
+    prices: %{binary_id() => Decimal.t()},  # project_id => price
     last_update: DateTime.t(),
-    metrics: %{binary_id => map()}        # project_id => metrics
+    metrics: %{binary_id() => map()}        # project_id => metrics
   }
 
   def start_link(_opts) do

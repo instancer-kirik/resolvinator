@@ -118,4 +118,4 @@ defmodule Resolvinator.Etymology.Term do
       _ -> add_error(changeset, :definitions, "must have at least one definition")
     end
   end
-end 
+end
