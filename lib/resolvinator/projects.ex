@@ -5,6 +5,8 @@ defmodule Resolvinator.Projects do
 
   import Ecto.Query, warn: false
   alias Resolvinator.Repo
+  alias Resolvinator.Calendar
+  alias Resolvinator.Calendar.Integration
 
   alias Resolvinator.Projects.{Project, OwnershipToken}
 
@@ -50,9 +52,20 @@ defmodule Resolvinator.Projects do
 
   """
   def create_project(attrs \\ %{}) do
-    %Project{}
-    |> Project.changeset(attrs)
-    |> Repo.insert()
+    case %Project{}
+         |> Project.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, project} ->
+        # Sync project dates with calendar
+        if project.user_id do
+          calendar_system = Calendar.get_default_calendar_system(project.user_id)
+          Integration.sync_project_dates(project, calendar_system.id)
+        end
+        {:ok, project}
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -68,9 +81,20 @@ defmodule Resolvinator.Projects do
 
   """
   def update_project(%Project{} = project, attrs) do
-    project
-    |> Project.changeset(attrs)
-    |> Repo.update()
+    case project
+         |> Project.changeset(attrs)
+         |> Repo.update() do
+      {:ok, project} ->
+        # Update calendar events if dates changed
+        if date_fields_changed?(project, attrs) and project.user_id do
+          calendar_system = Calendar.get_default_calendar_system(project.user_id)
+          Integration.update_project_dates(project, calendar_system.id)
+        end
+        {:ok, project}
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -86,6 +110,8 @@ defmodule Resolvinator.Projects do
 
   """
   def delete_project(%Project{} = project) do
+    # Remove calendar events before deleting project
+    Integration.delete_project_events(project.id)
     Repo.delete(project)
   end
 
@@ -100,6 +126,12 @@ defmodule Resolvinator.Projects do
   """
   def change_project(%Project{} = project, attrs \\ %{}) do
     Project.changeset(project, attrs)
+  end
+
+  defp date_fields_changed?(project, attrs) do
+    Map.has_key?(attrs, :start_date) or
+      Map.has_key?(attrs, :target_date) or
+      Map.has_key?(attrs, :completion_date)
   end
 
   @doc """

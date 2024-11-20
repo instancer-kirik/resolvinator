@@ -1,9 +1,11 @@
 defmodule ResolvinatorWeb.API.SessionController do
   use ResolvinatorWeb, :controller
-  alias Resolvinator.{Accounts, Guardian}
+  
+  alias VES.Accounts
+  alias VES.Guardian
 
   def create(conn, %{"email" => email, "password" => password}) do
-    case Accounts.authenticate_user(email, password) do
+    case Accounts.Auth.authenticate_user(email, password) do
       {:ok, user} ->
         {:ok, access_token, _claims} = Guardian.encode_and_sign(user)
         {:ok, refresh_token, _claims} = Guardian.encode_and_sign(user, %{}, token_type: "refresh")
@@ -11,10 +13,36 @@ defmodule ResolvinatorWeb.API.SessionController do
         conn
         |> put_status(:ok)
         |> render("tokens.json", access_token: access_token, refresh_token: refresh_token)
-      {:error, :invalid_credentials} ->
+
+      {:error, _reason} ->
         conn
         |> put_status(:unauthorized)
         |> json(%{error: "Invalid credentials"})
+    end
+  end
+
+  def create(conn, %{"github_token" => github_token}) do
+    case Accounts.GitHub.get_user_profile(github_token) do
+      {:ok, github_user} ->
+        case Accounts.GitHub.find_or_create_user(github_user, github_token) do
+          {:ok, user} ->
+            {:ok, access_token, _claims} = Guardian.encode_and_sign(user)
+            {:ok, refresh_token, _claims} = Guardian.encode_and_sign(user, %{}, token_type: "refresh")
+
+            conn
+            |> put_status(:ok)
+            |> render("tokens.json", access_token: access_token, refresh_token: refresh_token)
+
+          {:error, _reason} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{error: "Failed to create user from GitHub account"})
+        end
+
+      {:error, _reason} ->
+        conn
+        |> put_status(:unauthorized)
+        |> json(%{error: "Invalid GitHub token"})
     end
   end
 
@@ -24,6 +52,7 @@ defmodule ResolvinatorWeb.API.SessionController do
         conn
         |> put_status(:ok)
         |> json(%{access_token: new_token})
+
       {:error, _reason} ->
         conn
         |> put_status(:unauthorized)
@@ -35,9 +64,10 @@ defmodule ResolvinatorWeb.API.SessionController do
     case Guardian.Plug.current_token(conn) do
       nil ->
         send_resp(conn, :no_content, "")
+
       token ->
         Guardian.revoke(token)
         send_resp(conn, :no_content, "")
     end
   end
-end 
+end

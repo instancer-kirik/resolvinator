@@ -1,6 +1,7 @@
 defmodule Resolvinator.Projects.Project do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Resolvinator.Projects.{NestedTerm, ProjectType}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -49,177 +50,138 @@ defmodule Resolvinator.Projects.Project do
         "registered_scripts" => [],
         "file_extensions" => [".py", ".json", ".yml"],
         "excluded_dirs" => ["__pycache__", ".git", "venv"],
-        "workspace_path" => nil,
         "environment_variables" => %{},
         "required_tools" => [],
-        "minimum_tool_versions" => %{}
+        "optional_tools" => []
       },
 
-      # Risk configuration
-      "risk_matrix_config" => %{
-        "probability_weights" => %{
-          "rare" => 1,
-          "unlikely" => 2,
-          "possible" => 3,
-          "likely" => 4,
-          "certain" => 5
+      # Project structure
+      "structure" => %{
+        "root_dir" => nil,
+        "source_dir" => nil,
+        "test_dir" => nil,
+        "docs_dir" => nil,
+        "build_dir" => nil,
+        "assets_dir" => nil,
+        "config_dir" => nil
+      },
+
+      # Project configuration
+      "config" => %{
+        "build" => %{
+          "target_platforms" => [],
+          "optimization_level" => "default",
+          "debug_symbols" => true,
+          "static_analysis" => true
         },
-        "impact_weights" => %{
-          "negligible" => 1,
-          "minor" => 2,
-          "moderate" => 3,
-          "major" => 4,
-          "severe" => 5
-        }
-      },
-      
-      # Notification and monitoring
-      "notification_preferences" => %{
-        "high_risk_threshold" => 12,
-        "review_period_days" => 30,
-        "alert_channels" => [],
-        "monitoring_intervals" => %{
-          "risk_review" => "30d",
-          "dependency_check" => "7d",
-          "security_scan" => "14d"
-        }
-      },
-
-      # Integration settings
-      "integrations" => %{
-        "ci_cd" => %{
-          "provider" => nil,
-          "config_path" => nil,
-          "triggers" => []
+        "test" => %{
+          "frameworks" => [],
+          "coverage_threshold" => 80,
+          "parallel_execution" => true
         },
-        "cloud_services" => %{},
-        "api_keys" => %{},
-        "webhooks" => []
-      },
-
-      # Quality metrics
-      "quality_metrics" => %{
-        "test_coverage_target" => 80,
-        "max_complexity" => 10,
-        "style_guide" => nil,
-        "performance_targets" => %{},
-        "security_requirements" => []
+        "deployment" => %{
+          "strategy" => "manual",
+          "environments" => [],
+          "required_approvals" => 1
+        }
       }
     }
 
-    # Ownership token
-    field :ownership_token_hash, :string
-    field :ownership_token_generated_at, :utc_datetime
+    # Nested terms support
+    has_many :nested_terms, NestedTerm
+    has_many :root_terms, NestedTerm, where: [parent_id: nil]
 
-    # Relationships
-    belongs_to :creator, Resolvinator.Accounts.User, type: :binary_id
-    has_many :risks, Resolvinator.Risks.Risk
-    has_many :risk_categories, Resolvinator.Risks.Category
-    
-    many_to_many :team_members, Resolvinator.Accounts.User,
-      join_through: "project_members",
-      join_keys: [project_id: :id, user_id: :id]
-    
-    many_to_many :actors, Resolvinator.Actors.Actor,
-      join_through: "project_actors"
-
-    # Add systems relationship
-    has_many :systems, Resolvinator.Systems.System
-
-    # Add resources relationship
-    has_many :resources, Resolvinator.Resources.Resource
-    has_many :rewards, Resolvinator.Rewards.Reward
-
-    # Add ship relationship
-    has_many :ships, Resolvinator.Ships.Ship
-
-    timestamps(type: :utc_datetime)
+    timestamps()
   end
 
+  @required_fields ~w(name project_type)a
+  @optional_fields ~w(description status risk_appetite start_date target_date completion_date settings)a
+
+  @doc false
   def changeset(project, attrs) do
     project
-    |> cast(attrs, [:name, :description, :status, :risk_appetite, 
-                    :start_date, :target_date, :completion_date, 
-                    :settings, :creator_id, :project_type, 
-                    :ownership_token_hash, :ownership_token_generated_at])
-    |> validate_required([:name, :risk_appetite, :creator_id])
+    |> cast(attrs, @required_fields ++ @optional_fields)
+    |> validate_required(@required_fields)
     |> validate_inclusion(:status, @status_values)
     |> validate_inclusion(:risk_appetite, @risk_appetite_values)
+    |> validate_project_type()
+    |> validate_dates()
     |> validate_settings()
-    |> validate_type_specific_settings()
-    |> foreign_key_constraint(:creator_id)
   end
 
-  def ownership_token_changeset(project, token_hash) do
-    project
-    |> change()
-    |> put_change(:ownership_token_hash, token_hash)
-    |> put_change(:ownership_token_generated_at, DateTime.utc_now() |> DateTime.truncate(:second))
+  @doc """
+  Gets a nested term value at the specified path.
+  """
+  def get_nested_term(project, path) when is_list(path) do
+    Enum.find(project.nested_terms, fn term ->
+      term.path == Enum.slice(path, 0..-2) and term.key == List.last(path)
+    end)
+  end
+
+  @doc """
+  Sets a nested term value at the specified path.
+  """
+  def put_nested_term(project, path, value) when is_list(path) do
+    attrs = %{
+      key: List.last(path),
+      path: Enum.slice(path, 0..-2),
+      value: value,
+      project_id: project.id
+    }
+
+    case get_nested_term(project, path) do
+      nil -> 
+        %NestedTerm{} |> NestedTerm.changeset(attrs)
+      existing ->
+        existing |> NestedTerm.changeset(attrs)
+    end
+  end
+
+  # Private functions
+
+  defp validate_project_type(changeset) do
+    project_type = get_field(changeset, :project_type)
+    
+    if project_type && ProjectType.valid_type?(project_type) do
+      changeset
+    else
+      add_error(changeset, :project_type, "is not a valid project type")
+    end
+  end
+
+  defp validate_dates(changeset) do
+    start_date = get_field(changeset, :start_date)
+    target_date = get_field(changeset, :target_date)
+    completion_date = get_field(changeset, :completion_date)
+
+    changeset
+    |> validate_date_order(:start_date, :target_date, start_date, target_date)
+    |> validate_date_order(:start_date, :completion_date, start_date, completion_date)
+    |> validate_date_order(:target_date, :completion_date, target_date, completion_date)
+  end
+
+  defp validate_date_order(changeset, field1, field2, date1, date2) do
+    if date1 && date2 && Date.compare(date1, date2) == :gt do
+      add_error(changeset, field2, "cannot be before #{field1}")
+    else
+      changeset
+    end
   end
 
   defp validate_settings(changeset) do
-    case get_change(changeset, :settings) do
-      nil -> changeset
-      settings ->
-        if valid_settings?(settings) do
-          changeset
-        else
-          add_error(changeset, :settings, "invalid settings structure")
-        end
-    end
-  end
+    settings = get_field(changeset, :settings)
 
-  defp valid_settings?(_settings) do
-    # Implement settings validation logic
-    true
-  end
-
-  # Business Logic
-
-  def risk_score(%__MODULE__{} = project, probability, impact) do
-    weights = get_in(project.settings, ["risk_matrix_config"])
-    p_weight = get_in(weights, ["probability_weights", probability]) || 1
-    i_weight = get_in(weights, ["impact_weights", impact]) || 1
-    p_weight * i_weight
-  end
-
-  def risk_threshold(%__MODULE__{} = project) do
-    get_in(project.settings, ["notification_preferences", "high_risk_threshold"]) || 12
-  end
-
-  def needs_review?(%__MODULE__{} = project, risk) do
-    review_period = get_in(project.settings, ["notification_preferences", "review_period_days"]) || 30
-    last_review = risk.review_date || risk.detection_date
-    
-    Date.diff(Date.utc_today(), last_review) >= review_period
-  end
-
-  defp validate_type_specific_settings(changeset) do
-    with project_type when not is_nil(project_type) <- get_field(changeset, :project_type),
-         settings when not is_nil(settings) <- get_field(changeset, :settings) do
-      case ProjectType.get_implementation(project_type) do
-        nil -> 
-          add_error(changeset, :project_type, "invalid project type")
-        implementation ->
-          case implementation.validate_settings(settings) do
-            :ok -> changeset
-            {:error, message} -> add_error(changeset, :settings, message)
-          end
-      end
+    if valid_settings?(settings) do
+      changeset
     else
-      _ -> changeset
+      add_error(changeset, :settings, "has invalid structure")
     end
   end
 
-  def new_project(project_type, attrs \\ %{}) do
-    case ProjectType.get_implementation(project_type) do
-      nil -> 
-        {:error, "Invalid project type"}
-      implementation ->
-        default_settings = implementation.default_settings()
-        %__MODULE__{}
-        |> cast(Map.put(attrs, "settings", default_settings), [:name, :project_type, :settings])
-        |> validate_required(implementation.required_fields())
-    end
+  defp valid_settings?(settings) when is_map(settings) do
+    required_keys = ~w(metadata development structure config)
+    Enum.all?(required_keys, &Map.has_key?(settings, &1))
   end
-end 
+  
+  defp valid_settings?(_settings), do: false
+end

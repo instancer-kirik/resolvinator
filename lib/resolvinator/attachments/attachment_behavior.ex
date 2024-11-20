@@ -23,7 +23,7 @@ defmodule Resolvinator.Attachments.AttachmentBehavior do
         field :attachable_type, :string
         field :attachable_id, :integer
 
-        belongs_to :creator, Resolvinator.Accounts.User
+        belongs_to :creator, VES.Accounts.User
 
         # Additional schema fields provided by the implementing module
         unquote(opts[:additional_schema] || quote do end)

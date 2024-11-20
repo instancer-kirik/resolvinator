@@ -18,7 +18,7 @@ defmodule Resolvinator.Impacts.Impact do
     field :impactable_type, :string
     field :impactable_id, :binary_id
 
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :creator, VES.Accounts.User
 
     many_to_many :affected_actors, Resolvinator.Actors.Actor,
       join_through: "actor_impact_relationships",

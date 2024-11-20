@@ -1,52 +1,46 @@
 defmodule Resolvinator.Risks.Category do
-  use Resolvinator.Content.ContentBehavior,
-    type_name: :risk_category,
-    table_name: "risk_categories",
-    relationship_table: "risk_category_relationships",
-    description_table: "risk_category_descriptions",
-    relationship_keys: [risk_category_id: :id, related_risk_category_id: :id],
-    description_keys: [risk_category_id: :id, description_id: :id],
-    additional_schema: [
-      fields: [
-        # Original Category fields
-        color: :string,
-        
-        # Assessment criteria
-        assessment_criteria: {:map, default: %{
-          "probability_factors" => [],
-          "impact_factors" => [],
-          "mitigation_guidelines" => [],
-          "review_frequency_days" => 30
-        }},
-        
-        # Tracking fields
-        hidden: {:boolean, default: false},
-        hidden_at: :utc_datetime,
-        deleted_at: :utc_datetime
-      ],
-      relationships: [
-        belongs_to: [
-          hidden_by: [module: Resolvinator.Accounts.User]
-        ],
-        has_many: [
-          risks: [module: Resolvinator.Risks.Risk]
-        ],
-        many_to_many: [
-          related_categories: [
-            module: Resolvinator.Risks.Category,
-            join_through: "risk_category_relationships",
-            join_keys: [risk_category_id: :id, related_risk_category_id: :id]
-          ]
-        ]
-      ]
-    ]
+  use Resolvinator.Schema
+  import Ecto.Changeset
+  alias Resolvinator.Accounts.User
+  alias Resolvinator.Projects.Project
+  alias Resolvinator.Risks.Risk
+
+  schema "risk_categories" do
+    field :name, :string
+    field :description, :string
+    field :color, :string
+    field :icon, :string
+    field :status, :string, default: "active"
+    field :metadata, :map, default: %{}
+
+    field :assessment_criteria, {:map, default: %{
+      "probability_factors" => [],
+      "impact_factors" => [],
+      "mitigation_guidelines" => [],
+      "review_frequency_days" => 30
+    }}
+
+    field :hidden, {:boolean, default: false}
+    field :hidden_at, :utc_datetime
+    field :deleted_at, :utc_datetime
+
+    belongs_to :project, Project
+    belongs_to :creator, User
+    belongs_to :parent_category, __MODULE__
+    belongs_to :hidden_by, User
+
+    has_many :risks, Risk
+    has_many :subcategories, __MODULE__, foreign_key: :parent_category_id
+    many_to_many :related_categories, __MODULE__, join_through: "risk_category_relationships", join_keys: [risk_category_id: :id, related_risk_category_id: :id]
+
+    timestamps(type: :utc_datetime)
+  end
 
   @doc """
   Creates a changeset for the risk category.
   """
   def changeset(category, attrs) do
     category
-    |> base_changeset(attrs)
     |> cast(attrs, [
       :color,
       :assessment_criteria,
@@ -104,4 +98,4 @@ defmodule Resolvinator.Risks.Category do
       hidden_by_id: nil
     })
   end
-end 
+end

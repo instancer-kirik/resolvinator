@@ -16,7 +16,7 @@ defmodule Resolvinator.Attachments.Attachment do
     field :attachable_type, :string
     field :attachable_id, :integer
 
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :creator, VES.Accounts.User
 
     # Math-specific fields
     field :math_related, :boolean, default: false

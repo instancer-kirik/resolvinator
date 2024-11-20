@@ -9,79 +9,72 @@ defmodule Resolvinator.Calendar do
   alias TimeTracker.Repo
 
   @doc """
-  Parses an ICS file and sends events to TimeTracker.
-  Returns {:ok, events} on success, {:error, reason} on failure.
+  Gets the calendar data for a specific month.
   """
-  def process_ics_file(file_path, user_id) do
-    with {:ok, content} <- File.read(file_path),
-         {:ok, events} <- parse_ics_content(content),
-         {:ok, _} <- create_events(events, user_id) do
-      {:ok, events}
-    else
-      error ->
-        Logger.error("Failed to process ICS file: #{inspect(error)}")
-        error
-    end
-  end
+  def get_month_data(user_id, year, month, calendar_system_id) do
+    start_date = Date.new!(year, month, 1)
+    end_date = Date.new!(year, month, Date.days_in_month(start_date))
 
-  @doc """
-  Parses ICS content directly and sends events to TimeTracker.
-  """
-  def process_ics_content(content, user_id) do
-    with {:ok, events} <- parse_ics_content(content),
-         {:ok, created_events} <- create_events(events, user_id) do
-      {:ok, created_events}
-    end
-  end
+    events = Calendar.list_events(user_id, calendar_system_id, start_date, end_date)
+    day_data = Calendar.list_day_data(user_id, calendar_system_id, start_date, end_date)
+    daily_reminders = Calendar.list_daily_reminders(user_id, calendar_system_id)
 
-  defp parse_ics_content(content) do
-    case ICalendar.from_ics(content) do
-      {:ok, events} when is_list(events) ->
-        {:ok, Enum.map(events, &format_event/1)}
-      error ->
-        {:error, "Failed to parse ICS content: #{inspect(error)}"}
-    end
-  end
-
-  defp format_event(event) do
     %{
-      title: event.summary || "Untitled Event",
-      description: event.description || "",
-      start_time: event.dtstart,
-      end_time: event.dtend,
-      metadata: %{
-        location: event.location,
-        categories: event.categories || [],
-        uid: event.uid || Ecto.UUID.generate()
-      }
+      events: events,
+      day_data: day_data,
+      daily_reminders: daily_reminders,
+      calendar_system: Calendar.get_calendar_system!(calendar_system_id)
     }
   end
 
-  defp create_events(events, user_id) do
-    # Get the default calendar system for the user
-    calendar_system = Calendar.get_default_calendar_system()
+  @doc """
+  Creates a new event.
+  """
+  def create_event(attrs \\ %{}) do
+    %Event{}
+    |> Event.changeset(attrs)
+    |> Repo.insert()
+  end
 
-    results = Enum.map(events, fn event ->
-      attrs = %{
-        title: event.title,
-        description: event.description,
-        start_time: event.start_time,
-        end_time: event.end_time,
-        user_id: user_id,
-        calendar_system_id: calendar_system.id
-      }
+  @doc """
+  Updates an event.
+  """
+  def update_event(%Event{} = event, attrs) do
+    event
+    |> Event.changeset(attrs)
+    |> Repo.update()
+  end
 
-      %Event{}
-      |> Event.changeset(attrs)
-      |> Repo.insert()
-    end)
+  @doc """
+  Deletes an event.
+  """
+  def delete_event(%Event{} = event) do
+    Repo.delete(event)
+  end
 
-    case Enum.split_with(results, fn
-      {:ok, _} -> true
-      {:error, _} -> false
-    end) do
-      {successes, []} -> {:ok, Enum.map(successes, fn {:ok, event} -> event end)}
-      {_, failures} -> {:error, "Failed to create some events: #{inspect(failures)}"}
-    end
+  @doc """
+  Gets a single event.
+  """
+  def get_event!(id), do: Repo.get!(Event, id)
+
+  @doc """
+  Lists events for a specific date range.
+  """
+  def list_events(user_id, calendar_system_id, start_date, end_date) do
+    Calendar.list_events(user_id, calendar_system_id, start_date, end_date)
+  end
+
+  @doc """
+  Gets the default calendar system for a user.
+  """
+  def get_default_calendar_system(user_id) do
+    Calendar.get_default_calendar_system(user_id)
+  end
+
+  @doc """
+  Formats a datetime for display.
+  """
+  def format_datetime(datetime) do
+    Calendar.format_datetime(datetime)
   end
 end

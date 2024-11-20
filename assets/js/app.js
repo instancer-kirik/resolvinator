@@ -21,7 +21,8 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
-import HandCanvasHook from "./hooks/hand_canvas_hook";
+import HandCanvasHook from "./hooks/hand_canvas_hook"
+import FileUpload from "./hooks/file_upload"
 
 // Import KaTeX from node_modules
 import katex from '../../node_modules/katex/dist/katex.mjs'
@@ -32,6 +33,7 @@ window.katex = katex;
 
 let Hooks = {};
 Hooks.HandCanvasHook = HandCanvasHook;
+Hooks.FileUpload = FileUpload;
 Hooks.MathPreview = {
   mounted() {
     this.renderMath()
@@ -109,4 +111,3 @@ window.addEventListener("js:hide_modal", e => {
     if (containerEl) containerEl.classList.add("hidden")
   }
 })
-

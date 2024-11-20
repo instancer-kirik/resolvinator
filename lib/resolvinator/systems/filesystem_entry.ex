@@ -17,6 +17,7 @@ defmodule Resolvinator.Systems.FilesystemEntry do
     field :metadata, :map, default: %{}
 
     belongs_to :system, Resolvinator.Systems.System
+    belongs_to :creator, VES.Accounts.User, type: :binary_id
     belongs_to :parent, __MODULE__
     has_many :children, __MODULE__, foreign_key: :parent_id
 
@@ -28,7 +29,7 @@ defmodule Resolvinator.Systems.FilesystemEntry do
     |> cast(attrs, [
       :path, :entry_type, :size, :permissions,
       :owner, :group, :last_accessed, :last_modified,
-      :checksum, :metadata, :system_id, :parent_id
+      :checksum, :metadata, :system_id, :creator_id, :parent_id
     ])
     |> validate_required([
       :path, :entry_type, :system_id
@@ -36,6 +37,7 @@ defmodule Resolvinator.Systems.FilesystemEntry do
     |> validate_inclusion(:entry_type, @entry_types)
     |> validate_path()
     |> foreign_key_constraint(:system_id)
+    |> foreign_key_constraint(:creator_id)
     |> foreign_key_constraint(:parent_id)
   end
 

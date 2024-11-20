@@ -108,3 +108,6 @@ config :resolvinator, Resolvinator.Rewards.CryptoReward,
     solana: System.get_env("SOLANA_TESTNET_RPC", "https://api.devnet.solana.com"),
     bitcoin: System.get_env("BITCOIN_TESTNET_RPC", "https://testnet-api.smartbit.com.au/v1/blockchain")
   }
+if File.exists?("config/dev.local.exs") do
+  import_config "dev.local.exs"
+end

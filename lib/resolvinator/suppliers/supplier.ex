@@ -1,34 +1,31 @@
 defmodule Resolvinator.Suppliers.Supplier do
-  use Ecto.Schema
+  use Resolvinator.Schema
   import Ecto.Changeset
+  alias VES.Accounts.User
+  alias Resolvinator.Suppliers.{Contact, Catalog}
+  alias Resolvinator.Resources.InventorySource
 
   schema "suppliers" do
     field :name, :string
-    field :code, :string
-    field :type, :string
-    field :status, :string
-    field :rating, :decimal
-    field :payment_terms, :string
-    field :lead_time_days, :integer
-    field :minimum_order, :decimal
-    field :website, :string
+    field :description, :string
+    field :status, :string, default: "active"
     field :api_endpoint, :string
     field :api_key, :string
     field :integration_type, :string  # "api", "catalog", "manual"
     field :metadata, :map
 
-    has_many :contacts, Resolvinator.Suppliers.Contact
-    has_many :catalogs, Resolvinator.Suppliers.Catalog
-    has_many :sources, Resolvinator.Resources.InventorySource
+    belongs_to :creator, User
+    has_many :contacts, Contact
+    has_many :catalogs, Catalog
+    has_many :sources, InventorySource
     
     timestamps(type: :utc_datetime)
   end 
 
   def changeset(supplier, attrs) do
     supplier
-    |> cast(attrs, [:name, :code, :type, :status, :rating, :payment_terms, 
-                    :lead_time_days, :minimum_order, :website, :api_endpoint, 
+    |> cast(attrs, [:name, :description, :status, :api_endpoint, 
                     :api_key, :integration_type, :metadata])
-    |> validate_required([:name, :code, :type, :status])
+    |> validate_required([:name, :status])
   end
 end 

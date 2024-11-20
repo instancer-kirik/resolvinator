@@ -2,6 +2,8 @@ defmodule Resolvinator.Risks.Impact do
   use Resolvinator.Risks.ImpactBehavior,
     table_name: "impacts"
 
+  @impact_areas ~w(technical financial operational strategic regulatory security social environmental)
+
   # Extend the schema from ImpactBehavior
   schema "impacts" do
     # Include fields from ImpactBehavior

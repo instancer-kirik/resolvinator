@@ -3,6 +3,7 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
 
   alias Resolvinator.Projects
   alias Resolvinator.Accounts
+  alias ResolvinatorWeb.ProjectLive.SettingsModalComponent
 
   @impl true
   def render(assigns) do
@@ -20,19 +21,34 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:description]} type="text" label="Description" />
-        <.input field={@form[:status]} type="select" label="Status" 
-                options={[{"Planning", "planning"}, {"Active", "active"}, 
-                         {"On Hold", "on_hold"}, {"Completed", "completed"}, 
-                         {"Archived", "archived"}]} />
-        <.input field={@form[:risk_appetite]} type="select" label="Risk appetite" 
-                options={[{"Averse", "averse"}, {"Minimal", "minimal"}, 
-                         {"Cautious", "cautious"}, {"Flexible", "flexible"}, 
-                         {"Aggressive", "aggressive"}]} />
-        <.input field={@form[:start_date]} type="date" label="Start date" />
-        <.input field={@form[:target_date]} type="date" label="Target date" />
-        <.input field={@form[:completion_date]} type="date" label="Completion date" />
+        <div class="space-y-8">
+          <div class="space-y-6">
+            <.input field={@form[:name]} type="text" label="Name" />
+            <.input field={@form[:description]} type="text" label="Description" />
+            <.input field={@form[:status]} type="select" label="Status" 
+                    options={[{"Planning", "planning"}, {"Active", "active"}, 
+                             {"On Hold", "on_hold"}, {"Completed", "completed"}, 
+                             {"Archived", "archived"}]} />
+            <.input field={@form[:risk_appetite]} type="select" label="Risk appetite" 
+                    options={[{"Averse", "averse"}, {"Minimal", "minimal"}, 
+                             {"Cautious", "cautious"}, {"Flexible", "flexible"}, 
+                             {"Aggressive", "aggressive"}]} />
+            <.input field={@form[:start_date]} type="date" label="Start date" />
+            <.input field={@form[:target_date]} type="date" label="Target date" />
+            <.input field={@form[:completion_date]} type="date" label="Completion date" />
+          </div>
+          
+          <div class="pt-6">
+            <.button 
+              type="button"
+              phx-click="open_settings"
+              phx-target={@myself}
+              class="bg-blue-500 hover:bg-blue-700"
+            >
+              Configure Project Settings
+            </.button>
+          </div>
+        </div>
         
         <%= if @action == :new do %>
           <.input field={@form[:creator_id]} type="hidden" value={@current_user_id} />
@@ -42,6 +58,17 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
           <.button phx-disable-with="Saving...">Save Project</.button>
         </:actions>
       </.simple_form>
+
+      <%= if @show_settings_modal do %>
+        <.modal id="settings-modal">
+          <.live_component
+            module={SettingsModalComponent}
+            id="settings-modal"
+            project={@project}
+            patch={@patch}
+          />
+        </.modal>
+      <% end %>
     </div>
     """
   end
@@ -54,6 +81,7 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
      socket
      |> assign(assigns)
      |> assign_new(:current_user_id, fn -> assigns[:current_user_id] end)
+     |> assign(:show_settings_modal, false)
      |> assign_form(changeset)}
   end
 
@@ -65,6 +93,14 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
+  end
+
+  def handle_event("open_settings", _, socket) do
+    {:noreply, assign(socket, :show_settings_modal, true)}
+  end
+
+  def handle_event("close_settings", _, socket) do
+    {:noreply, assign(socket, :show_settings_modal, false)}
   end
 
   def handle_event("save", %{"project" => project_params}, socket) do
@@ -101,9 +137,9 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
     end
   end
 
+  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
   end
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

@@ -1,6 +1,8 @@
 defmodule Resolvinator.Suppliers.Contact do
-  use Ecto.Schema
+  use Resolvinator.Schema
   import Ecto.Changeset
+  alias VES.Accounts.User
+  alias Resolvinator.Suppliers.Supplier
 
   schema "supplier_contacts" do
     field :name, :string
@@ -12,8 +14,8 @@ defmodule Resolvinator.Suppliers.Contact do
     field :status, :string, default: "active"
     field :metadata, :map, default: %{}
 
-    belongs_to :supplier, Resolvinator.Suppliers.Supplier
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :supplier, Supplier
+    belongs_to :creator, User
 
     timestamps(type: :utc_datetime)
   end

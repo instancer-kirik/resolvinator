@@ -1,14 +1,14 @@
 defmodule ResolvinatorWeb.UserRegistrationLive do
   use ResolvinatorWeb, :live_view
 
-  alias Resolvinator.Accounts
-  alias Resolvinator.Accounts.User
+  alias VES.Accounts
+  alias VES.Accounts.User
 
   def render(assigns) do
     ~H"""
     <div class="mx-auto max-w-sm">
       <.header class="text-center">
-        Register for an account
+        Register for VES
         <:subtitle>
           Already registered?
           <.link navigate={~p"/users/log_in"} class="font-semibold text-brand hover:underline">
@@ -33,18 +33,31 @@ defmodule ResolvinatorWeb.UserRegistrationLive do
 
         <.input field={@form[:email]} type="email" label="Email" required />
         <.input field={@form[:password]} type="password" label="Password" required />
+        <.input field={@form[:username]} type="text" label="Username (optional)" />
         <input type="hidden" name="_action" value="register" />
 
         <:actions>
           <.button phx-disable-with="Creating account..." class="w-full">Create an account</.button>
         </:actions>
       </.simple_form>
+
+      <div class="mt-8">
+        <.button
+          phx-click="github_register"
+          class="w-full flex items-center justify-center space-x-2"
+        >
+          <span class="text-lg">
+            <.icon name="hero-code-bracket" class="h-5 w-5" />
+          </span>
+          <span>Sign up with GitHub</span>
+        </.button>
+      </div>
     </div>
     """
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_registration(%User{})
+    changeset = Accounts.Registration.change_user_registration(%User{})
 
     socket =
       socket
@@ -55,39 +68,36 @@ defmodule ResolvinatorWeb.UserRegistrationLive do
   end
 
   def handle_event("save", %{"user" => user_params}, socket) do
-    IO.inspect(user_params, label: "Live view save params")
-    
     # Generate username from email if not provided
-    user_params = user_params
-      |> Map.put("username", generate_username(user_params["email"]))
-      |> IO.inspect(label: "Live view params with username")
+    user_params = if user_params["username"] == "" do
+      Map.put(user_params, "username", generate_username(user_params["email"]))
+    else
+      user_params
+    end
 
-    case Accounts.register_user(user_params) do
+    case Accounts.Registration.register_user(user_params) do
       {:ok, user} ->
-        IO.inspect(user, label: "Live view registration success")
-        
         {:ok, _} =
           Accounts.deliver_user_confirmation_instructions(
             user,
             &url(~p"/users/confirm/#{&1}")
           )
 
-        changeset = Accounts.change_user_registration(user)
+        changeset = Accounts.Registration.change_user_registration(user)
         {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset.errors, label: "Live view registration errors")
         {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
     end
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    # Add username during validation too
-    user_params = Map.put_new(user_params, "username", generate_username(user_params["email"]))
-    IO.inspect(user_params, label: "Validation params")
-    
-    changeset = Accounts.change_user_registration(%User{}, user_params)
+    changeset = Accounts.Registration.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
+  end
+
+  def handle_event("github_register", _params, socket) do
+    {:noreply, redirect(socket, to: ~p"/auth/github")}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
@@ -101,13 +111,11 @@ defmodule ResolvinatorWeb.UserRegistrationLive do
   end
 
   defp generate_username(email) when is_binary(email) do
-    username = email
-      |> String.split("@")
-      |> List.first()
-      |> String.replace(~r/[^a-zA-Z0-9_.-]/, "")
-    
-    IO.inspect(username, label: "Generated username")
-    username
+    email
+    |> String.split("@")
+    |> List.first()
+    |> String.replace(~r/[^a-zA-Z0-9]/, "")
+    |> String.downcase()
   end
   defp generate_username(_), do: nil
 end

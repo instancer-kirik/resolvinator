@@ -1,9 +1,9 @@
 defmodule Resolvinator.Rewards.Reward do
-  use Ecto.Schema
+  use Resolvinator.Schema
   import Ecto.Changeset
-
-  @primary_key {:id, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
+  alias VES.Accounts.User
+  alias Resolvinator.Projects.Project
+  alias Resolvinator.Resources.Resource
 
   schema "rewards" do
     field :name, :string
@@ -28,15 +28,15 @@ defmodule Resolvinator.Rewards.Reward do
     # Risk reward specific fields
     field :probability, Ecto.Enum, values: [:rare, :unlikely, :possible, :likely, :certain]
     field :timeline, Ecto.Enum, values: [:immediate, :short_term, :medium_term, :long_term]
-    field :dependencies, {:array, :binary_id}, default: []
+    field :dependencies, {:array, :id}, default: []
     field :metadata, :map, default: %{}
 
-    belongs_to :project, Resolvinator.Projects.Project
-    belongs_to :achiever, Resolvinator.Accounts.User
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :project, Project
+    belongs_to :achiever, User
+    belongs_to :creator, User
     belongs_to :risk, Resolvinator.Risks.Risk
     belongs_to :mitigation, Resolvinator.Risks.Mitigation
-    belongs_to :resource, Resolvinator.Resources.Resource
+    belongs_to :resource, Resource
 
     has_many :prerequisites, Resolvinator.Rewards.RewardPrerequisite
     has_many :reward_claims, Resolvinator.Rewards.RewardClaim
@@ -96,11 +96,31 @@ defmodule Resolvinator.Rewards.Reward do
     end
   end
 
-  defp validate_risk_dependencies(changeset) do
-    case get_field(changeset, :dependencies) do
+  defp validate_wallet_address(changeset) do
+    case get_field(changeset, :wallet_address) do
       nil -> changeset
-      deps when is_list(deps) -> changeset
-      _ -> add_error(changeset, :dependencies, "must be a list of IDs")
+      address ->
+        if String.match?(address, ~r/^0x[a-fA-F0-9]{40}$/) do
+          changeset
+        else
+          add_error(changeset, :wallet_address, "must be a valid Ethereum address")
+        end
+    end
+  end
+
+  defp validate_token_fields(changeset) do
+    case get_field(changeset, :token_standard) do
+      :native -> changeset
+      _ ->
+        changeset
+        |> validate_required([:token_contract])
+        |> validate_change(:token_contract, fn :token_contract, contract ->
+          if String.match?(contract, ~r/^0x[a-fA-F0-9]{40}$/) do
+            []
+          else
+            [token_contract: "must be a valid contract address"]
+          end
+        end)
     end
   end
 
@@ -111,5 +131,4 @@ defmodule Resolvinator.Rewards.Reward do
       _ -> add_error(changeset, :criteria, "must be a map")
     end
   end
-
 end

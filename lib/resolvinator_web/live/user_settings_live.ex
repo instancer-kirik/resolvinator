@@ -1,13 +1,13 @@
 defmodule ResolvinatorWeb.UserSettingsLive do
   use ResolvinatorWeb, :live_view
 
-  alias Resolvinator.Accounts
+  alias VES.Accounts
 
   def render(assigns) do
     ~H"""
     <.header class="text-center">
-      Account Settings
-      <:subtitle>Manage your account email address and password settings</:subtitle>
+      VES Account Settings
+      <:subtitle>Manage your account settings and connected applications</:subtitle>
     </.header>
 
     <div class="space-y-12 divide-y">
@@ -33,6 +33,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
           </:actions>
         </.simple_form>
       </div>
+
       <div>
         <.simple_form
           for={@password_form}
@@ -69,13 +70,44 @@ defmodule ResolvinatorWeb.UserSettingsLive do
           </:actions>
         </.simple_form>
       </div>
+
+      <div>
+        <.header class="text-left text-lg font-semibold leading-8 text-zinc-800">
+          Connected Applications
+          <:subtitle>Manage your connected GitHub and other application accounts</:subtitle>
+        </.header>
+
+        <div class="mt-6 flex flex-col gap-4">
+          <div :if={@github_connected} class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <.icon name="hero-code-bracket" class="h-8 w-8" />
+              <div>
+                <p class="text-sm font-semibold">GitHub</p>
+                <p class="text-xs text-zinc-500">Connected as <%= @github_username %></p>
+              </div>
+            </div>
+            <.button phx-click="disconnect_github" class="text-sm">Disconnect</.button>
+          </div>
+
+          <div :if={!@github_connected} class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <.icon name="hero-code-bracket" class="h-8 w-8" />
+              <div>
+                <p class="text-sm font-semibold">GitHub</p>
+                <p class="text-xs text-zinc-500">Not connected</p>
+              </div>
+            </div>
+            <.button phx-click="connect_github" class="text-sm">Connect</.button>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
 
   def mount(%{"token" => token}, _session, socket) do
     socket =
-      case Accounts.update_user_email(socket.assigns.current_user, token) do
+      case Accounts.Auth.update_user_email(socket.assigns.current_user, token) do
         :ok ->
           put_flash(socket, :info, "Email changed successfully.")
 
@@ -88,8 +120,10 @@ defmodule ResolvinatorWeb.UserSettingsLive do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
-    email_changeset = Accounts.change_user_email(user)
-    password_changeset = Accounts.change_user_password(user)
+    email_changeset = Accounts.Auth.change_user_email(user)
+    password_changeset = Accounts.Auth.change_user_password(user)
+
+    github_info = Accounts.get_github_info(user)
 
     socket =
       socket
@@ -99,6 +133,8 @@ defmodule ResolvinatorWeb.UserSettingsLive do
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
+      |> assign(:github_connected, github_info != nil)
+      |> assign(:github_username, if(github_info, do: github_info.username, else: nil))
 
     {:ok, socket}
   end
@@ -108,7 +144,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
 
     email_form =
       socket.assigns.current_user
-      |> Accounts.change_user_email(user_params)
+      |> Accounts.Auth.change_user_email(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -119,7 +155,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
     %{"current_password" => password, "user" => user_params} = params
     user = socket.assigns.current_user
 
-    case Accounts.apply_user_email(user, password, user_params) do
+    case Accounts.Auth.apply_user_email(user, password, user_params) do
       {:ok, applied_user} ->
         Accounts.deliver_user_update_email_instructions(
           applied_user,
@@ -140,7 +176,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
 
     password_form =
       socket.assigns.current_user
-      |> Accounts.change_user_password(user_params)
+      |> Accounts.Auth.change_user_password(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -151,17 +187,35 @@ defmodule ResolvinatorWeb.UserSettingsLive do
     %{"current_password" => password, "user" => user_params} = params
     user = socket.assigns.current_user
 
-    case Accounts.update_user_password(user, password, user_params) do
+    case Accounts.Auth.update_user_password(user, password, user_params) do
       {:ok, user} ->
         password_form =
           user
-          |> Accounts.change_user_password(user_params)
+          |> Accounts.Auth.change_user_password(user_params)
           |> to_form()
 
         {:noreply, assign(socket, trigger_submit: true, password_form: password_form)}
 
       {:error, changeset} ->
         {:noreply, assign(socket, password_form: to_form(changeset))}
+    end
+  end
+
+  def handle_event("connect_github", _params, socket) do
+    {:noreply, redirect(socket, to: ~p"/auth/github")}
+  end
+
+  def handle_event("disconnect_github", _params, socket) do
+    case Accounts.disconnect_github(socket.assigns.current_user) do
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "GitHub account disconnected successfully.")
+         |> assign(:github_connected, false)
+         |> assign(:github_username, nil)}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to disconnect GitHub account.")}
     end
   end
 end

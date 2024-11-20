@@ -1,6 +1,11 @@
 defmodule Resolvinator.Resources.Requirement do
-  use Ecto.Schema
+  use Resolvinator.Schema
   import Ecto.Changeset
+  alias VES.Accounts.User
+  alias Resolvinator.Projects.Project
+  alias Resolvinator.Risks.{Risk, Mitigation}
+  alias Resolvinator.Actors.Actor
+  alias Resolvinator.Resources.Allocation
 
   @type_values ~w(budget staff equipment inventory time other)
   @priority_values ~w(low medium high critical)
@@ -25,13 +30,13 @@ defmodule Resolvinator.Resources.Requirement do
     field :reorder_threshold, :integer
     field :is_consumable, :boolean, default: false
 
-    belongs_to :project, Resolvinator.Projects.Project
-    belongs_to :risk, Resolvinator.Risks.Risk
-    belongs_to :mitigation, Resolvinator.Risks.Mitigation
-    belongs_to :responsible_actor, Resolvinator.Actors.Actor
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :project, Project
+    belongs_to :risk, Risk
+    belongs_to :mitigation, Mitigation
+    belongs_to :responsible_actor, Actor
+    belongs_to :creator, User
     
-    has_many :allocations, Resolvinator.Resources.Allocation
+    has_many :allocations, Allocation
 
     timestamps(type: :utc_datetime)
   end

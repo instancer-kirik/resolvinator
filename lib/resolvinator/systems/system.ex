@@ -1,8 +1,12 @@
 defmodule Resolvinator.Systems.System do
-  use Ecto.Schema
+  use Resolvinator.Schema
   import Ecto.Changeset
+  alias Resolvinator.Projects.Project
+  alias VES.Accounts.User
+  alias Resolvinator.Systems.{Component, Incident, MaintenanceRecord, FilesystemEntry, ProjectConfig, System}
 
-  @system_types ~w(software hardware infrastructure service hybrid)
+  @primary_key {:id, :id, autogenerate: true}
+  @system_types ~w(software hardware network service hybrid)
   @lifecycle_stages ~w(concept development testing production maintenance eol)
   @os_types ~w(linux windows macos unix other)
   @env_types ~w(development staging production testing)
@@ -52,36 +56,37 @@ defmodule Resolvinator.Systems.System do
     field :metadata, :map, default: %{}
 
     # Relationships
-    belongs_to :project, Resolvinator.Projects.Project
-    belongs_to :owner, Resolvinator.Accounts.User
-    has_many :components, Resolvinator.Systems.Component
-    has_many :incidents, Resolvinator.Systems.Incident
-    has_many :maintenance_records, Resolvinator.Systems.MaintenanceRecord
-    has_many :filesystem_entries, Resolvinator.Systems.FilesystemEntry
+    belongs_to :project, Project
+    belongs_to :creator, User
+    has_many :components, Component
+    has_many :incidents, Incident
+    has_many :maintenance_records, MaintenanceRecord
+    has_many :filesystem_entries, FilesystemEntry
+    has_one :project_config, ProjectConfig
     
-    many_to_many :related_systems, __MODULE__,
+    many_to_many :related_systems, System,
       join_through: "system_relationships",
       join_keys: [system_id: :id, related_system_id: :id]
 
-    many_to_many :maintainers, Resolvinator.Accounts.User,
+    many_to_many :maintainers, User,
       join_through: "system_maintainers"
 
     timestamps(type: :utc_datetime)
   end
 
-  def changeset(system, attrs) do
+  def changeset(%System{} = system, attrs) do
     system
     |> cast(attrs, [
       :name, :description, :system_type, :lifecycle_stage,
       :version, :technical_stack, :dependencies, :configuration,
       :health_metrics, :documentation_url, :status, :metadata,
-      :project_id, :owner_id, :environment_type, :os_type,
+      :project_id, :creator_id, :environment_type, :os_type,
       :os_version, :root_path, :environment_variables,
       :filesystem_config
     ])
     |> validate_required([
       :name, :system_type, :lifecycle_stage,
-      :project_id, :owner_id, :environment_type
+      :project_id, :creator_id, :environment_type
     ])
     |> validate_inclusion(:system_type, @system_types)
     |> validate_inclusion(:lifecycle_stage, @lifecycle_stages)
@@ -91,7 +96,16 @@ defmodule Resolvinator.Systems.System do
     |> validate_filesystem_config()
     |> validate_root_path()
     |> foreign_key_constraint(:project_id)
-    |> foreign_key_constraint(:owner_id)
+    |> foreign_key_constraint(:creator_id)
+    |> cast_assoc(:project_config)
+  end
+
+  def create_changeset(%System{} = system, attrs) do
+    system
+    |> changeset(attrs)
+    |> put_change(:project_config, %ProjectConfig{
+      environment_type: attrs["environment_type"] || "development"
+    })
   end
 
   defp validate_health_metrics(changeset) do

@@ -1,0 +1,165 @@
+# Ganache Smart Contract Deployment and Testing
+
+## Setup
+
+First, let's install and import our dependencies:
+
+```elixir
+Mix.install([
+  {:ex_web3, "~> 0.6"},
+  {:jason, "~> 1.4"},
+  {:kino, "~> 0.9"}
+])
+
+alias ExWeb3.{Contract, Eth}
+```
+
+## Configure Web3 Connection
+
+```elixir
+# Your Ganache account details
+deployer_address = "0xCF1D964Fc2E8893894457aeB54E59bBC25B973f6"
+deployer_private_key = "0xdd597f7b8189603af8e5f1098e31e3ac7347fd75785f196fd9e51edb57a7220b"
+
+# Test account for transfers
+test_account = "0xD2caB5cBaC2DdE2EEbac96892245841d8785B59C"
+
+ganache_url = "http://localhost:8545"
+ExWeb3.configure(
+  url: ganache_url,
+  private_key: deployer_private_key
+)
+
+# Test connection
+{:ok, balance} = Eth.get_balance(deployer_address)
+IO.puts("Connected to Ganache!")
+IO.puts("Deployer balance: #{balance} wei")
+```
+
+## Simple Token Contract
+
+Here's our simple ERC20-like token contract:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleToken {
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+    
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    
+    constructor(string memory _name, string memory _symbol) {
+        name = _name;
+        symbol = _symbol;
+        decimals = 18;
+        totalSupply = 1000000 * 10**uint256(decimals); // 1 million tokens
+        balanceOf[msg.sender] = totalSupply;
+    }
+    
+    function transfer(address to, uint256 value) public returns (bool) {
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
+        balanceOf[msg.sender] -= value;
+        balanceOf[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
+}
+```
+
+## Compile Contract
+
+To compile the contract, you can use:
+1. Remix IDE (https://remix.ethereum.org/) - paste the contract and compile
+2. Or local solc compiler: `solc --abi --bin SimpleToken.sol`
+
+Paste the results here:
+
+```elixir
+# Contract ABI and Bytecode (paste after compiling)
+contract_abi = # Paste ABI here
+bytecode = # Paste bytecode here
+
+# Deploy contract
+{:ok, contract_address} = Contract.deploy(
+  abi: contract_abi,
+  bin: bytecode,
+  args: ["VES Token", "VES"],
+  from: deployer_address
+)
+
+IO.puts("Contract deployed at: #{contract_address}")
+```
+
+## Interact with Contract
+
+```elixir
+# Create contract instance
+contract = Contract.at(contract_address)
+
+# Get token info
+{:ok, name} = Contract.call(contract, "name")
+{:ok, symbol} = Contract.call(contract, "symbol")
+{:ok, total_supply} = Contract.call(contract, "totalSupply")
+
+IO.puts("""
+Token Info:
+Name: #{name}
+Symbol: #{symbol}
+Total Supply: #{total_supply}
+""")
+
+# Get deployer balance
+{:ok, balance} = Contract.call(contract, "balanceOf", [deployer_address])
+IO.puts("Deployer balance: #{balance}")
+```
+
+## Transfer Tokens
+
+```elixir
+# Transfer 100 tokens to test account
+amount = 100 * Float.pow(10, 18) |> round()
+{:ok, tx_hash} = Contract.send(contract, "transfer", [test_account, amount], from: deployer_address)
+
+IO.puts("""
+Transfer executed:
+From: #{deployer_address}
+To: #{test_account}
+Amount: 100 tokens
+Transaction: #{tx_hash}
+""")
+
+# Check new balances
+{:ok, from_balance} = Contract.call(contract, "balanceOf", [deployer_address])
+{:ok, to_balance} = Contract.call(contract, "balanceOf", [test_account])
+
+IO.puts("""
+New balances:
+Deployer account: #{from_balance}
+Test account: #{to_balance}
+""")
+```
+
+## Next Steps
+
+1. To use this notebook:
+   - Start LiveBook (`livebook server`)
+   - Open this notebook
+   - Make sure Ganache is running (which it is!)
+   - Compile the contract (use Remix IDE or solc)
+   - Paste the ABI and bytecode
+   - Run each section sequentially
+
+2. Try modifying the contract:
+   - Add new functions
+   - Change the token parameters
+   - Add more ERC20 features
+
+3. Experiment with:
+   - Different transfer amounts
+   - Multiple accounts
+   - Error conditions (e.g., insufficient balance)

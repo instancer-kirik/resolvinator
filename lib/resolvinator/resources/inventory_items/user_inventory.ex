@@ -8,7 +8,7 @@ defmodule Resolvinator.Resources.InventoryItems.UserInventory do
     field :notes, :string
     field :metadata, :map, default: %{}
 
-    belongs_to :user, Resolvinator.Accounts.User
+    belongs_to :user, VES.Accounts.User
     belongs_to :inventory_item, Resolvinator.Resources.InventoryItems.InventoryItem
 
     timestamps(type: :utc_datetime)

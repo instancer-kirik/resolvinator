@@ -155,6 +155,60 @@ config :resolvinator, Resolvinator.Monitoring,
     ]
   ]
 
+# Guardian configuration
+config :resolvinator, Resolvinator.Guardian,
+  issuer: "resolvinator",
+  secret_key: System.get_env("GUARDIAN_SECRET_KEY"),
+  ttl: %{
+    "access" => {1, :hour},
+    "refresh" => {7, :days},
+    "api" => {30, :days},
+    "web3" => {1, :day}
+  },
+  token_ttl: %{
+    "access" => {1, :hour},
+    "refresh" => {7, :days},
+    "api" => {30, :days},
+    "web3" => {1, :day}
+  },
+  allowed_algos: ["HS512"],
+  verify_module: Guardian.JWT,
+  hooks: Resolvinator.Guardian
+
+# Guardian DB configuration
+config :guardian, Guardian.DB,
+  repo: Resolvinator.Repo,
+  schema_name: "guardian_tokens", # default
+  sweep_interval: 60 # 60 minutes
+
+# Plug security configuration
+config :resolvinator, ResolvinatorWeb.Security.PlugAttack,
+  storage: {PlugAttack.Storage.Ets, Resolvinator.Security.RateLimit.Storage},
+  rules: [
+    throttle: {
+      # Max 1000 requests per 5 minutes per IP
+      {"/api", 1000, 300_000},
+      # Max 100 requests per minute for authentication endpoints
+      {~r{/api/auth/.*}, 100, 60_000}
+    }
+  ]
+
+# CORS configuration
+config :cors_plug,
+  origin: ["https://*.resolvinator.com"],
+  max_age: 86400,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  headers: ["Authorization", "Content-Type", "Accept", "Origin", "User-Agent", "DNT","Cache-Control", "X-Mx-ReqToken", "Keep-Alive", "X-Requested-With", "If-Modified-Since", "X-CSRF-Token"]
+
+# Web3 configuration
+config :resolvinator, Resolvinator.Web3,
+  ethereum_rpc: System.get_env("ETHEREUM_RPC_URL"),
+  chain_id: System.get_env("ETHEREUM_CHAIN_ID", "1"),
+  contract_addresses: %{
+    token: System.get_env("TOKEN_CONTRACT_ADDRESS"),
+    nft: System.get_env("NFT_CONTRACT_ADDRESS")
+  }
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
@@ -181,16 +235,6 @@ config :resolvinator, Resolvinator.Auth.RateLimiter,
 #   retry_backoff_base_ms: 1000,
 #   retry_backoff_max_ms: 30_000,
 #   shutdown_backoff_ms: 5_000
-
-# Guardian configuration
-config :resolvinator, Resolvinator.Guardian,
-  issuer: "resolvinator",
-  secret_key: System.get_env("GUARDIAN_SECRET_KEY"),
-  ttl: {30, :days},
-  token_ttl: %{
-    "access" => {2, :hours},
-    "refresh" => {30, :days}
-  }
 
 config :resolvinator, Resolvinator.Repo,
   migration_primary_key: [type: :binary_id],

@@ -16,7 +16,7 @@ defmodule Resolvinator.Resources.Allocation do
 
     belongs_to :risk, Resolvinator.Risks.Risk
     belongs_to :mitigation, Resolvinator.Risks.Mitigation
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :creator, VES.Accounts.User
     belongs_to :requirement, Resolvinator.Resources.Requirement
 
     timestamps(type: :utc_datetime)

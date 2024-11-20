@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserSessionController do
   use ResolvinatorWeb, :controller
 
-  alias Resolvinator.Accounts
+  alias VES.Accounts
   alias ResolvinatorWeb.UserAuth
 
   def create(conn, %{"_action" => "registered"} = params) do
@@ -14,6 +14,12 @@ defmodule ResolvinatorWeb.UserSessionController do
     |> create_with_message(params, "Password updated successfully!")
   end
 
+  def create(conn, %{"_action" => "github_connected"} = params) do
+    conn
+    |> put_session(:user_return_to, ~p"/users/settings")
+    |> create_with_message(params, "GitHub account connected successfully!")
+  end
+
   def create(conn, %{"user" => user_params}) do
     create_with_message(conn, %{"user" => user_params}, "Welcome back!")
   end
@@ -21,13 +27,13 @@ defmodule ResolvinatorWeb.UserSessionController do
   defp create_with_message(conn, %{"user" => user_params}, info) do
     %{"email" => email, "password" => password} = user_params
 
-    case Accounts.get_user_by_email_and_password(email, password) do
-      %Accounts.User{} = user ->
+    case Accounts.Auth.authenticate_user(email, password) do
+      {:ok, user} ->
         conn
         |> put_flash(:info, info)
         |> UserAuth.log_in_user(user, user_params)
 
-      nil ->
+      {:error, _reason} ->
         conn
         |> put_flash(:error, "Invalid email or password")
         |> put_flash(:email, String.slice(email, 0, 160))

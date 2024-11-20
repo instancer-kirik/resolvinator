@@ -12,7 +12,7 @@ defmodule Resolvinator.Resources.Resource do
     field :cost_per_unit, :decimal
     field :availability_status, :string
     
-    belongs_to :creator, Resolvinator.Accounts.User, type: :binary_id
+    belongs_to :creator, VES.Accounts.User, type: :binary_id
     belongs_to :project, Resolvinator.Projects.Project, type: :binary_id
     
     has_many :rewards, Resolvinator.Rewards.Reward

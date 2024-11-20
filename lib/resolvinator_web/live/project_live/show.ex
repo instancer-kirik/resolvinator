@@ -3,7 +3,7 @@ defmodule ResolvinatorWeb.ProjectLive.Show do
 
   alias Resolvinator.Projects
   alias Resolvinator.Accounts
-  alias Resolvinator.Blockchain.ProjectToken
+  alias BlockchainTokens.Blockchain.ProjectToken
 
   @impl true
   def mount(_params, session, socket) do

@@ -62,7 +62,7 @@ defmodule Resolvinator.Content.ContentBehavior do
         embeds_many :impacts, Resolvinator.Content.Impact, on_replace: :delete
 
         # Common relationships
-        belongs_to :creator, Resolvinator.Accounts.User
+        belongs_to :creator, VES.Accounts.User
         belongs_to :project, Resolvinator.Projects.Project
 
         # Self-referential relationships

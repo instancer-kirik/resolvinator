@@ -9,7 +9,7 @@
   </div>
 
   <div class="ships-container">
-    <div class="ship ship-one <%= if @current_ship.id == @battle.ship_one_id, do: "active" %>">
+    <div class={"ship ship-one #{if @current_ship.id == @battle.ship_one_id, do: "active"}"}>
       <h2><%= @battle.ship_one.name %></h2>
       <%= case @battle.ship_one.showcase_type do %>
         <% "video" -> %>
@@ -38,4 +38,4 @@
     feedback_type={@feedback_type}
     current_ship={@current_ship}
   />
-</div> 
+</div>
