@@ -1,7 +1,7 @@
 defmodule Resolvinator.Suppliers.Catalog do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Suppliers.Supplier
 
   schema "supplier_catalogs" do
@@ -23,7 +23,7 @@ defmodule Resolvinator.Suppliers.Catalog do
 
   def changeset(catalog, attrs) do
     catalog
-    |> cast(attrs, [:name, :description, :effective_date, :expiry_date, 
+    |> cast(attrs, [:name, :description, :effective_date, :expiry_date,
                     :status, :items, :pricing_type, :currency, :metadata,
                     :supplier_id, :creator_id])
     |> validate_required([:name, :effective_date, :supplier_id])

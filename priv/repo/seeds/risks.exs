@@ -1,17 +1,17 @@
 # Risk Management Seeds
 
 # Add at the top of the file
-alias Resolvinator.{Repo, Accounts, Projects}
+alias Resolvinator.{Repo, Acts, Projects}
 
 # Create users
-{:ok, user1} = Accounts.register_user(%{
+{:ok, user1} = Acts.register_user(%{
   email: "admin@example.com",
   password: "adminpass123!",
   username: "admin",
   is_admin: true
 })
 
-{:ok, user2} = Accounts.register_user(%{
+{:ok, user2} = Acts.register_user(%{
   email: "user@example.com",
   password: "userpass123!",
   username: "user"

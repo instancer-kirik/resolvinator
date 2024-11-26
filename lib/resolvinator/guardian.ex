@@ -1,9 +1,9 @@
 defmodule Resolvinator.Guardian do
   use Guardian, otp_app: :resolvinator
 
-  alias VES.Accounts
-  alias VES.Accounts.User
-  alias VES.Web3.Wallet
+  alias Acts.Auth
+  alias Acts.User
+  alias Veix.Web3.Wallet
 
   @token_types %{
     access: "access",
@@ -35,7 +35,7 @@ defmodule Resolvinator.Guardian do
   """
   def resource_from_claims(%{"sub" => subject, "type" => type} = claims) when type == @token_types.web3 do
     with [user_id, eth_address] <- String.split(subject, ":", parts: 2),
-         {:ok, user} <- Accounts.get_user(user_id),
+         {:ok, user} <- Acts.Auth.get_user_by_session_token(user_id),
          {:ok, true} <- verify_ethereum_signature(user, eth_address, claims) do
       {:ok, user}
     else
@@ -44,7 +44,7 @@ defmodule Resolvinator.Guardian do
   end
 
   def resource_from_claims(%{"sub" => id}) do
-    case Accounts.get_user(id) do
+    case Acts.Auth.get_user_by_session_token(id) do
       {:ok, user} -> {:ok, user}
       _error -> {:error, :resource_not_found}
     end
@@ -71,7 +71,7 @@ defmodule Resolvinator.Guardian do
   Verify that the token hasn't been revoked.
   """
   def verify_token(token, _opts) do
-    case VES.Guardian.DB.Token.verify(token) do
+    case VEIX.Guardian.DB.Token.verify(token) do
       {:ok, _} -> {:ok, token}
       {:error, reason} -> {:error, reason}
     end

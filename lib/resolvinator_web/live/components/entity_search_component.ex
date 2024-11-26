@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.Components.EntitySearchComponent do
   use ResolvinatorWeb, :live_component
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias Resolvinator.Projects
 
   @impl true
@@ -19,15 +19,15 @@ defmodule ResolvinatorWeb.Components.EntitySearchComponent do
                  placeholder={@placeholder}
                  class="w-full px-3 py-2 border rounded-md pr-10"
                  autocomplete="off" />
-          
+
           <div :if={@loading} class="absolute right-3 top-2.5">
             <.icon name="hero-arrow-path" class="h-5 w-5 animate-spin text-gray-400" />
           </div>
         </div>
 
         <%= if @selected do %>
-          <button type="button" 
-                  phx-click="clear" 
+          <button type="button"
+                  phx-click="clear"
                   phx-target={@myself}
                   class="text-gray-400 hover:text-gray-600">
             <.icon name="hero-x-mark" class="h-5 w-5" />
@@ -141,7 +141,7 @@ defmodule ResolvinatorWeb.Components.EntitySearchComponent do
      |> assign(:loading, false)}
   end
 
-  defp find_entity(id, :user), do: Accounts.get_user!(id)
+  defp find_entity(id, :user), do: Acts.get_user!(id)
   defp find_entity(id, :project), do: Projects.get_project!(id)
 
   defp display_name(entity, :user), do: entity.email
@@ -154,4 +154,4 @@ defmodule ResolvinatorWeb.Components.EntitySearchComponent do
     # Implementation or placeholder
     "some time ago"
   end
-end 
+end

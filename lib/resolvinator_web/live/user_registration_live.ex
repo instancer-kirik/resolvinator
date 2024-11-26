@@ -1,14 +1,15 @@
 defmodule ResolvinatorWeb.UserRegistrationLive do
   use ResolvinatorWeb, :live_view
 
-  alias VES.Accounts
-  alias VES.Accounts.User
+  alias Acts
+  alias Acts.User
+  alias Acts.Registration
 
   def render(assigns) do
     ~H"""
     <div class="mx-auto max-w-sm">
       <.header class="text-center">
-        Register for VES
+        Register for VEIX
         <:subtitle>
           Already registered?
           <.link navigate={~p"/users/log_in"} class="font-semibold text-brand hover:underline">
@@ -57,7 +58,7 @@ defmodule ResolvinatorWeb.UserRegistrationLive do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.Registration.change_user_registration(%User{})
+    changeset = Registration.change_user_registration(%User{})
 
     socket =
       socket
@@ -75,15 +76,15 @@ defmodule ResolvinatorWeb.UserRegistrationLive do
       user_params
     end
 
-    case Accounts.Registration.register_user(user_params) do
+    case Registration.register_user(user_params) do
       {:ok, user} ->
         {:ok, _} =
-          Accounts.deliver_user_confirmation_instructions(
+          Acts.deliver_user_confirmation_instructions(
             user,
             &url(~p"/users/confirm/#{&1}")
           )
 
-        changeset = Accounts.Registration.change_user_registration(user)
+        changeset = Registration.change_user_registration(user)
         {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -92,7 +93,7 @@ defmodule ResolvinatorWeb.UserRegistrationLive do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.Registration.change_user_registration(%User{}, user_params)
+    changeset = Registration.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 

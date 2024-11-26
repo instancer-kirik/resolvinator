@@ -1,5 +1,4 @@
 defmodule Resolvinator.Attachments.Attachment do
-  use Ecto.Schema
   import Ecto.Changeset
   use Flint.Schema
 
@@ -16,7 +15,7 @@ defmodule Resolvinator.Attachments.Attachment do
     field :attachable_type, :string
     field :attachable_id, :integer
 
-    belongs_to :creator, VES.Accounts.User
+    belongs_to :creator, Acts.User
 
     # Math-specific fields
     field :math_related, :boolean, default: false

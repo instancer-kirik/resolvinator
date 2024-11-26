@@ -49,11 +49,56 @@ defmodule Resolvinator.Wonderdome do
     }
   end
 
-  defp calculate_total_score(score) do
-    score
-    |> Map.values()
-    |> Enum.sum()
+  defp generate_starting_position(battle) do
+    # Generate a random position within the battle area
+    %{
+      x: :rand.uniform(100),
+      y: :rand.uniform(100),
+      rotation: :rand.uniform(360)
+    }
   end
 
-  # Additional helper functions...
-end 
+  defp summarize_volleys(volleys) do
+    volleys
+    |> Enum.group_by(& &1.from_ship_id)
+    |> Enum.map(fn {ship_id, ship_volleys} ->
+      %{
+        ship_id: ship_id,
+        total_volleys: length(ship_volleys),
+        hits: Enum.count(ship_volleys, & &1.hit),
+        damage_dealt: Enum.sum(Enum.map(ship_volleys, & &1.damage || 0))
+      }
+    end)
+  end
+
+  defp calculate_duration(battle) do
+    case {battle.started_at, battle.ended_at} do
+      {nil, _} -> 0
+      {_, nil} -> DateTime.diff(DateTime.utc_now(), battle.started_at)
+      {start, finish} -> DateTime.diff(finish, start)
+    end
+  end
+
+  defp count_feedback_received(battle_ship) do
+    battle_ship.volleys_received
+    |> Enum.count(& &1.feedback)
+  end
+
+  defp identify_strong_categories(battle_ship) do
+    battle_ship.volleys_fired
+    |> Enum.group_by(& &1.category)
+    |> Enum.map(fn {category, volleys} ->
+      hits = Enum.count(volleys, & &1.hit)
+      accuracy = hits / length(volleys)
+      {category, accuracy}
+    end)
+    |> Enum.sort_by(fn {_, accuracy} -> accuracy end, :desc)
+    |> Enum.take(3)
+    |> Enum.map(fn {category, _} -> category end)
+  end
+
+  defp calculate_total_score(score) when is_map(score) do
+    Map.values(score) |> Enum.sum()
+  end
+  defp calculate_total_score(_), do: 0
+end

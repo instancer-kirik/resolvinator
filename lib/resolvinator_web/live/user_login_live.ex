@@ -1,13 +1,13 @@
 defmodule ResolvinatorWeb.UserLoginLive do
   use ResolvinatorWeb, :live_view
 
-  alias VES.Accounts
+  alias Acts
 
   def render(assigns) do
     ~H"""
     <div class="mx-auto max-w-sm">
       <.header class="text-center">
-        Log in to VES
+        Log in to VEIX
         <:subtitle>
           Don't have an account?
           <.link navigate={~p"/users/register"} class="font-semibold text-brand hover:underline">
@@ -62,7 +62,7 @@ defmodule ResolvinatorWeb.UserLoginLive do
   end
 
   def handle_event("login", %{"user" => user_params}, socket) do
-    case Accounts.Auth.authenticate_user(user_params["email"], user_params["password"]) do
+    case Acts.Auth.authenticate_user(user_params["email"], user_params["password"]) do
       {:ok, user} ->
         {:noreply,
          socket

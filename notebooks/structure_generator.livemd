@@ -47,7 +47,7 @@ defmodule StructureGenerator do
             #{generate_schema_fields(fields)}
 
             # Common relationships
-            belongs_to :creator, Resolvinator.Accounts.User
+            belongs_to :creator, Resolvinator.Acts.User
             belongs_to :project, Resolvinator.Projects.Project
 
             # Additional schema fields provided by the implementing module

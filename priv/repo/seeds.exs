@@ -3,7 +3,7 @@
 #     mix run priv/repo/seeds.exs
 #
 alias Resolvinator.Repo
-alias Resolvinator.Accounts
+alias Resolvinator.Acts
 alias Resolvinator.Content.{Problem, Solution, Advantage, Lesson, Question, Answer, Theorem}
 alias Resolvinator.Projects
 alias Resolvinator.Risks
@@ -29,9 +29,9 @@ end
 
 # Create admin user if doesn't exist
 admin = Seeds.Helper.safe_run "admin user", fn ->
-  case Accounts.get_user_by_email("admin@example.com") do
+  case Acts.get_user_by_email("admin@example.com") do
     nil ->
-      {:ok, admin} = Accounts.register_user(%{
+      {:ok, admin} = Acts.register_user(%{
         email: "admin@example.com",
         username: "admin",
         password: "adminpass123!",
@@ -209,10 +209,10 @@ if admin do
 
         Enum.map(topic_attrs, fn attrs ->
           case Resolvinator.Topics.get_topic_by_slug(attrs.slug) do
-            nil -> 
+            nil ->
               {:ok, topic} = Resolvinator.Topics.create_topic(attrs)
               topic
-            existing_topic -> 
+            existing_topic ->
               existing_topic
           end
         end)
@@ -329,7 +329,7 @@ if admin do
         # After both are created, update their relationships
         Seeds.Helper.safe_run "update_relationships", fn ->
           problem = Repo.preload(problem, [:solutions])
-          
+
           problem
           |> Ecto.Changeset.change()
           |> Ecto.Changeset.put_assoc(:solutions, [solution])
@@ -403,4 +403,4 @@ if admin do
   end
 end
 
-IO.puts("\nSeed operation completed!") 
+IO.puts("\nSeed operation completed!")

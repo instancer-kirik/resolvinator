@@ -2,13 +2,13 @@ defmodule ResolvinatorWeb.ProjectLive.Show do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Projects
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias BlockchainTokens.Blockchain.ProjectToken
 
   @impl true
   def mount(_params, session, socket) do
-    current_user = Accounts.get_user_by_session_token(session["user_token"])
-    
+    current_user = Acts.Auth.get_user_by_session_token(session["user_token"])
+
     {:ok,
      socket
      |> assign(:current_user_id, current_user.id)
@@ -23,7 +23,7 @@ defmodule ResolvinatorWeb.ProjectLive.Show do
     project = Projects.get_project!(id)
     tokens = ProjectToken.list_user_tokens(socket.assigns.current_user_id)
              |> Enum.filter(&(&1.project_id == project.id))
-    
+
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
@@ -49,7 +49,7 @@ defmodule ResolvinatorWeb.ProjectLive.Show do
 
   def handle_event("mint-governance-tokens", %{"amount" => amount}, socket) do
     {amount, _} = Decimal.parse(amount)
-    
+
     case ProjectToken.mint_governance_tokens(
       socket.assigns.project,
       socket.assigns.current_user_id,
@@ -121,8 +121,8 @@ defmodule ResolvinatorWeb.ProjectLive.Show do
 
   def handle_event("transfer-token", %{"token_id" => token_id, "email" => email}, socket) do
     token = Enum.find(socket.assigns.tokens, &(&1.id == token_id))
-    
-    with {:ok, recipient} <- Accounts.get_user_by_email(email),
+
+    with {:ok, recipient} <- Acts.get_user_by_email(email),
          {:ok, _token} <- ProjectToken.transfer(token, recipient) do
       {:noreply,
        socket

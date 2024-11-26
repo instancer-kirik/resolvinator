@@ -7,6 +7,9 @@ defmodule Resolvinator.Application do
 
   @impl true
   def start(_type, _args) do
+    # Initialize tzdata
+    Application.ensure_all_started(:tzdata)
+
     children = [
       ResolvinatorWeb.Telemetry,
       Resolvinator.Repo,

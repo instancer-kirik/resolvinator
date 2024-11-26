@@ -1,7 +1,7 @@
 defmodule Resolvinator.Tasks.Task do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias VES.Accounts.User
+  alias Acts.User
 
   schema "tasks" do
     field :title, :string

@@ -2,13 +2,13 @@ defmodule ResolvinatorWeb.LessonLive.Show do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Content
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   on_mount {ResolvinatorWeb.UserAuth, :mount_current_user}
 
   @impl true
   def mount(_params, %{"user_token" => user_token}, socket) do
-    case Accounts.get_user_by_session_token(user_token) do
+    case Acts.Auth.get_user_by_session_token(user_token) do
       nil -> {:error, "User not found"}
       user ->
         socket = assign(socket, :current_user, user)
@@ -31,7 +31,7 @@ defmodule ResolvinatorWeb.LessonLive.Show do
     end)
 
     updated_lesson = Map.put(lesson, :descriptions, updated_descriptions)
-   
+
     {:noreply, assign(socket, page_title: page_title(socket.assigns.live_action), lesson: updated_lesson, source: updated_lesson, source_type: "lesson")}
   end
 
@@ -95,7 +95,7 @@ defmodule ResolvinatorWeb.LessonLive.Show do
     {:noreply, assign(socket, :lesson, updated_lesson)}
   end
 
-  
+
   defp page_title(:show), do: "Show Lesson"
   defp page_title(:edit), do: "Edit Lesson"
 end

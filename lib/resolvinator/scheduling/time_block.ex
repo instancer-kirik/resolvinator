@@ -2,8 +2,8 @@ defmodule Resolvinator.Scheduling.TimeBlock do
   use Resolvinator.Schema
   import Ecto.Changeset
   import Ecto.Query
-  alias VES.Accounts.User
-  alias VES.Accounts.Profiles.ResolvinatorProfile
+  alias Acts.User
+  alias Acts.Profiles.ResolvinatorProfile
   alias Resolvinator.Scheduling.Task
   alias Resolvinator.Projects.Project
 

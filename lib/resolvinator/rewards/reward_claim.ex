@@ -11,8 +11,8 @@ defmodule Resolvinator.Rewards.RewardClaim do
     field :reviewed_at, :utc_datetime
 
     belongs_to :reward, Resolvinator.Rewards.Reward
-    belongs_to :user, Resolvinator.Accounts.User
-    belongs_to :reviewer, Resolvinator.Accounts.User, foreign_key: :reviewed_by_id
+    belongs_to :user, Resolvinator.Acts.User
+    belongs_to :reviewer, Resolvinator.Acts.User, foreign_key: :reviewed_by_id
 
     timestamps()
   end

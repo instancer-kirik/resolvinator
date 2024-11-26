@@ -18,6 +18,7 @@ defmodule Resolvinator.Projects.Project do
     field :start_date, :date
     field :target_date, :date
     field :completion_date, :date
+    field :creator_id, :binary_id
     
     # Project-specific settings
     field :settings, :map, default: %{
@@ -95,7 +96,7 @@ defmodule Resolvinator.Projects.Project do
   end
 
   @required_fields ~w(name project_type)a
-  @optional_fields ~w(description status risk_appetite start_date target_date completion_date settings)a
+  @optional_fields ~w(description status risk_appetite start_date target_date completion_date settings creator_id)a
 
   @doc false
   def changeset(project, attrs) do

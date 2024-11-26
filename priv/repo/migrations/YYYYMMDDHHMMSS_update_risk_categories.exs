@@ -9,22 +9,28 @@ defmodule Resolvinator.Repo.Migrations.UpdateRiskCategories do
       add :metadata, :map, default: %{}
       add :tags, {:array, :string}, default: []
       add :priority, :integer
-      
+
       # Add embedded schema fields
       add :voting, :map
       add :moderation, :map
       add :impacts, {:array, :map}
-      
+
       # Add tracking fields if they don't exist
       add_if_not_exists :hidden, :boolean, default: false
       add_if_not_exists :hidden_at, :utc_datetime
-      add_if_not_exists :hidden_by_id, references(:users, type: :binary_id)
+
+      # Note: hidden_by_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :hidden_by_id, :binary_id
+
       add_if_not_exists :deleted_at, :utc_datetime
     end
 
     # Add indexes
     create_if_not_exists index(:risk_categories, [:status])
     create_if_not_exists index(:risk_categories, [:hidden])
+    create_if_not_exists index(:risk_categories, [:hidden_by_id])
     create_if_not_exists index(:risk_categories, [:deleted_at])
     create_if_not_exists unique_index(:risk_categories, [:name, :project_id, :hidden])
   end
@@ -34,4 +40,4 @@ defmodule Resolvinator.Repo.Migrations.UpdateRiskCategories do
       add(table, column, type, opts)
     end
   end
-end 
+end

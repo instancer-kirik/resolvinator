@@ -3,12 +3,12 @@ defmodule ResolvinatorWeb.ProjectLive.Index do
 
   alias Resolvinator.Projects
   alias Resolvinator.Projects.Project
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   @impl true
   def mount(_params, session, socket) do
-    current_user = Accounts.get_user_by_session_token(session["user_token"])
-    {:ok, 
+    current_user = Acts.Auth.get_user_by_session_token(session["user_token"])
+    {:ok,
       socket
       |> assign(:projects, list_projects())
       |> assign(:current_user_id, current_user.id)
@@ -78,7 +78,7 @@ defmodule ResolvinatorWeb.ProjectLive.Index do
   @impl true
   def handle_event("claim-with-token", %{"id" => id}, socket) do
     project = Projects.get_project!(id)
-    
+
     case Projects.claim_project_with_token(project, socket.assigns.token_input, socket.assigns.current_user_id) do
       {:ok, updated_project} ->
         {:noreply,

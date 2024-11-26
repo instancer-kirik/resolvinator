@@ -1,7 +1,7 @@
 defmodule Resolvinator.Resources.Requirement do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Projects.Project
   alias Resolvinator.Risks.{Risk, Mitigation}
   alias Resolvinator.Actors.Actor
@@ -22,7 +22,7 @@ defmodule Resolvinator.Resources.Requirement do
     field :status, :string, default: "draft"
     field :justification, :string
     field :notes, :string
-    
+
     # Inventory specific fields
     field :inventory_item_id, :integer
     field :quantity_needed, :integer
@@ -35,7 +35,7 @@ defmodule Resolvinator.Resources.Requirement do
     belongs_to :mitigation, Mitigation
     belongs_to :responsible_actor, Actor
     belongs_to :creator, User
-    
+
     has_many :allocations, Allocation
 
     timestamps(type: :utc_datetime)
@@ -66,7 +66,7 @@ defmodule Resolvinator.Resources.Requirement do
     |> foreign_key_constraint(:mitigation_id)
     |> foreign_key_constraint(:responsible_actor_id)
     |> foreign_key_constraint(:creator_id)
-    |> check_constraint(:resource_owner, 
+    |> check_constraint(:resource_owner,
         name: :must_belong_to_project_risk_or_mitigation,
         message: "must belong to either a project, risk, or mitigation")
   end
@@ -92,4 +92,4 @@ defmodule Resolvinator.Resources.Requirement do
       changeset
     end
   end
-end 
+end

@@ -1,13 +1,13 @@
-defmodule Resolvinator.Accounts do
+defmodule Resolvinator.Acts do
   @moduledoc """
-  The Accounts context.
-  Delegates to VES.Accounts for core user management while handling Resolvinator-specific concerns.
+  The Acts context.
+  Delegates to Acts for core user management while handling Resolvinator-specific concerns.
   """
 
   import Ecto.Query, warn: false
-  alias VES.Accounts
-  alias VES.Accounts.User
-  alias VES.Repo
+  alias Acts
+  alias Acts.{User, UserToken}
+  alias Acts.Repo
 
   @doc """
   Gets a user by email.
@@ -21,9 +21,9 @@ defmodule Resolvinator.Accounts do
       nil ->
         # Generate a random password for new users
         pw = :rand.bytes(30) |> Base.encode64(padding: false)
-        
+
         # Register user with both core and Resolvinator profile
-        {:ok, %{user: user}} = Accounts.Auth.register_user(
+        {:ok, %{user: user}} = Acts.Auth.register_user(
           %{email: email, password: pw},
           %{
             resolvinator: %{
@@ -34,7 +34,7 @@ defmodule Resolvinator.Accounts do
           }
         )
         user
-        
+
       user -> user
     end
   end
@@ -44,7 +44,7 @@ defmodule Resolvinator.Accounts do
   """
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    case Accounts.Auth.authenticate_user(email, password) do
+    case Acts.Auth.authenticate_user(email, password) do
       {:ok, user} -> user
       _ -> nil
     end
@@ -60,7 +60,7 @@ defmodule Resolvinator.Accounts do
   """
   def register_user(attrs) do
     # Register user with both core and Resolvinator profile
-    Accounts.Auth.register_user(
+    Acts.Auth.register_user(
       attrs,
       %{
         resolvinator: %{
@@ -95,7 +95,7 @@ defmodule Resolvinator.Accounts do
     {encoded_token, user_token} = UserToken.build_email_token(user, "change:#{current_email}")
 
     Repo.insert!(user_token)
-    UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+    Acts.UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
   end
 
   @doc """

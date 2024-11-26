@@ -4,7 +4,7 @@
   import Plug.Conn
   import Phoenix.Controller
 
-  alias VES.Accounts
+  alias Acts
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -24,7 +24,7 @@
   if you are not using LiveView.
   """
   def log_in_user(conn, user, params \\ %{}) do
-    token = Accounts.generate_user_session_token(user)
+    token = Acts.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
 
     conn
@@ -69,7 +69,7 @@
   """
   def log_out_user(conn) do
     user_token = get_session(conn, :user_token)
-    user_token && Accounts.delete_user_session_token(user_token)
+    user_token && Acts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       ResolvinatorWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
@@ -87,7 +87,7 @@
   """
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
-    user = user_token && Accounts.get_user_by_session_token(user_token)
+    user = user_token && Acts.Auth.get_user_by_session_token(user_token)
     assign(conn, :current_user, user)
   end
 
@@ -146,7 +146,7 @@
     case session do
       %{"user_token" => user_token} ->
         Phoenix.Component.assign_new(socket, :current_user, fn ->
-          Accounts.get_user_by_session_token(user_token)
+          Acts.Auth.get_user_by_session_token(user_token)
         end)
 
       %{} ->

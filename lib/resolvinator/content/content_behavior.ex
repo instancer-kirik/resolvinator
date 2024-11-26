@@ -4,7 +4,7 @@ defmodule Resolvinator.Content.ContentBehavior do
   """
 
   defmodule Voting do
-    use Ecto.Schema
+    use Flint.Schema
 
     @primary_key false
     embedded_schema do
@@ -15,7 +15,7 @@ defmodule Resolvinator.Content.ContentBehavior do
   end
 
   defmodule Moderation do
-    use Ecto.Schema
+    use Flint.Schema
 
     @primary_key false
     embedded_schema do
@@ -31,7 +31,6 @@ defmodule Resolvinator.Content.ContentBehavior do
     type_name = opts[:type_name]
 
     quote do
-      use Ecto.Schema
       use Flint.Schema
       import Ecto.Changeset
       import Ecto.Query
@@ -62,7 +61,7 @@ defmodule Resolvinator.Content.ContentBehavior do
         embeds_many :impacts, Resolvinator.Content.Impact, on_replace: :delete
 
         # Common relationships
-        belongs_to :creator, VES.Accounts.User
+        belongs_to :creator, Acts.User
         belongs_to :project, Resolvinator.Projects.Project
 
         # Self-referential relationships
@@ -187,31 +186,31 @@ defmodule Resolvinator.Content.ContentBehavior do
           {name, type} ->
             quote do: field(unquote(name), unquote(type))
         end)
-      
+
       {:embeds_many, embeds} ->
         Enum.map(embeds, fn {name, opts} ->
           module = opts[:schema]
           quote do: embeds_many(unquote(name), unquote(module))
         end)
-      
+
       {:embeds_one, embeds} ->
         Enum.map(embeds, fn {name, opts} ->
           module = opts[:module] || opts[:schema]
           quote do: embeds_one(unquote(name), unquote(module))
         end)
-      
+
       {:relationships, rels} ->
         Enum.flat_map(rels, fn
           {:belongs_to, items} ->
             Enum.map(items, fn {name, opts} ->
               quote do: belongs_to(unquote(name), unquote(opts[:module]))
             end)
-          
+
           {:has_many, items} ->
             Enum.map(items, fn {name, opts} ->
               quote do: has_many(unquote(name), unquote(opts[:module]))
             end)
-          
+
           {:many_to_many, items} ->
             Enum.map(items, fn {name, opts} ->
               quote do
@@ -222,7 +221,7 @@ defmodule Resolvinator.Content.ContentBehavior do
               end
             end)
         end)
-      
+
       _ -> []
     end)
   end

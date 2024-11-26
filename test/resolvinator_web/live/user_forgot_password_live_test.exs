@@ -2,9 +2,9 @@ defmodule ResolvinatorWeb.UserForgotPasswordLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias Resolvinator.Repo
 
   describe "Forgot password page" do
@@ -43,7 +43,7 @@ defmodule ResolvinatorWeb.UserForgotPasswordLiveTest do
 
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "If your email is in our system"
 
-      assert Repo.get_by!(Accounts.UserToken, user_id: user.id).context ==
+      assert Repo.get_by!(Acts.UserToken, user_id: user.id).context ==
                "reset_password"
     end
 
@@ -57,7 +57,7 @@ defmodule ResolvinatorWeb.UserForgotPasswordLiveTest do
         |> follow_redirect(conn, "/")
 
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "If your email is in our system"
-      assert Repo.all(Accounts.UserToken) == []
+      assert Repo.all(Acts.UserToken) == []
     end
   end
 end

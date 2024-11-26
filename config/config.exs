@@ -26,7 +26,7 @@ config :resolvinator, ResolvinatorWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Resolvinator.PubSub,
-  live_view: [signing_salt: "UZNKtQmW"]
+  live_view: [signing_salt: "_CLvmXLvmXpMV1yHv+J+"]
 
 # Configures the mailer
 #

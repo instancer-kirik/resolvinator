@@ -2,9 +2,9 @@ defmodule ResolvinatorWeb.UserConfirmationLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias Resolvinator.Repo
 
   setup do
@@ -20,7 +20,7 @@ defmodule ResolvinatorWeb.UserConfirmationLiveTest do
     test "confirms the given token once", %{conn: conn, user: user} do
       token =
         extract_user_token(fn url ->
-          Accounts.deliver_user_confirmation_instructions(user, url)
+          Acts.deliver_user_confirmation_instructions(user, url)
         end)
 
       {:ok, lv, _html} = live(conn, ~p"/users/confirm/#{token}")
@@ -36,9 +36,9 @@ defmodule ResolvinatorWeb.UserConfirmationLiveTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~
                "User confirmed successfully"
 
-      assert Accounts.get_user!(user.id).confirmed_at
+      assert Acts.get_user!(user.id).confirmed_at
       refute get_session(conn, :user_token)
-      assert Repo.all(Accounts.UserToken) == []
+      assert Repo.all(Acts.UserToken) == []
 
       # when not logged in
       {:ok, lv, _html} = live(conn, ~p"/users/confirm/#{token}")
@@ -83,7 +83,7 @@ defmodule ResolvinatorWeb.UserConfirmationLiveTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
                "User confirmation link is invalid or it has expired"
 
-      refute Accounts.get_user!(user.id).confirmed_at
+      refute Acts.get_user!(user.id).confirmed_at
     end
   end
 end

@@ -3,7 +3,7 @@ defmodule Resolvinator.Content.UserHiddenDescription do
   import Ecto.Changeset
 
   schema "user_hidden_descriptions" do
-    belongs_to :user, VES.Accounts.User
+    belongs_to :user, Acts.User
     belongs_to :description, Resolvinator.Content.Description
 
     timestamps()

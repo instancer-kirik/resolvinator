@@ -37,7 +37,7 @@ defmodule Resolvinator.MixProject do
   def application do
     [
       mod: {Resolvinator.Application, []},
-      extra_applications: [:logger, :runtime_tools, :os_mon]
+      extra_applications: [:logger, :runtime_tools, :os_mon, :tzdata, :acts]
     ]
   end
 
@@ -51,21 +51,35 @@ defmodule Resolvinator.MixProject do
       {:phoenix, "~> 1.7.12"},
       {:phoenix_ecto, "~> 4.6.3"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.20.1"},
+      {:phoenix_live_reload, "~> 1.5", only: :dev},
+      {:phoenix_live_view, "~> 0.20.17"},
+
       {:floki, ">= 0.30.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:phoenix_live_dashboard, "~> 0.8.5"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.2.4", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"},
+      {:plug_cowboy, "~> 2.7.2"},
+      # Add missing dependencies
+      {:guardian, "~> 2.3"},
+      {:swoosh, "~> 1.14"},
+      {:ranch, "~> 2.1.0", override: true},
+      {:parse_trans, "~> 3.4.2", override: true},
+      {:httpoison, "~> 2.0"},
+      {:nx, "~> 0.9.2"},
+      {:acts, in_umbrella: true},
+      {:time_tracker, in_umbrella: true},
+      {:tzdata, "~> 1.1.2"},
 
       # Database
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
+
+      # Schema and behavior support
+      {:flint, "~> 0.6.0"},
 
       # Umbrella dependencies
       {:blockchain_core, in_umbrella: true},

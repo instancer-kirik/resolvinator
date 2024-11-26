@@ -1,7 +1,7 @@
-defmodule Resolvinator.AccountsFixtures do
+defmodule Resolvinator.ActsFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `Resolvinator.Accounts` context.
+  entities via the `Resolvinator.Acts` context.
   """
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
@@ -18,7 +18,7 @@ defmodule Resolvinator.AccountsFixtures do
     {:ok, user} =
       attrs
       |> valid_user_attributes()
-      |> Resolvinator.Accounts.register_user()
+      |> Resolvinator.Acts.register_user()
 
     user
   end

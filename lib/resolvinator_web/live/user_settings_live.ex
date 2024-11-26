@@ -1,12 +1,12 @@
 defmodule ResolvinatorWeb.UserSettingsLive do
   use ResolvinatorWeb, :live_view
 
-  alias VES.Accounts
+  alias Acts
 
   def render(assigns) do
     ~H"""
     <.header class="text-center">
-      VES Account Settings
+      VEIX Account Settings
       <:subtitle>Manage your account settings and connected applications</:subtitle>
     </.header>
 
@@ -74,7 +74,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
       <div>
         <.header class="text-left text-lg font-semibold leading-8 text-zinc-800">
           Connected Applications
-          <:subtitle>Manage your connected GitHub and other application accounts</:subtitle>
+          <:subtitle>Manage your connected GitHub and other application acts</:subtitle>
         </.header>
 
         <div class="mt-6 flex flex-col gap-4">
@@ -107,7 +107,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
 
   def mount(%{"token" => token}, _session, socket) do
     socket =
-      case Accounts.Auth.update_user_email(socket.assigns.current_user, token) do
+      case Acts.Auth.update_user_email(socket.assigns.current_user, token) do
         :ok ->
           put_flash(socket, :info, "Email changed successfully.")
 
@@ -120,10 +120,10 @@ defmodule ResolvinatorWeb.UserSettingsLive do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user
-    email_changeset = Accounts.Auth.change_user_email(user)
-    password_changeset = Accounts.Auth.change_user_password(user)
+    email_changeset = Acts.Auth.change_user_email(user)
+    password_changeset = Acts.Auth.change_user_password(user)
 
-    github_info = Accounts.get_github_info(user)
+    github_info = Acts.get_github_info(user)
 
     socket =
       socket
@@ -144,7 +144,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
 
     email_form =
       socket.assigns.current_user
-      |> Accounts.Auth.change_user_email(user_params)
+      |> Acts.Auth.change_user_email(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -155,9 +155,9 @@ defmodule ResolvinatorWeb.UserSettingsLive do
     %{"current_password" => password, "user" => user_params} = params
     user = socket.assigns.current_user
 
-    case Accounts.Auth.apply_user_email(user, password, user_params) do
+    case Acts.Auth.apply_user_email(user, password, user_params) do
       {:ok, applied_user} ->
-        Accounts.deliver_user_update_email_instructions(
+        Acts.deliver_user_update_email_instructions(
           applied_user,
           user.email,
           &url(~p"/users/settings/confirm_email/#{&1}")
@@ -176,7 +176,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
 
     password_form =
       socket.assigns.current_user
-      |> Accounts.Auth.change_user_password(user_params)
+      |> Acts.Auth.change_user_password(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -187,11 +187,11 @@ defmodule ResolvinatorWeb.UserSettingsLive do
     %{"current_password" => password, "user" => user_params} = params
     user = socket.assigns.current_user
 
-    case Accounts.Auth.update_user_password(user, password, user_params) do
+    case Acts.Auth.update_user_password(user, password, user_params) do
       {:ok, user} ->
         password_form =
           user
-          |> Accounts.Auth.change_user_password(user_params)
+          |> Acts.Auth.change_user_password(user_params)
           |> to_form()
 
         {:noreply, assign(socket, trigger_submit: true, password_form: password_form)}
@@ -206,7 +206,7 @@ defmodule ResolvinatorWeb.UserSettingsLive do
   end
 
   def handle_event("disconnect_github", _params, socket) do
-    case Accounts.disconnect_github(socket.assigns.current_user) do
+    case Acts.disconnect_github(socket.assigns.current_user) do
       {:ok, _user} ->
         {:noreply,
          socket

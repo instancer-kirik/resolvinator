@@ -3,7 +3,10 @@ defmodule Resolvinator.Repo.Migrations.CreateUserSchedulingPreferences do
 
   def change do
     create table(:user_scheduling_preferences) do
-      add :user_id, references(:users, on_delete: :delete_all), null: false
+      # Note: user_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :user_id, :binary_id, null: false
       add :work_start_time, :time, null: false, default: "09:00:00"
       add :work_end_time, :time, null: false, default: "17:00:00"
       add :time_zone, :string, null: false

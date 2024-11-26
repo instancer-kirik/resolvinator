@@ -12,9 +12,12 @@ defmodule Resolvinator.Repo.Migrations.CreateProjectTokens do
       add :stake_start_time, :utc_datetime
       add :stake_end_time, :utc_datetime
       add :metadata, :map
-      
+
       add :project_id, references(:projects, type: :binary_id, on_delete: :delete_all), null: false
-      add :owner_id, references(:users, type: :binary_id, on_delete: :nilify_all)
+      # Note: owner_id references resolvinator_acts_fdw.users but we can't use a foreign key
+      # constraint because PostgreSQL doesn't support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :owner_id, :binary_id
 
       timestamps()
     end

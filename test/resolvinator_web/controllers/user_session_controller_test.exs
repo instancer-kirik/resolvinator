@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserSessionControllerTest do
   use ResolvinatorWeb.ConnCase, async: true
 
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
   setup do
     %{user: user_fixture()}

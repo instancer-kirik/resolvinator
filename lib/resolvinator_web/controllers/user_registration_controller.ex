@@ -1,25 +1,25 @@
 defmodule ResolvinatorWeb.UserRegistrationController do
   use ResolvinatorWeb, :controller
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias ResolvinatorWeb.UserAuth
 
   def create(conn, params) do
     IO.inspect(params, label: "Full registration params")
-    
+
     case params do
       %{"user" => user_params} ->
         IO.inspect(user_params, label: "User registration params")
-        
+
         # Add username if not present
         user_params = Map.put_new(user_params, "username", generate_username(user_params["email"]))
         IO.inspect(user_params, label: "Registration params with username")
 
-        case Accounts.register_user(user_params) do
+        case Acts.register_user(user_params) do
           {:ok, user} ->
             IO.inspect(user, label: "Successfully registered user")
             {:ok, _} =
-              Accounts.deliver_user_confirmation_instructions(
+              Acts.deliver_user_confirmation_instructions(
                 user,
                 &url(~p"/users/confirm/#{&1}")
               )
@@ -36,7 +36,7 @@ defmodule ResolvinatorWeb.UserRegistrationController do
             |> put_flash(:error, "Registration failed: #{error_to_string(changeset)}")
             |> redirect(to: ~p"/users/register")
         end
-      
+
       _ ->
         IO.inspect("Invalid params structure")
         conn
@@ -58,4 +58,4 @@ defmodule ResolvinatorWeb.UserRegistrationController do
     end)
     |> Enum.join(", ")
   end
-end 
+end

@@ -2,13 +2,13 @@ defmodule ResolvinatorWeb.AdvantageLive.Show do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Content
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   on_mount {ResolvinatorWeb.UserAuth, :mount_current_user}
 
   @impl true
   def mount(_params, %{"user_token" => user_token}, socket) do
-    case Accounts.get_user_by_session_token(user_token) do
+    case Acts.Auth.get_user_by_session_token(user_token) do
       nil -> {:error, "User not found"}
       user ->
         socket = assign(socket, :current_user, user)
@@ -30,7 +30,7 @@ defmodule ResolvinatorWeb.AdvantageLive.Show do
     end)
 
     updated_advantage = Map.put(advantage, :descriptions, updated_descriptions)
-    
+
     {:noreply, assign(socket, page_title: page_title(socket.assigns.live_action), advantage: updated_advantage, source: updated_advantage, source_type: "advantage")}
   end
 

@@ -1,7 +1,7 @@
 defmodule Resolvinator.Risks.Mitigation do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias Resolvinator.Accounts.User
+  alias Acts.User
   alias Resolvinator.Projects.Project
   alias Resolvinator.Risks.{Risk, MitigationTask}
   alias Resolvinator.Actors.Actor
@@ -9,7 +9,7 @@ defmodule Resolvinator.Risks.Mitigation do
 
   @strategy_values ~w(avoid transfer mitigate accept)
   @status_values ~w(planned in_progress completed cancelled)
-  
+
   schema "mitigations" do
     field :title, :string
     field :description, :string
@@ -21,11 +21,11 @@ defmodule Resolvinator.Risks.Mitigation do
     field :target_date, :date
     field :completion_date, :date
     field :notes, :string
-    
+
     belongs_to :risk, Risk
     belongs_to :creator, User
     belongs_to :responsible_actor, Actor
-    
+
     has_many :tasks, MitigationTask
     has_many :resource_allocations, Allocation
 
@@ -38,9 +38,9 @@ defmodule Resolvinator.Risks.Mitigation do
 
   def changeset(mitigation, attrs) do
     mitigation
-    |> cast(attrs, [:title, :description, :strategy, :status, 
-                    :effectiveness, :cost, :start_date, :target_date, 
-                    :completion_date, :notes, :risk_id, :creator_id, 
+    |> cast(attrs, [:title, :description, :strategy, :status,
+                    :effectiveness, :cost, :start_date, :target_date,
+                    :completion_date, :notes, :risk_id, :creator_id,
                     :responsible_actor_id])
     |> validate_required([:description, :strategy, :status])
     |> validate_inclusion(:strategy, @strategy_values)
@@ -48,5 +48,5 @@ defmodule Resolvinator.Risks.Mitigation do
     |> foreign_key_constraint(:risk_id)
     |> foreign_key_constraint(:creator_id)
     |> foreign_key_constraint(:responsible_actor_id)
-  end 
+  end
 end

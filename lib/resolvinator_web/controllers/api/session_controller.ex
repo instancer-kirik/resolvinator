@@ -1,11 +1,11 @@
 defmodule ResolvinatorWeb.API.SessionController do
   use ResolvinatorWeb, :controller
-  
-  alias VES.Accounts
-  alias VES.Guardian
+
+  alias Acts
+  alias VEIX.Guardian
 
   def create(conn, %{"email" => email, "password" => password}) do
-    case Accounts.Auth.authenticate_user(email, password) do
+    case Acts.Auth.authenticate_user(email, password) do
       {:ok, user} ->
         {:ok, access_token, _claims} = Guardian.encode_and_sign(user)
         {:ok, refresh_token, _claims} = Guardian.encode_and_sign(user, %{}, token_type: "refresh")
@@ -22,9 +22,9 @@ defmodule ResolvinatorWeb.API.SessionController do
   end
 
   def create(conn, %{"github_token" => github_token}) do
-    case Accounts.GitHub.get_user_profile(github_token) do
+    case Acts.GitHub.get_user_profile(github_token) do
       {:ok, github_user} ->
-        case Accounts.GitHub.find_or_create_user(github_user, github_token) do
+        case Acts.GitHub.find_or_create_user(github_user, github_token) do
           {:ok, user} ->
             {:ok, access_token, _claims} = Guardian.encode_and_sign(user)
             {:ok, refresh_token, _claims} = Guardian.encode_and_sign(user, %{}, token_type: "refresh")

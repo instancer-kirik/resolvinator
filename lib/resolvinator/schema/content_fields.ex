@@ -16,8 +16,8 @@ defmodule Resolvinator.Schema.ContentFields do
       field :priority, :integer
       field :voting, :map, default: %{upvotes: 0, downvotes: 0}
       field :moderation, :map, default: %{status: "pending", reason: nil}
-      
-      belongs_to :creator, Resolvinator.Accounts.User, type: :binary_id
+
+      belongs_to :creator, Resolvinator.Acts.User, type: :binary_id
       belongs_to :project, Resolvinator.Projects.Project, type: :binary_id
     end
   end
@@ -34,7 +34,12 @@ defmodule Resolvinator.Schema.ContentFields do
       add :priority, :integer
       add :voting, :map, default: %{upvotes: 0, downvotes: 0}
       add :moderation, :map, default: %{status: "pending", reason: nil}
-      add :creator_id, references(:users, type: :binary_id, on_delete: :restrict)
+
+      # Note: creator_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id, null: false
+
       add :project_id, references(:projects, type: :binary_id, on_delete: :nilify_all)
 
       timestamps(type: :utc_datetime)
@@ -49,4 +54,4 @@ defmodule Resolvinator.Schema.ContentFields do
       create index(unquote(table), [:status])
     end
   end
-end 
+end

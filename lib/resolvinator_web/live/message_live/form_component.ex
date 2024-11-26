@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.MessageLive.FormComponent do
   use ResolvinatorWeb, :live_component
   alias Resolvinator.Messages
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   @impl true
   def render(assigns) do
@@ -27,7 +27,7 @@ defmodule ResolvinatorWeb.MessageLive.FormComponent do
             selected={@selected_user}
           />
         <% end %>
-        
+
         <.input
           field={@form[:content]}
           type="textarea"
@@ -48,7 +48,7 @@ defmodule ResolvinatorWeb.MessageLive.FormComponent do
   @impl true
   def update(%{message: message} = assigns, socket) do
     changeset = Messages.change_message(message)
-    
+
     {:ok,
      socket
      |> assign(assigns)
@@ -86,7 +86,7 @@ defmodule ResolvinatorWeb.MessageLive.FormComponent do
 
   defp save_message(socket, :new, message_params) do
     message_params = Map.put(message_params, "from_user_id", socket.assigns.current_user_id)
-    
+
     case Messages.create_message(message_params) do
       {:ok, message} ->
         notify_parent({:saved, message})
@@ -107,7 +107,7 @@ defmodule ResolvinatorWeb.MessageLive.FormComponent do
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
   defp list_users(current_user_id) do
-    Accounts.list_active_users()
+    Acts.list_active_users()
     |> Enum.map(&{&1.email, &1.id})
     |> Enum.reject(fn {_, id} -> id == current_user_id end)
   end

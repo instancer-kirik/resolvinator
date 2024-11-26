@@ -2,8 +2,8 @@ defmodule ResolvinatorWeb.GithubAuth do
   import Plug.Conn
 
   alias Assent.{Config, Strategy.Github}
-  alias VES.Accounts
-  alias VES.Accounts.User
+  alias Acts
+  alias Acts.User
 
   @doc """
   Initiates the GitHub OAuth flow by redirecting to GitHub's authorization URL.
@@ -86,7 +86,7 @@ defmodule ResolvinatorWeb.GithubAuth do
   end
 
   defp get_or_create_user(github_user) do
-    case Accounts.Auth.register_user(
+    case Acts.Auth.register_user(
       %{
         email: github_user["email"],
         password: generate_random_password()
@@ -108,7 +108,7 @@ defmodule ResolvinatorWeb.GithubAuth do
       {:ok, result} -> {:ok, result}
       {:error, :user, %{errors: [email: {"has already been taken", _}]}, _} ->
         # User exists, fetch and return
-        {:ok, %{user: Accounts.Auth.get_user_by_email!(github_user["email"])}}
+        {:ok, %{user: Acts.Auth.get_user_by_email!(github_user["email"])}}
       error -> error
     end
   end

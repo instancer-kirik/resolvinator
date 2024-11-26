@@ -1,5 +1,5 @@
 defmodule Resolvinator.Content.Theorem do
-  use Flint.Schema
+  import Ecto.Changeset
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :theorem,
@@ -41,4 +41,4 @@ defmodule Resolvinator.Content.Theorem do
       number_theory logic combinatorics probability
     ))
   end
-end 
+end

@@ -19,7 +19,7 @@ defmodule Resolvinator.Actors.Actor do
     field :contact_info, :map
     field :status, :string, default: "active"
 
-    belongs_to :creator, VES.Accounts.User
+    belongs_to :creator, Acts.User
     belongs_to :project, Resolvinator.Projects.Project
 
     # Hierarchical relationship

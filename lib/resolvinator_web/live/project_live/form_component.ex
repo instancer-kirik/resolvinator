@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
   use ResolvinatorWeb, :live_component
 
   alias Resolvinator.Projects
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias ResolvinatorWeb.ProjectLive.SettingsModalComponent
 
   @impl true
@@ -25,21 +25,21 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
           <div class="space-y-6">
             <.input field={@form[:name]} type="text" label="Name" />
             <.input field={@form[:description]} type="text" label="Description" />
-            <.input field={@form[:status]} type="select" label="Status" 
-                    options={[{"Planning", "planning"}, {"Active", "active"}, 
-                             {"On Hold", "on_hold"}, {"Completed", "completed"}, 
+            <.input field={@form[:status]} type="select" label="Status"
+                    options={[{"Planning", "planning"}, {"Active", "active"},
+                             {"On Hold", "on_hold"}, {"Completed", "completed"},
                              {"Archived", "archived"}]} />
-            <.input field={@form[:risk_appetite]} type="select" label="Risk appetite" 
-                    options={[{"Averse", "averse"}, {"Minimal", "minimal"}, 
-                             {"Cautious", "cautious"}, {"Flexible", "flexible"}, 
+            <.input field={@form[:risk_appetite]} type="select" label="Risk appetite"
+                    options={[{"Averse", "averse"}, {"Minimal", "minimal"},
+                             {"Cautious", "cautious"}, {"Flexible", "flexible"},
                              {"Aggressive", "aggressive"}]} />
             <.input field={@form[:start_date]} type="date" label="Start date" />
             <.input field={@form[:target_date]} type="date" label="Target date" />
             <.input field={@form[:completion_date]} type="date" label="Completion date" />
           </div>
-          
+
           <div class="pt-6">
-            <.button 
+            <.button
               type="button"
               phx-click="open_settings"
               phx-target={@myself}
@@ -49,7 +49,7 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
             </.button>
           </div>
         </div>
-        
+
         <%= if @action == :new do %>
           <.input field={@form[:creator_id]} type="hidden" value={@current_user_id} />
         <% end %>

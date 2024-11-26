@@ -1,7 +1,7 @@
 defmodule Resolvinator.Suppliers.Supplier do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Suppliers.{Contact, Catalog}
   alias Resolvinator.Resources.InventorySource
 
@@ -18,14 +18,14 @@ defmodule Resolvinator.Suppliers.Supplier do
     has_many :contacts, Contact
     has_many :catalogs, Catalog
     has_many :sources, InventorySource
-    
+
     timestamps(type: :utc_datetime)
-  end 
+  end
 
   def changeset(supplier, attrs) do
     supplier
-    |> cast(attrs, [:name, :description, :status, :api_endpoint, 
+    |> cast(attrs, [:name, :description, :status, :api_endpoint,
                     :api_key, :integration_type, :metadata])
     |> validate_required([:name, :status])
   end
-end 
+end

@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.ProjectLive.RiskAnalysisComponent do
   use ResolvinatorWeb, :live_component
 
   alias Resolvinator.Projects
-  alias Resolvinator.Projects.Risk
+  alias Resolvinator.Risks.Risk
   alias Chelekom.Components.{Card, Button, Table, Badge}
 
   @impl true
@@ -166,17 +166,17 @@ defmodule ResolvinatorWeb.ProjectLive.RiskAnalysisComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:risks, Projects.list_project_risks(project))
+     |> assign(:risks, Project.list_project_risks(project))
      |> assign(:form, to_form(changeset))}
   end
 
   @impl true
   def handle_event("add_risk", %{"risk" => risk_params}, socket) do
-    case Projects.add_project_risk(socket.assigns.project, risk_params) do
+    case Project.add_project_risk(socket.assigns.project, risk_params) do
       {:ok, _risk} ->
         {:noreply,
          socket
-         |> assign(:risks, Projects.list_project_risks(socket.assigns.project))
+         |> assign(:risks, Project.list_project_risks(socket.assigns.project))
          |> assign(:form, to_form(Risk.changeset(%Risk{}, %{})))
          |> put_flash(:info, "Risk added successfully")}
 
@@ -186,11 +186,11 @@ defmodule ResolvinatorWeb.ProjectLive.RiskAnalysisComponent do
   end
 
   def handle_event("remove_risk", %{"id" => risk_id}, socket) do
-    case Projects.remove_project_risk(socket.assigns.project, risk_id) do
+    case Project.remove_project_risk(socket.assigns.project, risk_id) do
       {:ok, _} ->
         {:noreply,
          socket
-         |> assign(:risks, Projects.list_project_risks(socket.assigns.project))
+         |> assign(:risks, Project.list_project_risks(socket.assigns.project))
          |> put_flash(:info, "Risk removed successfully")}
 
       {:error, _} ->

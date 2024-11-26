@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserConfirmationLive do
   use ResolvinatorWeb, :live_view
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   def render(%{live_action: :edit} = assigns) do
     ~H"""
@@ -31,7 +31,7 @@ defmodule ResolvinatorWeb.UserConfirmationLive do
   # Do not log in the user after confirmation to avoid a
   # leaked token giving the user access to the account.
   def handle_event("confirm_account", %{"user" => %{"token" => token}}, socket) do
-    case Accounts.confirm_user(token) do
+    case Acts.confirm_user(token) do
       {:ok, _} ->
         {:noreply,
          socket

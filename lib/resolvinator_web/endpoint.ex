@@ -13,7 +13,7 @@ defmodule ResolvinatorWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_resolvinator_key",
-    signing_salt: "f44K8ldo",
+    signing_salt: "_CLvmXLvmXpMV1yHv+J+",
     same_site: "Lax"
   ]
 

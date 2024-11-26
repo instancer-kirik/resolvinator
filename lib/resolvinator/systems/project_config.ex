@@ -2,7 +2,7 @@ defmodule Resolvinator.Systems.ProjectConfig do
   use Resolvinator.Schema
   import Ecto.Changeset
   alias Resolvinator.Systems.{System, ProjectConfig}
-  alias VES.Accounts.User
+  alias Acts.User
 
   schema "project_configs" do
     belongs_to :system, System

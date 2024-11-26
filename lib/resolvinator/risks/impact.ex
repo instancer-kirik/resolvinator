@@ -16,7 +16,7 @@ defmodule Resolvinator.Risks.Impact do
     field :notes, :string
 
     belongs_to :risk, Resolvinator.Risks.Risk
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :creator, Resolvinator.Acts.User
 
     many_to_many :affected_actors, Resolvinator.Actors.Actor,
       join_through: "actor_impact_relationships"

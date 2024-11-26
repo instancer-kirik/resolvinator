@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserForgotPasswordLive do
   use ResolvinatorWeb, :live_view
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   def render(assigns) do
     ~H"""
@@ -32,8 +32,8 @@ defmodule ResolvinatorWeb.UserForgotPasswordLive do
   end
 
   def handle_event("send_email", %{"user" => %{"email" => email}}, socket) do
-    if user = Accounts.get_user_by_email(email) do
-      Accounts.deliver_user_reset_password_instructions(
+    if user = Acts.get_user_by_email(email) do
+      Acts.deliver_user_reset_password_instructions(
         user,
         &url(~p"/users/reset_password/#{&1}")
       )

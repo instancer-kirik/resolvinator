@@ -18,20 +18,23 @@ defmodule Resolvinator.Repo.Migrations.CreateEtymologyTerms do
       add :first_known_use, :string
       add :pronunciation, :string
       add :part_of_speech, :string
-      
+
       # Definition fields
       add :definitions, {:array, :string}
       add :usage_examples, {:array, :string}
-      
+
       # Disambiguation fields
       add :disambiguations, {:array, :map}
-      
+
       # Domain-specific fields
       add :domain_contexts, {:array, :string}
       add :domain_specific_definitions, :map
 
       # Common relationships
-      add :creator_id, references(:users, type: :binary_id)
+      # Note: creator_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id
       add :project_id, references(:projects, type: :binary_id)
 
       timestamps(type: :utc_datetime)
@@ -79,4 +82,4 @@ defmodule Resolvinator.Repo.Migrations.CreateEtymologyTerms do
 
     create index(:etymology_terms, [:search_vector], using: :gin)
   end
-end 
+end

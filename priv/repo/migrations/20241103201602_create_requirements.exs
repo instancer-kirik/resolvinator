@@ -11,8 +11,11 @@ defmodule Resolvinator.Repo.Migrations.CreateRequirements do
       add :status, :string, default: "pending"
       add :validation_criteria, :text
       add :due_date, :date
-      add :creator_id, references(:users, on_delete: :restrict), null: false
-      add :project_id, references(:projects, on_delete: :restrict)
+      # Note: creator_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id, null: false
+      add :project_id, references(:projects, type: :binary_id, on_delete: :restrict)
 
       timestamps(type: :utc_datetime)
     end

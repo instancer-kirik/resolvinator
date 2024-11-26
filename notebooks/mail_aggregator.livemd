@@ -4,7 +4,7 @@
 
 ```elixir
 Mix.install([
-  {:phoenix_live_view, "~> 0.20"},
+  {:phoenix_live_view, "~> 0.20.17"},
   {:notmuch, "~> 0.1"},  # Notmuch Elixir binding
   {:imap, "~> 0.3"},     # For IMAP support
   {:swoosh, "~> 1.5"},   # Email handling

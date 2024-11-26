@@ -1,5 +1,5 @@
 defmodule Resolvinator.Content.Solution do
-  use Flint.Schema
+  import Ecto.Changeset
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :solution,
@@ -9,10 +9,23 @@ defmodule Resolvinator.Content.Solution do
     relationship_keys: [solution_id: :id, related_solution_id: :id],
     description_keys: [solution_id: :id, description_id: :id],
     additional_schema: [
+      fields: [
+        title: :string,
+        content: :string,
+        votes: {:integer, default: 0}
+      ],
       relationships: [
+        belongs_to: [
+          problem: [
+            module: Resolvinator.Content.Problem
+          ],
+          user: [
+            module: Resolvinator.Acts.User
+          ]
+        ],
         many_to_many: [
           users_with_solution: [
-            module: Resolvinator.Accounts.User,
+            module: Resolvinator.Acts.User,
             join_through: "user_solutions",
             join_keys: [solution_id: :id, user_id: :id],
             on_replace: :delete
@@ -23,8 +36,8 @@ defmodule Resolvinator.Content.Solution do
 
   def changeset(solution, attrs) do
     solution
-    |> base_changeset(attrs)
-    |> cast_assoc(:users_with_solution)
+    |> cast(attrs, [:title, :content, :status])
+    |> validate_required([:title, :content])
   end
 
   def users_with_solution_changeset(solution, users) do

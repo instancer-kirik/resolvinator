@@ -2,14 +2,14 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Content
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias Resolvinator.Fabric.{RiskAnalysis, Lakehouse}
 
   on_mount {ResolvinatorWeb.UserAuth, :mount_current_user}
 
   @impl true
   def mount(_params, %{"user_token" => user_token}, socket) do
-    case Accounts.get_user_by_session_token(user_token) do
+    case Acts.Auth.get_user_by_session_token(user_token) do
       nil -> {:error, "User not found"}
       user ->
         socket = assign(socket, :current_user, user)
@@ -29,7 +29,7 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
     end)
 
     updated_problem = Map.put(problem, :descriptions, updated_descriptions)
-    
+
     {:noreply, assign(socket, page_title: page_title(socket.assigns.live_action), problem: updated_problem, source: updated_problem, source_type: "problem")}
   end
 
@@ -119,10 +119,10 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
   @impl true
   def handle_event("analyze_problem", _, socket) do
     problem = socket.assigns.problem
-    
+
     # Start loading state
     socket = assign(socket, loading: true)
-    
+
     # Check cache first
     case Lakehouse.get_latest_analysis(problem.id) do
       nil ->
@@ -130,7 +130,7 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
         suggestions = RiskAnalysis.analyze_similar_risks(problem)
         Lakehouse.store_problem_analysis(problem.id, suggestions)
         {:noreply, assign(socket, loading: false, suggestions: suggestions)}
-        
+
       cached_analysis ->
         {:noreply, assign(socket, loading: false, suggestions: cached_analysis)}
     end

@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserResetPasswordLive do
   use ResolvinatorWeb, :live_view
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   def render(assigns) do
     ~H"""
@@ -44,7 +44,7 @@ defmodule ResolvinatorWeb.UserResetPasswordLive do
     form_source =
       case socket.assigns do
         %{user: user} ->
-          Accounts.change_user_password(user)
+          Acts.change_user_password(user)
 
         _ ->
           %{}
@@ -56,7 +56,7 @@ defmodule ResolvinatorWeb.UserResetPasswordLive do
   # Do not log in the user after reset password to avoid a
   # leaked token giving the user access to the account.
   def handle_event("reset_password", %{"user" => user_params}, socket) do
-    case Accounts.reset_user_password(socket.assigns.user, user_params) do
+    case Acts.reset_user_password(socket.assigns.user, user_params) do
       {:ok, _} ->
         {:noreply,
          socket
@@ -69,12 +69,12 @@ defmodule ResolvinatorWeb.UserResetPasswordLive do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_password(socket.assigns.user, user_params)
+    changeset = Acts.change_user_password(socket.assigns.user, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
   defp assign_user_and_token(socket, %{"token" => token}) do
-    if user = Accounts.get_user_by_reset_password_token(token) do
+    if user = Acts.get_user_by_reset_password_token(token) do
       assign(socket, user: user, token: token)
     else
       socket

@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserSessionController do
   use ResolvinatorWeb, :controller
 
-  alias VES.Accounts
+  alias Acts
   alias ResolvinatorWeb.UserAuth
 
   def create(conn, %{"_action" => "registered"} = params) do
@@ -27,7 +27,7 @@ defmodule ResolvinatorWeb.UserSessionController do
   defp create_with_message(conn, %{"user" => user_params}, info) do
     %{"email" => email, "password" => password} = user_params
 
-    case Accounts.Auth.authenticate_user(email, password) do
+    case Acts.Auth.authenticate_user(email, password) do
       {:ok, user} ->
         conn
         |> put_flash(:info, info)

@@ -2,7 +2,7 @@ defmodule Resolvinator.Systems.System do
   use Resolvinator.Schema
   import Ecto.Changeset
   alias Resolvinator.Projects.Project
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Systems.{Component, Incident, MaintenanceRecord, FilesystemEntry, ProjectConfig, System}
 
   @primary_key {:id, :id, autogenerate: true}
@@ -63,7 +63,7 @@ defmodule Resolvinator.Systems.System do
     has_many :maintenance_records, MaintenanceRecord
     has_many :filesystem_entries, FilesystemEntry
     has_one :project_config, ProjectConfig
-    
+
     many_to_many :related_systems, System,
       join_through: "system_relationships",
       join_keys: [system_id: :id, related_system_id: :id]

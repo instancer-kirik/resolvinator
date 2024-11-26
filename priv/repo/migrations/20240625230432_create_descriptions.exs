@@ -5,13 +5,13 @@ defmodule Resolvinator.Repo.Migrations.CreateDescriptions do
     create table(:descriptions, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :text, :string
-      add :descriptionable_type, :string
-      add :descriptionable_id, references(:gestures, on_delete: :delete_all), null: false
+      add :descriptionable_type, :string, null: false
+      add :descriptionable_id, :binary_id, null: false
 
       timestamps(type: :utc_datetime)
     end
 
-    create index(:descriptions, [:descriptionable_id])
-    create index(:descriptions, [:descriptionable_type])
+    # Composite index for polymorphic lookups
+    create index(:descriptions, [:descriptionable_type, :descriptionable_id])
   end
 end

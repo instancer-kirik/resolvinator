@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.GithubAuthController do
   use ResolvinatorWeb, :controller
 
-  alias VES.Accounts
+  alias Acts
   alias ResolvinatorWeb.UserAuth
 
   @doc """
@@ -9,10 +9,10 @@ defmodule ResolvinatorWeb.GithubAuthController do
   """
   def request(conn, _params) do
     redirect_uri = url(~p"/auth/github/callback")
-    
+
     conn
     |> put_session(:github_redirect_uri, redirect_uri)
-    |> redirect(external: Accounts.GitHub.authorize_url(redirect_uri))
+    |> redirect(external: Acts.GitHub.authorize_url(redirect_uri))
   end
 
   @doc """
@@ -21,12 +21,12 @@ defmodule ResolvinatorWeb.GithubAuthController do
   """
   def callback(conn, %{"code" => code}) do
     redirect_uri = get_session(conn, :github_redirect_uri)
-    
-    case Accounts.GitHub.exchange_code_for_token(code, redirect_uri) do
+
+    case Acts.GitHub.exchange_code_for_token(code, redirect_uri) do
       {:ok, github_token} ->
-        case Accounts.GitHub.get_user_profile(github_token) do
+        case Acts.GitHub.get_user_profile(github_token) do
           {:ok, github_user} ->
-            case Accounts.GitHub.find_or_create_user(github_user, github_token) do
+            case Acts.GitHub.find_or_create_user(github_user, github_token) do
               {:ok, user} ->
                 conn
                 |> delete_session(:github_redirect_uri)

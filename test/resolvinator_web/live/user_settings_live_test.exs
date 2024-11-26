@@ -1,9 +1,9 @@
 defmodule ResolvinatorWeb.UserSettingsLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
   describe "Settings page" do
     test "renders settings page", %{conn: conn} do
@@ -46,7 +46,7 @@ defmodule ResolvinatorWeb.UserSettingsLiveTest do
         |> render_submit()
 
       assert result =~ "A link to confirm your email"
-      assert Accounts.get_user_by_email(user.email)
+      assert Acts.get_user_by_email(user.email)
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
@@ -115,7 +115,7 @@ defmodule ResolvinatorWeb.UserSettingsLiveTest do
       assert Phoenix.Flash.get(new_password_conn.assigns.flash, :info) =~
                "Password updated successfully"
 
-      assert Accounts.get_user_by_email_and_password(user.email, new_password)
+      assert Acts.get_user_by_email_and_password(user.email, new_password)
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
@@ -165,7 +165,7 @@ defmodule ResolvinatorWeb.UserSettingsLiveTest do
 
       token =
         extract_user_token(fn url ->
-          Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
+          Acts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
         end)
 
       %{conn: log_in_user(conn, user), token: token, email: email, user: user}
@@ -178,8 +178,8 @@ defmodule ResolvinatorWeb.UserSettingsLiveTest do
       assert path == ~p"/users/settings"
       assert %{"info" => message} = flash
       assert message == "Email changed successfully."
-      refute Accounts.get_user_by_email(user.email)
-      assert Accounts.get_user_by_email(email)
+      refute Acts.get_user_by_email(user.email)
+      assert Acts.get_user_by_email(email)
 
       # use confirm token again
       {:error, redirect} = live(conn, ~p"/users/settings/confirm_email/#{token}")
@@ -195,7 +195,7 @@ defmodule ResolvinatorWeb.UserSettingsLiveTest do
       assert path == ~p"/users/settings"
       assert %{"error" => message} = flash
       assert message == "Email change link is invalid or it has expired."
-      assert Accounts.get_user_by_email(user.email)
+      assert Acts.get_user_by_email(user.email)
     end
 
     test "redirects if user is not logged in", %{token: token} do

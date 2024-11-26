@@ -2,6 +2,21 @@ defmodule Resolvinator.Scheduling.UserPreferences do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @required_fields [:work_hours, :time_zone, :work_days, :break_preferences,
+                   :focus_time_preferences, :energy_levels, :user_id]
+  @optional_fields [:block_type_colors, :energy_level_colors, :default_color_palette_id]
+
+  @valid_days ~w(monday tuesday wednesday thursday friday saturday sunday)
+
+  # Get time zones at runtime to avoid compilation issues
+  def valid_time_zones do
+    try do
+      Tzdata.zone_list()
+    rescue
+      _ -> []
+    end
+  end
+
   schema "user_scheduling_preferences" do
     field :work_hours, :map
     field :time_zone, :string
@@ -22,7 +37,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       "medium" => "#F0E68C",  # Khaki
       "low" => "#ADD8E6"      # Light blue
     }
-    belongs_to :user, VES.Accounts.User
+    belongs_to :user, Acts.User
     belongs_to :default_color_palette, TimeTracker.Colors.UserColorPalette
 
     has_many :color_palette_assignments, Resolvinator.Scheduling.UserSchedulingPreferencesColorPalette
@@ -30,10 +45,6 @@ defmodule Resolvinator.Scheduling.UserPreferences do
 
     timestamps()
   end
-
-  @required_fields [:work_hours, :time_zone, :work_days, :break_preferences, 
-                   :focus_time_preferences, :energy_levels, :user_id]
-  @optional_fields [:block_type_colors, :energy_level_colors, :default_color_palette_id]
 
   @doc false
   def changeset(preferences, attrs) do
@@ -51,6 +62,80 @@ defmodule Resolvinator.Scheduling.UserPreferences do
     |> foreign_key_constraint(:default_color_palette_id)
   end
 
+  defp validate_work_hours(changeset) do
+    case get_field(changeset, :work_hours) do
+      %{"start" => start, "end" => finish} when is_binary(start) and is_binary(finish) ->
+        case {Time.from_iso8601(start), Time.from_iso8601(finish)} do
+          {{:ok, start_time}, {:ok, end_time}} ->
+            if Time.compare(start_time, end_time) == :lt do
+              changeset
+            else
+              add_error(changeset, :work_hours, "end time must be after start time")
+            end
+          _ ->
+            add_error(changeset, :work_hours, "invalid time format")
+        end
+      _ ->
+        add_error(changeset, :work_hours, "must include start and end times")
+    end
+  end
+
+  defp validate_time_zone(changeset) do
+    time_zone = get_field(changeset, :time_zone)
+    valid_zones = valid_time_zones()
+
+    cond do
+      is_nil(time_zone) -> changeset
+      time_zone in valid_zones -> changeset
+      true -> add_error(changeset, :time_zone, "invalid time zone")
+    end
+  end
+
+  defp validate_work_days(changeset) do
+    case get_field(changeset, :work_days) do
+      days when is_list(days) ->
+        if Enum.all?(days, &(&1 in @valid_days)) do
+          changeset
+        else
+          add_error(changeset, :work_days, "contains invalid day")
+        end
+      _ ->
+        add_error(changeset, :work_days, "must be a list of days")
+    end
+  end
+
+  defp validate_focus_time_preferences(changeset) do
+    case get_field(changeset, :focus_time_preferences) do
+      %{
+        "preferred_times" => times,
+        "min_duration" => min_duration,
+        "max_duration" => max_duration
+      } when is_list(times) and is_integer(min_duration) and is_integer(max_duration) ->
+        if min_duration > 0 and max_duration >= min_duration do
+          changeset
+        else
+          add_error(changeset, :focus_time_preferences, "invalid duration settings")
+        end
+      _ ->
+        add_error(changeset, :focus_time_preferences, "invalid focus time preferences format")
+    end
+  end
+
+  defp validate_energy_levels(changeset) do
+    case get_field(changeset, :energy_levels) do
+      %{
+        "morning" => morning,
+        "afternoon" => afternoon,
+        "evening" => evening
+      } when morning in ["high", "medium", "low"] and
+             afternoon in ["high", "medium", "low"] and
+             evening in ["high", "medium", "low"] ->
+        changeset
+      _ ->
+        add_error(changeset, :energy_levels, "invalid energy levels format")
+    end
+  end
+
   defp validate_time_range(changeset) do
     case {get_field(changeset, :work_start_time), get_field(changeset, :work_end_time)} do
       {start_time, end_time} when not is_nil(start_time) and not is_nil(end_time) ->
@@ -62,37 +147,6 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       _ ->
         changeset
     end
-  end
-
-  defp validate_work_days(changeset) do
-    case get_field(changeset, :work_days) do
-      days when is_list(days) ->
-        valid_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        if Enum.all?(days, &(&1 in valid_days)) do
-          changeset
-        else
-          add_error(changeset, :work_days, "contains invalid day names")
-        end
-      _ ->
-        changeset
-    end
-  end
-
-  defp validate_energy_hours(changeset) do
-    fields = [:high_energy_hours, :medium_energy_hours, :low_energy_hours]
-    
-    Enum.reduce(fields, changeset, fn field, acc ->
-      case get_field(acc, field) do
-        hours when is_list(hours) ->
-          if Enum.all?(hours, &(&1 in 0..23)) do
-            acc
-          else
-            add_error(acc, field, "must contain valid hours (0-23)")
-          end
-        _ ->
-          acc
-      end
-    end)
   end
 
   defp validate_break_preferences(changeset) do
@@ -155,7 +209,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       nil -> changeset
       colors when is_map(colors) ->
         required_types = ~w(work meeting focus break planning review)
-        if Enum.all?(Map.keys(colors), &(&1 in required_types)) && 
+        if Enum.all?(Map.keys(colors), &(&1 in required_types)) &&
            Enum.all?(colors, fn {_, color} -> valid_hex_color?(color) end) do
           changeset
         else
@@ -170,7 +224,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       nil -> changeset
       colors when is_map(colors) ->
         required_levels = ~w(high medium low)
-        if Enum.all?(Map.keys(colors), &(&1 in required_levels)) && 
+        if Enum.all?(Map.keys(colors), &(&1 in required_levels)) &&
            Enum.all?(colors, fn {_, color} -> valid_hex_color?(color) end) do
           changeset
         else
@@ -189,7 +243,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
   Gets all color palettes for a user, including the default TimeTracker palette
   """
   def get_user_palettes(preferences) do
-    TimeTracker.Accounts.list_user_color_palettes(preferences.user_id)
+    TimeTracker.Acts.list_user_color_palettes(preferences.user_id)
   end
 
   @doc """
@@ -216,10 +270,10 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       :block_type -> :block_type_colors
       :energy_level -> :energy_level_colors
     end
-    
+
     current_colors = Map.get(preferences, field) || %{}
     updated_colors = Map.put(current_colors, key, color)
-    
+
     preferences
     |> Ecto.Changeset.change(%{field => updated_colors})
     |> Resolvinator.Repo.update()

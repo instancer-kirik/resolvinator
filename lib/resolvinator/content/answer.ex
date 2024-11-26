@@ -1,5 +1,5 @@
 defmodule Resolvinator.Content.Answer do
-  use Flint.Schema
+  import Ecto.Changeset
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :answer,
@@ -10,14 +10,17 @@ defmodule Resolvinator.Content.Answer do
     description_keys: [answer_id: :id, description_id: :id],
     additional_schema: [
       fields: [
+        content: :string,
         answer_type: :string,
         is_accepted: {:boolean, default: false},
         references: {:array, :string},
-        code_snippets: {:array, :map}
+        code_snippets: {:array, :map},
+        votes: {:integer, default: 0}
       ],
       relationships: [
         belongs_to: [
-          question: [module: Resolvinator.Content.Question]
+          question: [module: Resolvinator.Content.Question],
+          user: [module: Resolvinator.Acts.User]
         ],
         has_many: [
           revisions: [module: Resolvinator.Content.AnswerRevision]
@@ -38,17 +41,22 @@ defmodule Resolvinator.Content.Answer do
   defp validate_code_snippets(changeset) do
     case get_change(changeset, :code_snippets) do
       nil -> changeset
-      snippets ->
-        if Enum.all?(snippets, &valid_code_snippet?/1) do
-          changeset
-        else
-          add_error(changeset, :code_snippets, "contains invalid code snippet format")
-        end
+      snippets when is_list(snippets) ->
+        validate_each_snippet(changeset, snippets)
+      _ ->
+        add_error(changeset, :code_snippets, "must be a list of code snippets")
     end
   end
 
-  defp valid_code_snippet?(%{"language" => lang, "code" => code}) when is_binary(code) do
-    lang in ~w(elixir javascript python ruby java cpp csharp sql)
+  defp validate_each_snippet(changeset, snippets) do
+    valid_snippets = Enum.all?(snippets, &valid_snippet?/1)
+    if valid_snippets do
+      changeset
+    else
+      add_error(changeset, :code_snippets, "contains invalid code snippets")
+    end
   end
-  defp valid_code_snippet?(_), do: false
+
+  defp valid_snippet?(%{"code" => code, "language" => lang}) when is_binary(code) and is_binary(lang), do: true
+  defp valid_snippet?(_), do: false
 end

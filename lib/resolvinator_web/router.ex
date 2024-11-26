@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.Router do
   use ResolvinatorWeb, :router
-
-  import VES.Accounts.Plugs.AuthPlug
+  
+  import ResolvinatorWeb.Plugs.AuthPlug
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -10,19 +10,23 @@ defmodule ResolvinatorWeb.Router do
     plug :put_root_layout, html: {ResolvinatorWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug VES.Accounts.Plugs.AuthPlug
   end
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :api_auth
+  end
+
+  pipeline :auth do
+    plug :redirect_if_user_is_authenticated
+  end
+
+  pipeline :admin do
+    plug :require_role, :admin
   end
 
   pipeline :authenticated do
     plug :require_authenticated_user
-  end
-
-  pipeline :admin do
-    plug :require_role, "admin"
   end
 
   scope "/", ResolvinatorWeb do
@@ -191,15 +195,16 @@ defmodule ResolvinatorWeb.Router do
   end
 
   scope "/admin", ResolvinatorWeb.Admin do
-    pipe_through [:browser, :authenticated, :admin]
-
+    pipe_through [:browser, :admin]
+    
     live "/dashboard", DashboardLive
     live "/settings", SettingsLive
   end
 
-  # Other scopes may use custom stacks.
   scope "/api", ResolvinatorWeb do
     pipe_through :api
+    
+    # API routes here
   end
 
   scope "/resolvinator" do
@@ -216,17 +221,6 @@ defmodule ResolvinatorWeb.Router do
 
     post "/resolvinator", ResolvinatorWeb.ResolveController, :resolv
     get "/status/:id", ResolvinatorWeb.ResolveController, :status
-  end
-
-  # Enable LiveDashboard in development
-  if Application.compile_env(:resolvinator, :dev_routes) do
-    import Phoenix.LiveDashboard.Router
-
-    scope "/dev" do
-      pipe_through [:browser, :authenticated, :admin]
-
-      live_dashboard "/dashboard", metrics: ResolvinatorWeb.Telemetry
-    end
   end
 
   scope "/auth/github", ResolvinatorWeb do

@@ -11,8 +11,11 @@ defmodule Resolvinator.Repo.Migrations.CreateImpacts do
       add :estimated_cost, :decimal
       add :timeframe, :string
       add :notes, :text
-      add :risk_id, references(:risks, on_delete: :delete_all), null: false
-      add :creator_id, references(:users, on_delete: :restrict), null: false
+      add :risk_id, references(:risks, type: :binary_id, on_delete: :delete_all), null: false
+      # Note: creator_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id, null: false
 
       timestamps(type: :utc_datetime)
     end

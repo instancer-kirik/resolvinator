@@ -1,5 +1,5 @@
 defmodule Resolvinator.Content.Question do
-  use Flint.Schema
+  import Ecto.Changeset
 
   use Resolvinator.Content.ContentBehavior,
     type_name: :question,
@@ -55,18 +55,19 @@ defmodule Resolvinator.Content.Question do
     |> base_changeset(attrs)
     |> cast(attrs, [
       :question_type, :context, :expected_answer_format,
-      :difficulty_level, :is_answered, :accepted_answer_id,
+      :difficulty_level, :is_answered, :answer_count,
       :subject_area, :theorem_references, :difficulty_rating,
-      :requires_proof, :proof_technique_hints
+      :requires_proof, :proof_technique_hints, :accepted_answer_id
     ])
-    |> cast_embed(:math_content)
-    |> validate_inclusion(:question_type, ~w(general technical process clarification))
+    |> validate_required([:question_type, :difficulty_level])
+    |> validate_inclusion(:question_type, ~w(proof calculation concept application))
     |> validate_inclusion(:difficulty_level, ~w(beginner intermediate advanced expert))
-    |> validate_inclusion(:subject_area, ~w(
-      algebra analysis calculus geometry
-      number_theory logic combinatorics probability
-    ))
-    |> validate_number(:difficulty_rating, greater_than: 0, less_than_or_equal_to: 10)
-    |> foreign_key_constraint(:accepted_answer_id)
+    |> validate_inclusion(:expected_answer_format, ~w(text math code proof))
+    |> validate_number(:difficulty_rating, greater_than_or_equal_to: 1, less_than_or_equal_to: 10)
+    |> cast_embed(:math_content)
+    |> cast_assoc(:answers)
+    |> cast_assoc(:topics)
+    |> cast_assoc(:prerequisites)
+    |> cast_assoc(:related_theorems)
   end
 end

@@ -9,9 +9,9 @@ defmodule Resolvinator.Content.AnswerRevision do
     field :content, :string
     field :version, :integer
     field :change_summary, :string
-    
+
     belongs_to :answer, Resolvinator.Content.Answer
-    belongs_to :creator, Resolvinator.Accounts.User
+    belongs_to :creator, Resolvinator.Acts.User
 
     timestamps(type: :utc_datetime)
   end
@@ -22,5 +22,5 @@ defmodule Resolvinator.Content.AnswerRevision do
     |> validate_required([:content, :version, :answer_id, :creator_id])
     |> foreign_key_constraint(:answer_id)
     |> foreign_key_constraint(:creator_id)
-  end 
+  end
 end

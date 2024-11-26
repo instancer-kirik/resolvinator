@@ -1,7 +1,7 @@
 defmodule Resolvinator.Risks.Risk do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Projects.Project
   alias Resolvinator.Risks.{Category, Mitigation, Impact}
   alias Resolvinator.Actors.Actor
@@ -40,7 +40,6 @@ defmodule Resolvinator.Risks.Risk do
 
   def changeset(risk, attrs) do
     risk
-    |> base_changeset(attrs)
     |> cast(attrs, [:title, :description, :status, :probability, :impact_level, :risk_score, :notes,
                     :project_id, :category_id, :creator_id])
     |> validate_required([:creator_id, :project_id])

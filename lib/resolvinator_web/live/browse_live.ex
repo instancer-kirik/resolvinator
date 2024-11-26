@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.BrowseLive do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Browse
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   @impl true
   def mount(_params, session, socket) do
@@ -26,7 +26,7 @@ defmodule ResolvinatorWeb.BrowseLive do
     query = params["q"] || ""
     type = params["type"]
     page = String.to_integer(params["page"] || "1")
-    
+
     socket =
       if query != "" do
         perform_search(socket, query, type, page)
@@ -106,7 +106,7 @@ defmodule ResolvinatorWeb.BrowseLive do
 
   defp assign_current_user(socket, session) do
     assign_new(socket, :current_user, fn ->
-      Accounts.get_user_by_session_token(session["user_token"])
+      Acts.Auth.get_user_by_session_token(session["user_token"])
     end)
   end
 end

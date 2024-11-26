@@ -31,7 +31,7 @@ defmodule Resolvinator.Events.Event do
 
     # Relationships
     belongs_to :project, Resolvinator.Projects.Project
-    belongs_to :reporter, VES.Accounts.User, foreign_key: :reporter_id
+    belongs_to :reporter, Acts.User, foreign_key: :reporter_id
     belongs_to :risk, Resolvinator.Risks.Risk
     belongs_to :mitigation, Resolvinator.Risks.Mitigation
     belongs_to :impact, Resolvinator.Risks.Impact

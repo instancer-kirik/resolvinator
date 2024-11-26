@@ -3,7 +3,7 @@ defmodule Resolvinator.Systems.FilesystemEntry do
   import Ecto.Changeset
 
   @entry_types ~w(file directory symlink)
-  
+
   schema "filesystem_entries" do
     field :path, :string
     field :entry_type, :string
@@ -17,7 +17,7 @@ defmodule Resolvinator.Systems.FilesystemEntry do
     field :metadata, :map, default: %{}
 
     belongs_to :system, Resolvinator.Systems.System
-    belongs_to :creator, VES.Accounts.User, type: :binary_id
+    belongs_to :creator, Acts.User, type: :binary_id
     belongs_to :parent, __MODULE__
     has_many :children, __MODULE__, foreign_key: :parent_id
 
@@ -52,4 +52,4 @@ defmodule Resolvinator.Systems.FilesystemEntry do
         end
     end
   end
-end 
+end

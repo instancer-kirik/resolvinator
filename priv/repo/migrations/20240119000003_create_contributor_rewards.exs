@@ -10,10 +10,16 @@ defmodule Resolvinator.Repo.Migrations.CreateContributorRewards do
       add :description, :text
       add :proof_of_work, :string
       add :status, :string, default: "pending"
-      
+
       add :project_id, references(:projects, type: :binary_id)
-      add :contributor_id, references(:users, type: :binary_id)
-      add :approver_id, references(:users, type: :binary_id)
+      # Note: contributor_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :contributor_id, :binary_id
+      # Note: approver_id references resolvinator_acts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :approver_id, :binary_id
 
       timestamps()
     end

@@ -1,6 +1,4 @@
 defmodule Resolvinator.Content.Advantage do
-  use Flint.Schema
-  alias Flint.Schema
   import Ecto.Changeset
   import Ecto.Query
 

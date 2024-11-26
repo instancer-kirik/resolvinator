@@ -5,8 +5,8 @@ defmodule Resolvinator.Repo.Migrations.CreateRewardPrerequisites do
     create table(:reward_prerequisites, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :required_count, :integer, null: false, default: 1
-      add :reward_id, references(:rewards, on_delete: :delete_all), null: false
-      add :required_reward_id, references(:rewards, on_delete: :restrict), null: false
+      add :reward_id, references(:rewards, type: :binary_id, on_delete: :delete_all), null: false
+      add :required_reward_id, references(:rewards, type: :binary_id, on_delete: :restrict), null: false
 
       timestamps(type: :utc_datetime)
     end
