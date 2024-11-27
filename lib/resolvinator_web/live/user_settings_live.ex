@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserSettingsLive do
   use ResolvinatorWeb, :live_view
 
-  alias VES.Accounts
+  alias Acts
 
   def render(assigns) do
     ~H"""

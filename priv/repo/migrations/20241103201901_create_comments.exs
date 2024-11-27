@@ -9,7 +9,10 @@ defmodule Resolvinator.Repo.Migrations.CreateComments do
       add :parent_id, references(:comments, on_delete: :nilify_all, type: :binary_id)
       add :commentable_id, :binary_id, null: false
       add :commentable_type, :string, null: false
-      add :creator_id, references(:users, on_delete: :nilify_all, type: :binary_id)
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id
       add :metadata, :map, default: %{}
 
       timestamps(type: :utc_datetime)

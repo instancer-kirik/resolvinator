@@ -2,9 +2,9 @@ defmodule ResolvinatorWeb.UserAuthTest do
   use ResolvinatorWeb.ConnCase, async: true
 
   alias Phoenix.LiveView
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias ResolvinatorWeb.UserAuth
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
   @remember_me_cookie "_resolvinator_web_user_remember_me"
 

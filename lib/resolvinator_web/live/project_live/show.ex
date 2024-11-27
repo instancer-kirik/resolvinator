@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.ProjectLive.Show do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Projects
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias BlockchainTokens.Blockchain.ProjectToken
 
   @impl true

@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserConfirmationInstructionsLive do
   use ResolvinatorWeb, :live_view
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   def render(assigns) do
     ~H"""

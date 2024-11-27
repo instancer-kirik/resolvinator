@@ -1,7 +1,7 @@
 defmodule Resolvinator.Risks.Risk do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Projects.Project
   alias Resolvinator.Risks.{Category, Mitigation, Impact}
   alias Resolvinator.Actors.Actor

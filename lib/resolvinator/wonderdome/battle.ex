@@ -40,7 +40,7 @@ defmodule Resolvinator.Wonderdome.Vote do
   
   schema "wonderdome_votes" do
     belongs_to :battle, Resolvinator.Wonderdome.Battle
-    belongs_to :user, VES.Accounts.User
+    belongs_to :user, Acts.User
     belongs_to :ship, Resolvinator.Ships.Ship
     
     field :categories, :map, default: %{
@@ -66,7 +66,7 @@ defmodule Resolvinator.Wonderdome.Feedback do
   
   schema "wonderdome_feedback" do
     belongs_to :battle, Resolvinator.Wonderdome.Battle
-    belongs_to :user, VES.Accounts.User
+    belongs_to :user, Acts.User
     belongs_to :ship, Resolvinator.Ships.Ship
     
     field :type, :string  # praise, suggestion, question
@@ -127,7 +127,7 @@ defmodule Resolvinator.Wonderdome.Volley do
     belongs_to :battle, Resolvinator.Wonderdome.Battle
     belongs_to :from_ship, Resolvinator.Ships.Ship
     belongs_to :to_ship, Resolvinator.Ships.Ship
-    belongs_to :user, VES.Accounts.User
+    belongs_to :user, Acts.User
     
     field :feedback_type, :string # praise, criticism, question, suggestion
     field :content, :string

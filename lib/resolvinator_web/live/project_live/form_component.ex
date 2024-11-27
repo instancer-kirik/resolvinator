@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.ProjectLive.FormComponent do
   use ResolvinatorWeb, :live_component
 
   alias Resolvinator.Projects
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias ResolvinatorWeb.ProjectLive.SettingsModalComponent
 
   @impl true

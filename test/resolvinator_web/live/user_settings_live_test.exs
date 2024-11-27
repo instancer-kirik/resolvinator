@@ -1,9 +1,9 @@
 defmodule ResolvinatorWeb.UserSettingsLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
   describe "Settings page" do
     test "renders settings page", %{conn: conn} do

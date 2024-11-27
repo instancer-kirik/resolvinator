@@ -17,7 +17,7 @@ defmodule Resolvinator.Schema.ContentFields do
       field :voting, :map, default: %{upvotes: 0, downvotes: 0}
       field :moderation, :map, default: %{status: "pending", reason: nil}
       
-      belongs_to :creator, Resolvinator.Accounts.User, type: :binary_id
+      belongs_to :creator, Resolvinator.Acts.User, type: :binary_id
       belongs_to :project, Resolvinator.Projects.Project, type: :binary_id
     end
   end

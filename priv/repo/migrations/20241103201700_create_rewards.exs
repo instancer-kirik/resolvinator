@@ -22,8 +22,14 @@ defmodule Resolvinator.Repo.Migrations.CreateRewards do
 
       # Relationships
       add :project_id, references(:projects, on_delete: :restrict)
-      add :achiever_id, references(:users, on_delete: :nilify_all)
-      add :creator_id, references(:users, on_delete: :restrict), null: false
+      # Note: achiever_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :achiever_id, :binary_id
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id, null: false
       add :risk_id, references(:risks, on_delete: :restrict)
       add :mitigation_id, references(:mitigations, on_delete: :restrict)
 

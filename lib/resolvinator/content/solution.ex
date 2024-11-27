@@ -12,7 +12,7 @@ defmodule Resolvinator.Content.Solution do
       relationships: [
         many_to_many: [
           users_with_solution: [
-            module: Resolvinator.Accounts.User,
+            module: Resolvinator.Acts.User,
             join_through: "user_solutions",
             join_keys: [solution_id: :id, user_id: :id],
             on_replace: :delete

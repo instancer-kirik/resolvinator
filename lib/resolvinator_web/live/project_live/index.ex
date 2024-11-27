@@ -3,7 +3,7 @@ defmodule ResolvinatorWeb.ProjectLive.Index do
 
   alias Resolvinator.Projects
   alias Resolvinator.Projects.Project
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   @impl true
   def mount(_params, session, socket) do

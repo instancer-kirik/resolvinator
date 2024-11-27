@@ -1,4 +1,4 @@
-defmodule Resolvinator.Accounts.UserNotifier do
+defmodule Resolvinator.Acts.UserNotifier do
   import Swoosh.Email
 
   alias Resolvinator.Mailer

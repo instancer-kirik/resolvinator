@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.MessageLive.FormComponent do
   use ResolvinatorWeb, :live_component
   alias Resolvinator.Messages
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   @impl true
   def render(assigns) do

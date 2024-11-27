@@ -2,9 +2,9 @@ defmodule ResolvinatorWeb.UserForgotPasswordLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias Resolvinator.Repo
 
   describe "Forgot password page" do

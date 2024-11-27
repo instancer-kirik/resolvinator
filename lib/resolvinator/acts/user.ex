@@ -1,4 +1,4 @@
-defmodule Resolvinator.Accounts.User do
+defmodule Resolvinator.Acts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -184,7 +184,7 @@ defmodule Resolvinator.Accounts.User do
   If there is no user or the user doesn't have a password, we call
   `Pbkdf2.no_user_verify/0` to avoid timing attacks.
   """
-  def valid_password?(%Resolvinator.Accounts.User{hashed_password: hashed_password}, password)
+  def valid_password?(%Resolvinator.Acts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and is_binary(password) do
     IO.inspect(password, label: "Checking password")
     IO.inspect(hashed_password, label: "Against hash")

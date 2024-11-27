@@ -22,7 +22,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       "medium" => "#F0E68C",  # Khaki
       "low" => "#ADD8E6"      # Light blue
     }
-    belongs_to :user, VES.Accounts.User
+    belongs_to :user, Acts.User
     belongs_to :default_color_palette, TimeTracker.Colors.UserColorPalette
 
     has_many :color_palette_assignments, Resolvinator.Scheduling.UserSchedulingPreferencesColorPalette

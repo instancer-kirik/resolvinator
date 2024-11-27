@@ -9,7 +9,10 @@ defmodule Resolvinator.Repo.Migrations.CreateTags do
       add :color, :string
       add :category, :string
       add :metadata, :map, default: %{}
-      add :creator_id, references(:users, on_delete: :nilify_all, type: :binary_id)
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id
 
       timestamps(type: :utc_datetime)
     end
@@ -22,7 +25,10 @@ defmodule Resolvinator.Repo.Migrations.CreateTags do
       add :tag_id, references(:tags, on_delete: :delete_all, type: :binary_id), null: false
       add :taggable_id, :binary_id, null: false
       add :taggable_type, :string, null: false
-      add :creator_id, references(:users, on_delete: :nilify_all, type: :binary_id)
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id
 
       timestamps(type: :utc_datetime)
     end

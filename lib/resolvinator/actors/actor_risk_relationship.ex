@@ -12,7 +12,7 @@ defmodule Resolvinator.Actors.ActorRiskRelationship do
 
     belongs_to :actor, Resolvinator.Actors.Actor
     belongs_to :risk, Resolvinator.Risks.Risk
-    belongs_to :creator, VES.Accounts.User
+    belongs_to :creator, Acts.User
 
     timestamps(type: :utc_datetime)
   end

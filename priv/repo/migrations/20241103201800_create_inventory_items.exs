@@ -25,7 +25,10 @@ defmodule Resolvinator.Repo.Migrations.CreateInventoryItems do
       add :next_restock_date, :date
       add :supplier_info, :map
 
-      add :creator_id, references(:users, on_delete: :nilify_all, type: :binary_id)
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id
       add :project_id, references(:projects, on_delete: :restrict, type: :binary_id)
 
       timestamps(type: :utc_datetime)

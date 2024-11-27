@@ -23,7 +23,7 @@ defmodule Resolvinator.Resources.InventoryItems.InventoryItem do
       relationships: [
         many_to_many: [
           users: [
-            module: Resolvinator.Accounts.User,
+            module: Resolvinator.Acts.User,
             join_through: "user_inventories",
             join_keys: [inventory_item_id: :id, user_id: :id],
             on_replace: :delete,

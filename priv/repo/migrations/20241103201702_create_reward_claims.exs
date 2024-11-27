@@ -8,8 +8,14 @@ defmodule Resolvinator.Repo.Migrations.CreateRewardClaims do
       add :evidence, :map
       add :reviewed_at, :utc_datetime
       add :reward_id, references(:rewards, on_delete: :delete_all), null: false
-      add :user_id, references(:users, on_delete: :delete_all), null: false
-      add :reviewed_by_id, references(:users, on_delete: :nilify_all)
+      # Note: user_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :user_id, :binary_id, null: false
+      # Note: reviewed_by_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :reviewed_by_id, :binary_id
 
       timestamps(type: :utc_datetime)
     end

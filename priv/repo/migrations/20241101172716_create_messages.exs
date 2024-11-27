@@ -6,8 +6,14 @@ defmodule Resolvinator.Repo.Migrations.CreateMessages do
       add :id, :binary_id, primary_key: true
       add :content, :text
       add :read, :boolean, default: false, null: false
-      add :from_user_id, references(:users, on_delete: :nothing)
-      add :to_user_id, references(:users, on_delete: :nothing)
+      # Note: from_user_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :from_user_id, :binary_id
+      # Note: to_user_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :to_user_id, :binary_id
 
       timestamps(type: :utc_datetime)
     end

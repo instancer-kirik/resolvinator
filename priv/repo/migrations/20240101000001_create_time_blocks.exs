@@ -10,7 +10,10 @@ defmodule Resolvinator.Repo.Migrations.CreateTimeBlocks do
       add :block_type, :string
       add :recurrence_rule, :string
       add :status, :string, null: false, default: "scheduled"
-      add :user_id, references(:users, on_delete: :delete_all), null: false
+      # Note: user_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :user_id, :binary_id, null: false
       add :task_id, references(:tasks, on_delete: :nilify_all)
       add :project_id, references(:projects, on_delete: :nilify_all)
       add :calendar_event_id, :string

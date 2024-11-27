@@ -15,7 +15,10 @@ defmodule Resolvinator.Repo.Migrations.CreateRisks do
       add :review_date, :date
       add :category_id, references(:risk_categories, type: :binary_id)
       
-      add :creator_id, references(:users, on_delete: :restrict), null: false
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id, null: false
       add :project_id, references(:projects, on_delete: :restrict)
       add :risk_category_id, references(:risk_categories, on_delete: :nilify_all)
 

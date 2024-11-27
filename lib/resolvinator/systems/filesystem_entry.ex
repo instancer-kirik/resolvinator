@@ -17,7 +17,7 @@ defmodule Resolvinator.Systems.FilesystemEntry do
     field :metadata, :map, default: %{}
 
     belongs_to :system, Resolvinator.Systems.System
-    belongs_to :creator, VES.Accounts.User, type: :binary_id
+    belongs_to :creator, Acts.User, type: :binary_id
     belongs_to :parent, __MODULE__
     has_many :children, __MODULE__, foreign_key: :parent_id
 

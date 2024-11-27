@@ -10,8 +10,8 @@ defmodule Resolvinator.Risks.MitigationTask do
     field :completion_date, :date
     
     belongs_to :mitigation, Resolvinator.Risks.Mitigation
-    belongs_to :creator, Resolvinator.Accounts.User
-    belongs_to :assignee, Resolvinator.Accounts.User
+    belongs_to :creator, Resolvinator.Acts.User
+    belongs_to :assignee, Resolvinator.Acts.User
 
     timestamps(type: :utc_datetime)
   end

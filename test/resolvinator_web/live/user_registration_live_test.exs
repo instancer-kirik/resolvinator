@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.UserRegistrationLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
   describe "Registration page" do
     test "renders registration page", %{conn: conn} do

@@ -12,7 +12,10 @@ defmodule Resolvinator.Repo.Migrations.CreateProjects do
       add :target_date, :date
       add :completion_date, :date
       add :settings, :map, default: %{}
-      add :creator_id, references(:users, type: :binary_id, on_delete: :restrict), null: false
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id, null: false
 
       timestamps(type: :utc_datetime)
     end

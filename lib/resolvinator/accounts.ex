@@ -1,12 +1,12 @@
-defmodule Resolvinator.Accounts do
+defmodule Resolvinator.Acts do
   @moduledoc """
   The Accounts context.
-  Delegates to VES.Accounts for core user management while handling Resolvinator-specific concerns.
+  Delegates to Acts for core user management while handling Resolvinator-specific concerns.
   """
 
   import Ecto.Query, warn: false
-  alias VES.Accounts
-  alias VES.Accounts.User
+  alias Acts
+  alias Acts.User
   alias VES.Repo
 
   @doc """

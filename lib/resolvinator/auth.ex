@@ -3,8 +3,8 @@ defmodule Resolvinator.Auth do
   Authentication context for token verification and related functions.
   """
 
-  alias Resolvinator.Accounts
-  alias Resolvinator.Accounts.UserToken
+  alias Resolvinator.Acts
+  alias Resolvinator.Acts.UserToken
 
   @doc """
   Verifies a token and returns the associated user claims.

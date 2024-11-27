@@ -2,9 +2,9 @@ defmodule ResolvinatorWeb.UserResetPasswordLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   setup do
     user = user_fixture()

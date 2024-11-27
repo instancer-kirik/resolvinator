@@ -1,7 +1,7 @@
-defmodule Resolvinator.Accounts.UserToken do
+defmodule Resolvinator.Acts.UserToken do
   use Ecto.Schema
   import Ecto.Query
-  alias Resolvinator.Accounts.UserToken
+  alias Resolvinator.Acts.UserToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -20,7 +20,7 @@ defmodule Resolvinator.Accounts.UserToken do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :user, Resolvinator.Accounts.User
+    belongs_to :user, Resolvinator.Acts.User
 
     timestamps(updated_at: false)
   end

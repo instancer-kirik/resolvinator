@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserSessionController do
   use ResolvinatorWeb, :controller
 
-  alias VES.Accounts
+  alias Acts
   alias ResolvinatorWeb.UserAuth
 
   def create(conn, %{"_action" => "registered"} = params) do

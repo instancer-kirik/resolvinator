@@ -2,8 +2,8 @@ defmodule ResolvinatorWeb.GithubAuth do
   import Plug.Conn
 
   alias Assent.{Config, Strategy.Github}
-  alias VES.Accounts
-  alias VES.Accounts.User
+  alias Acts
+  alias Acts.User
 
   @doc """
   Initiates the GitHub OAuth flow by redirecting to GitHub's authorization URL.

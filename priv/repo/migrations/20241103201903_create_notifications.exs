@@ -11,8 +11,14 @@ defmodule Resolvinator.Repo.Migrations.CreateNotifications do
       add :priority, :string, default: "normal"
       add :metadata, :map, default: %{}
       add :read_at, :utc_datetime
-      add :user_id, references(:users, on_delete: :delete_all, type: :binary_id), null: false
-      add :actor_id, references(:users, on_delete: :nilify_all, type: :binary_id)
+      # Note: user_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :user_id, :binary_id, null: false
+      # Note: actor_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :actor_id, :binary_id
       add :project_id, references(:projects, on_delete: :nilify_all, type: :binary_id)
 
       timestamps(type: :utc_datetime)

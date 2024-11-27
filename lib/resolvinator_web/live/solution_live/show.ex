@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.SolutionLive.Show do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Content
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   on_mount {ResolvinatorWeb.UserAuth, :mount_current_user}
 

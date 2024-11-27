@@ -5,7 +5,7 @@ defmodule Resolvinator.Content.RiskCategory do
   schema "risk_categories" do
     field :name, :string
     field :description, :string
-    belongs_to :creator, VES.Accounts.User
+    belongs_to :creator, Acts.User
     belongs_to :project, Resolvinator.Projects.Project
 
     timestamps()

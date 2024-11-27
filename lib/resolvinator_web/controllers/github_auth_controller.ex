@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.GithubAuthController do
   use ResolvinatorWeb, :controller
 
-  alias VES.Accounts
+  alias Acts
   alias ResolvinatorWeb.UserAuth
 
   @doc """

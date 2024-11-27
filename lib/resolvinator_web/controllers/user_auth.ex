@@ -4,7 +4,7 @@
   import Plug.Conn
   import Phoenix.Controller
 
-  alias VES.Accounts
+  alias Acts
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change

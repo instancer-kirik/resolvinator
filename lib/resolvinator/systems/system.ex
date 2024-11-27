@@ -2,7 +2,7 @@ defmodule Resolvinator.Systems.System do
   use Resolvinator.Schema
   import Ecto.Changeset
   alias Resolvinator.Projects.Project
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Systems.{Component, Incident, MaintenanceRecord, FilesystemEntry, ProjectConfig, System}
 
   @primary_key {:id, :id, autogenerate: true}

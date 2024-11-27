@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.UserRegistrationController do
   use ResolvinatorWeb, :controller
 
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias ResolvinatorWeb.UserAuth
 
   def create(conn, params) do

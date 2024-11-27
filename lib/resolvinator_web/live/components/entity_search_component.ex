@@ -1,6 +1,6 @@
 defmodule ResolvinatorWeb.Components.EntitySearchComponent do
   use ResolvinatorWeb, :live_component
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias Resolvinator.Projects
 
   @impl true

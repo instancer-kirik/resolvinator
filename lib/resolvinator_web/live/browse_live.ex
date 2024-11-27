@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.BrowseLive do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Browse
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
 
   @impl true
   def mount(_params, session, socket) do

@@ -8,7 +8,10 @@ defmodule Resolvinator.Repo.Migrations.CreateAnswerRevisions do
       add :version, :integer
       add :change_summary, :string
       add :answer_id, references(:answers, type: :binary_id, on_delete: :delete_all)
-      add :creator_id, references(:users, type: :binary_id, on_delete: :nilify_all)
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id
 
       timestamps(type: :utc_datetime)
     end

@@ -31,7 +31,10 @@ defmodule Resolvinator.Repo.Migrations.CreateEtymologyTerms do
       add :domain_specific_definitions, :map
 
       # Common relationships
-      add :creator_id, references(:users, type: :binary_id)
+      # Note: creator_id references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :creator_id, :binary_id
       add :project_id, references(:projects, type: :binary_id)
 
       timestamps(type: :utc_datetime)

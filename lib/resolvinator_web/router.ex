@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.Router do
   use ResolvinatorWeb, :router
 
-  import VES.Accounts.Plugs.AuthPlug
+  import Acts.Plugs.AuthPlug
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -10,7 +10,7 @@ defmodule ResolvinatorWeb.Router do
     plug :put_root_layout, html: {ResolvinatorWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug VES.Accounts.Plugs.AuthPlug
+    plug Acts.Plugs.AuthPlug
   end
 
   pipeline :api do

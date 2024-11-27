@@ -1,7 +1,7 @@
 defmodule ResolvinatorWeb.API.SessionController do
   use ResolvinatorWeb, :controller
   
-  alias VES.Accounts
+  alias Acts
   alias VES.Guardian
 
   def create(conn, %{"email" => email, "password" => password}) do

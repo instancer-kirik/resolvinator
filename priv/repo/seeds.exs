@@ -3,7 +3,7 @@
 #     mix run priv/repo/seeds.exs
 #
 alias Resolvinator.Repo
-alias Resolvinator.Accounts
+alias Resolvinator.Acts
 alias Resolvinator.Content.{Problem, Solution, Advantage, Lesson, Question, Answer, Theorem}
 alias Resolvinator.Projects
 alias Resolvinator.Risks

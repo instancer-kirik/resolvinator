@@ -18,7 +18,10 @@ defmodule Resolvinator.Repo.Migrations.UpdateRiskCategories do
       # Add tracking fields if they don't exist
       add_if_not_exists :hidden, :boolean, default: false
       add_if_not_exists :hidden_at, :utc_datetime
-      add_if_not_exists :hidden_by_id, references(:users, type: :binary_id)
+      # Note:  references resolvinator_accounts_fdw.users but we cannot use a foreign key
+      # constraint because PostgreSQL does not support foreign keys to foreign tables.
+      # Referential integrity will be handled at the application level.
+      add :, :binary_id
       add_if_not_exists :deleted_at, :utc_datetime
     end
 

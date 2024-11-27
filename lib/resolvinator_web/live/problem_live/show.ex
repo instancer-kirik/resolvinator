@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.ProblemLive.Show do
   use ResolvinatorWeb, :live_view
 
   alias Resolvinator.Content
-  alias Resolvinator.Accounts
+  alias Resolvinator.Acts
   alias Resolvinator.Fabric.{RiskAnalysis, Lakehouse}
 
   on_mount {ResolvinatorWeb.UserAuth, :mount_current_user}

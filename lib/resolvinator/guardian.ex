@@ -1,8 +1,8 @@
 defmodule Resolvinator.Guardian do
   use Guardian, otp_app: :resolvinator
 
-  alias VES.Accounts
-  alias VES.Accounts.User
+  alias Acts
+  alias Acts.User
   alias VES.Web3.Wallet
 
   @token_types %{

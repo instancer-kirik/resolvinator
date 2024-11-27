@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.APIAuthPlug do
   import Plug.Conn
   import Phoenix.Controller
 
-  alias VES.Accounts
+  alias Acts
 
   def init(opts), do: opts
 

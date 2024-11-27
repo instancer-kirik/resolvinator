@@ -14,7 +14,7 @@ defmodule Resolvinator.Comments.Comment do
     field :commentable_id, :binary_id
 
     belongs_to :parent, __MODULE__
-    belongs_to :creator, VES.Accounts.User
+    belongs_to :creator, Acts.User
     has_many :replies, __MODULE__, foreign_key: :parent_id
 
     timestamps(type: :utc_datetime)

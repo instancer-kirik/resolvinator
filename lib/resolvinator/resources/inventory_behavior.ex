@@ -24,7 +24,7 @@ defmodule Resolvinator.Resources.InventoryBehavior do
         field :notes, :string
 
         # Common relationships
-        belongs_to :creator, VES.Accounts.User
+        belongs_to :creator, Acts.User
         belongs_to :project, Resolvinator.Projects.Project
 
         # Additional schema fields provided by the implementing module

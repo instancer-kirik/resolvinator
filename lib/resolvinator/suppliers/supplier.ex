@@ -1,7 +1,7 @@
 defmodule Resolvinator.Suppliers.Supplier do
   use Resolvinator.Schema
   import Ecto.Changeset
-  alias VES.Accounts.User
+  alias Acts.User
   alias Resolvinator.Suppliers.{Contact, Catalog}
   alias Resolvinator.Resources.InventorySource
 

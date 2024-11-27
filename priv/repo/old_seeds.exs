@@ -16,7 +16,7 @@
 
 alias Resolvinator.Repo
 
-alias Resolvinator.Accounts.User
+alias Resolvinator.Acts.User
 alias Resolvinator.Content.{Problem, Solution, Lesson, Advantage, Gesture, Description, UserHiddenDescription}
 # priv/repo/seeds.exs
 import Pbkdf2, only: [hash_pwd_salt: 1]

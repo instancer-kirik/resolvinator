@@ -2,7 +2,7 @@ defmodule ResolvinatorWeb.UserLoginLiveTest do
   use ResolvinatorWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import Resolvinator.AccountsFixtures
+  import Resolvinator.ActsFixtures
 
   describe "Log in page" do
     test "renders log in page", %{conn: conn} do
