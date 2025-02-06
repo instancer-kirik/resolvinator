@@ -1,8 +1,10 @@
 # Dependencies
 /node_modules/
 /assets/node_modules/
-
+.elixir_ls/
 # Elixir-specific ignores
+.elixir-tools
+_build/
 /_build/
 /deps/
 # If you run "mix test --cover", coverage assets end up here.
