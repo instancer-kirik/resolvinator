@@ -13,14 +13,14 @@ defmodule Resolvinator.Risks.Category do
     field :status, :string, default: "active"
     field :metadata, :map, default: %{}
 
-    field :assessment_criteria, {:map, default: %{
+    field :assessment_criteria, :map, default: %{
       "probability_factors" => [],
       "impact_factors" => [],
       "mitigation_guidelines" => [],
       "review_frequency_days" => 30
-    }}
+    }
 
-    field :hidden, {:boolean, default: false}
+    field :hidden, :boolean, default: false
     field :hidden_at, :utc_datetime
     field :deleted_at, :utc_datetime
 

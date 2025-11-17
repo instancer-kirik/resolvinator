@@ -187,31 +187,31 @@ defmodule Resolvinator.Content.ContentBehavior do
           {name, type} ->
             quote do: field(unquote(name), unquote(type))
         end)
-      
+
       {:embeds_many, embeds} ->
         Enum.map(embeds, fn {name, opts} ->
           module = opts[:schema]
           quote do: embeds_many(unquote(name), unquote(module))
         end)
-      
+
       {:embeds_one, embeds} ->
         Enum.map(embeds, fn {name, opts} ->
           module = opts[:module] || opts[:schema]
           quote do: embeds_one(unquote(name), unquote(module))
         end)
-      
+
       {:relationships, rels} ->
         Enum.flat_map(rels, fn
           {:belongs_to, items} ->
             Enum.map(items, fn {name, opts} ->
               quote do: belongs_to(unquote(name), unquote(opts[:module]))
             end)
-          
+
           {:has_many, items} ->
             Enum.map(items, fn {name, opts} ->
               quote do: has_many(unquote(name), unquote(opts[:module]))
             end)
-          
+
           {:many_to_many, items} ->
             Enum.map(items, fn {name, opts} ->
               quote do
@@ -222,7 +222,7 @@ defmodule Resolvinator.Content.ContentBehavior do
               end
             end)
         end)
-      
+
       _ -> []
     end)
   end

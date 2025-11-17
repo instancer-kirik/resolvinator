@@ -1,12 +1,12 @@
-defmodule ComputinatorWeb.SchemeLive do
-	use ComputinatorWeb, :live_view
+defmodule ExternalProjToolWeb.SchemeLive do
+	use ExternalProjToolWeb, :live_view
 	alias Phoenix.PubSub
 
 	@topic "scheme"
 
 	def mount(_params, _session, socket) do
 		if connected?(socket) do
-			PubSub.subscribe(Computinator.PubSub, @topic)
+			PubSub.subscribe(ExternalProjTool.PubSub, @topic)
 		end
 
 		{:ok,
@@ -28,13 +28,13 @@ defmodule ComputinatorWeb.SchemeLive do
 			metadata: %{}
 		}
 
-		PubSub.broadcast(Computinator.PubSub, @topic, {:node_created, node})
+		PubSub.broadcast(ExternalProjTool.PubSub, @topic, {:node_created, node})
 
 		{:noreply, update(socket, :nodes, &Map.put(&1, node.id, node))}
 	end
 
 	def handle_event("move_node", %{"id" => id, "x" => x, "y" => y}, socket) do
-		PubSub.broadcast(Computinator.PubSub, @topic, {:node_moved, id, %{x: x, y: y}})
+		PubSub.broadcast(ExternalProjTool.PubSub, @topic, {:node_moved, id, %{x: x, y: y}})
 
 		{:noreply,
 		 update(socket, :nodes, fn nodes ->
@@ -43,7 +43,7 @@ defmodule ComputinatorWeb.SchemeLive do
 	end
 
 	def handle_event("connect_nodes", %{"source" => source_id, "target" => target_id}, socket) do
-		PubSub.broadcast(Computinator.PubSub, @topic, {:nodes_connected, source_id, target_id})
+		PubSub.broadcast(ExternalProjTool.PubSub, @topic, {:nodes_connected, source_id, target_id})
 
 		{:noreply,
 		 update(socket, :nodes, fn nodes ->
@@ -84,11 +84,11 @@ defmodule ComputinatorWeb.SchemeLive do
 				<button phx-click="export">Export</button>
 			</div>
 
-			<div class="canvas" 
+			<div class="canvas"
 					 phx-hook="SchemeCanvas"
 					 id="scheme-canvas">
 				<%= for {id, node} <- @nodes do %>
-					<div class="node" 
+					<div class="node"
 							 id={"node-#{id}"}
 							 data-id={id}
 							 style={"left: #{node.position.x}px; top: #{node.position.y}px"}
@@ -103,7 +103,7 @@ defmodule ComputinatorWeb.SchemeLive do
 
 				<%= for {_id, node} <- @nodes, target_id <- node.connections do %>
 					<svg class="connection">
-						<line x1={node.position.x} 
+						<line x1={node.position.x}
 									y1={node.position.y}
 									x2={@nodes[target_id].position.x}
 									y2={@nodes[target_id].position.y}

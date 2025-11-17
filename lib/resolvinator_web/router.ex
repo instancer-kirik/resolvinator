@@ -2,6 +2,7 @@ defmodule ResolvinatorWeb.Router do
   use ResolvinatorWeb, :router
 
   import Acts.Plugs.AuthPlug
+  import ResolvinatorWeb.UserAuth
 
   pipeline :browser do
     plug :accepts, ["html"]

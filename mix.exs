@@ -9,7 +9,7 @@ defmodule Resolvinator.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.14",
+      elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -37,7 +37,8 @@ defmodule Resolvinator.MixProject do
   def application do
     [
       mod: {Resolvinator.Application, []},
-      extra_applications: [:logger, :runtime_tools, :os_mon]
+      extra_applications: [:logger, :runtime_tools, :os_mon],
+      applications: [:acts]
     ]
   end
 
@@ -67,9 +68,18 @@ defmodule Resolvinator.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
 
+      # Email
+      {:swoosh, "~> 1.15"},
+      {:gen_smtp, "~> 1.0"},
+
+      # Schema
+      {:flint, "~> 0.6.0"},
+
       # Umbrella dependencies
+      {:acts, in_umbrella: true},
       {:blockchain_core, in_umbrella: true},
-      {:blockchain_tokens, in_umbrella: true}
+      {:blockchain_tokens, in_umbrella: true},
+      {:finch, "~> 0.13"}
     ]
   end
 

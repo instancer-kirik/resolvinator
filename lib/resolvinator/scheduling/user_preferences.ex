@@ -31,7 +31,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
     timestamps()
   end
 
-  @required_fields [:work_hours, :time_zone, :work_days, :break_preferences, 
+  @required_fields [:work_hours, :time_zone, :work_days, :break_preferences,
                    :focus_time_preferences, :energy_levels, :user_id]
   @optional_fields [:block_type_colors, :energy_level_colors, :default_color_palette_id]
 
@@ -51,16 +51,33 @@ defmodule Resolvinator.Scheduling.UserPreferences do
     |> foreign_key_constraint(:default_color_palette_id)
   end
 
-  defp validate_time_range(changeset) do
-    case {get_field(changeset, :work_start_time), get_field(changeset, :work_end_time)} do
-      {start_time, end_time} when not is_nil(start_time) and not is_nil(end_time) ->
-        if Time.compare(end_time, start_time) == :gt do
-          changeset
-        else
-          add_error(changeset, :work_end_time, "must be after work start time")
+  defp validate_work_hours(changeset) do
+    case get_field(changeset, :work_hours) do
+      %{"start" => start, "end" => end_time} when is_binary(start) and is_binary(end_time) ->
+        case {Time.from_iso8601(start <> ":00"), Time.from_iso8601(end_time <> ":00")} do
+          {{:ok, start_time}, {:ok, end_time}} ->
+            if Time.compare(end_time, start_time) == :gt do
+              changeset
+            else
+              add_error(changeset, :work_hours, "end time must be after start time")
+            end
+          _ ->
+            add_error(changeset, :work_hours, "must contain valid time values")
         end
       _ ->
-        changeset
+        add_error(changeset, :work_hours, "must contain start and end times")
+    end
+  end
+
+  defp validate_time_zone(changeset) do
+    case get_field(changeset, :time_zone) do
+      time_zone when is_binary(time_zone) ->
+        case DateTime.now(time_zone) do
+          {:ok, _} -> changeset
+          {:error, _} -> add_error(changeset, :time_zone, "must be a valid time zone")
+        end
+      _ ->
+        add_error(changeset, :time_zone, "must be a string")
     end
   end
 
@@ -78,21 +95,23 @@ defmodule Resolvinator.Scheduling.UserPreferences do
     end
   end
 
-  defp validate_energy_hours(changeset) do
-    fields = [:high_energy_hours, :medium_energy_hours, :low_energy_hours]
-    
-    Enum.reduce(fields, changeset, fn field, acc ->
-      case get_field(acc, field) do
-        hours when is_list(hours) ->
-          if Enum.all?(hours, &(&1 in 0..23)) do
-            acc
-          else
-            add_error(acc, field, "must contain valid hours (0-23)")
-          end
-        _ ->
-          acc
-      end
-    end)
+  defp validate_energy_levels(changeset) do
+    case get_field(changeset, :energy_levels) do
+      %{"high" => high, "medium" => medium, "low" => low} = levels
+      when is_list(high) and is_list(medium) and is_list(low) ->
+        valid_hours? = Enum.all?(
+          List.flatten([high, medium, low]),
+          &(is_integer(&1) and &1 >= 0 and &1 <= 23)
+        )
+
+        if valid_hours? do
+          changeset
+        else
+          add_error(changeset, :energy_levels, "must contain valid hour values (0-23)")
+        end
+      _ ->
+        add_error(changeset, :energy_levels, "must contain high, medium, and low hour lists")
+    end
   end
 
   defp validate_break_preferences(changeset) do
@@ -123,7 +142,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
     end
   end
 
-  defp validate_focus_preferences(changeset) do
+  defp validate_focus_time_preferences(changeset) do
     case get_field(changeset, :focus_time_preferences) do
       %{
         "preferred_times" => times,
@@ -155,7 +174,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       nil -> changeset
       colors when is_map(colors) ->
         required_types = ~w(work meeting focus break planning review)
-        if Enum.all?(Map.keys(colors), &(&1 in required_types)) && 
+        if Enum.all?(Map.keys(colors), &(&1 in required_types)) &&
            Enum.all?(colors, fn {_, color} -> valid_hex_color?(color) end) do
           changeset
         else
@@ -170,7 +189,7 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       nil -> changeset
       colors when is_map(colors) ->
         required_levels = ~w(high medium low)
-        if Enum.all?(Map.keys(colors), &(&1 in required_levels)) && 
+        if Enum.all?(Map.keys(colors), &(&1 in required_levels)) &&
            Enum.all?(colors, fn {_, color} -> valid_hex_color?(color) end) do
           changeset
         else
@@ -216,10 +235,10 @@ defmodule Resolvinator.Scheduling.UserPreferences do
       :block_type -> :block_type_colors
       :energy_level -> :energy_level_colors
     end
-    
+
     current_colors = Map.get(preferences, field) || %{}
     updated_colors = Map.put(current_colors, key, color)
-    
+
     preferences
     |> Ecto.Changeset.change(%{field => updated_colors})
     |> Resolvinator.Repo.update()

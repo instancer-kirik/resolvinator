@@ -2,6 +2,7 @@ defmodule Resolvinator.Projects.Project do
   use Ecto.Schema
   import Ecto.Changeset
   alias Resolvinator.Projects.{NestedTerm, ProjectType}
+  alias Acts.User
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -18,7 +19,7 @@ defmodule Resolvinator.Projects.Project do
     field :start_date, :date
     field :target_date, :date
     field :completion_date, :date
-    
+
     # Project-specific settings
     field :settings, :map, default: %{
       # Project metadata
@@ -91,10 +92,12 @@ defmodule Resolvinator.Projects.Project do
     has_many :nested_terms, NestedTerm
     has_many :root_terms, NestedTerm, where: [parent_id: nil]
 
+    belongs_to :creator, User, type: :binary_id
+
     timestamps()
   end
 
-  @required_fields ~w(name project_type)a
+  @required_fields ~w(name project_type creator_id)a
   @optional_fields ~w(description status risk_appetite start_date target_date completion_date settings)a
 
   @doc false
@@ -114,7 +117,7 @@ defmodule Resolvinator.Projects.Project do
   """
   def get_nested_term(project, path) when is_list(path) do
     Enum.find(project.nested_terms, fn term ->
-      term.path == Enum.slice(path, 0..-2) and term.key == List.last(path)
+      term.path == Enum.slice(path, 0..-2//-1) and term.key == List.last(path)
     end)
   end
 
@@ -124,13 +127,13 @@ defmodule Resolvinator.Projects.Project do
   def put_nested_term(project, path, value) when is_list(path) do
     attrs = %{
       key: List.last(path),
-      path: Enum.slice(path, 0..-2),
+      path: Enum.slice(path, 0..-2//-1),
       value: value,
       project_id: project.id
     }
 
     case get_nested_term(project, path) do
-      nil -> 
+      nil ->
         %NestedTerm{} |> NestedTerm.changeset(attrs)
       existing ->
         existing |> NestedTerm.changeset(attrs)
@@ -141,7 +144,7 @@ defmodule Resolvinator.Projects.Project do
 
   defp validate_project_type(changeset) do
     project_type = get_field(changeset, :project_type)
-    
+
     if project_type && ProjectType.valid_type?(project_type) do
       changeset
     else
@@ -182,6 +185,6 @@ defmodule Resolvinator.Projects.Project do
     required_keys = ~w(metadata development structure config)
     Enum.all?(required_keys, &Map.has_key?(settings, &1))
   end
-  
+
   defp valid_settings?(_settings), do: false
 end

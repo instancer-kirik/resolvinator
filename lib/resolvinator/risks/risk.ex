@@ -38,6 +38,19 @@ defmodule Resolvinator.Risks.Risk do
     timestamps(type: :utc_datetime)
   end
 
+  defp base_changeset(risk, attrs) do
+    risk
+    |> cast(attrs, [:metadata])
+    |> validate_metadata()
+  end
+
+  defp validate_metadata(changeset) do
+    case get_field(changeset, :metadata) do
+      metadata when is_map(metadata) -> changeset
+      _ -> add_error(changeset, :metadata, "must be a map")
+    end
+  end
+
   def changeset(risk, attrs) do
     risk
     |> base_changeset(attrs)
